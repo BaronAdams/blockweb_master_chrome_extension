@@ -12,11 +12,7 @@ dist
 release
 dist-ssr
 *.local
-.env
-.env.production
-.env.staging
-.env.local
-.env.development
+.env*
 
 # Editor directories and files
 .vscode/*
