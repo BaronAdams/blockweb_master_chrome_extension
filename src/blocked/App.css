@@ -1,0 +1,56 @@
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #030303;
+  color: #e5e5e5;
+}
+*{
+  font-family: 'Inter', sans-serif;
+}
+
+/* Animation subtile du cadenas (flottement) */
+.lock-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-12px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+/* Animation de l'aura derrière le cadenas */
+.glow-pulse {
+  animation: pulse-glow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    opacity: 0.1;
+    transform: scale(0.95);
+  }
+
+  50% {
+    opacity: 0.25;
+    transform: scale(1.1);
+  }
+}
+
+/* Fond grille subtil */
+.bg-grid {
+  background-size: 50px 50px;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  mask-image: radial-gradient(circle at center, black, transparent 80%);
+  -webkit-mask-image: radial-gradient(circle at center, black, transparent 80%);
+}
