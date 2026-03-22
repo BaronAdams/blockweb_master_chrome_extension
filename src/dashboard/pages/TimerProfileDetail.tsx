@@ -130,16 +130,18 @@ const TimerProfileDetail = () => {
                 </div>
 
                 <div className="flex items-center gap-2">
-                    {/* Toggle actif/inactif */}
-                    <div className="relative flex items-center">
+                    {/* Toggle actif/inactif
+                        En mode strict : activation autorisée, désactivation interdite */}
+                    <div className="relative flex items-center"
+                        title={state?.strictModeUntil && isEnabled ? 'Impossible de désactiver en mode strict' : ''}>
                         <input type="checkbox" name="toggle-profile" id="toggle-profile"
                             checked={isEnabled}
-                            disabled={state?.strictModeUntil != null}
+                            disabled={!!(state?.strictModeUntil && isEnabled)}
                             onChange={(e) => {
                                 setIsEnabled(e.target.checked)
                                 fetcher.submit({}, { method: 'post', action: 'toggle' })
                             }}
-                            className={`toggle-checkbox absolute ${isEnabled ? 'right-0' : 'left-0'} block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-zinc-700 transition-all duration-300 z-20`}
+                            className={`toggle-checkbox absolute ${isEnabled ? 'right-0' : 'left-0'} block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-zinc-700 transition-all duration-300 z-20 disabled:cursor-not-allowed`}
                         />
                         <label htmlFor="toggle-profile" className="toggle-label block overflow-hidden h-5 w-10 rounded-full bg-zinc-800 cursor-pointer border border-zinc-700 transition-colors duration-300" />
                     </div>
@@ -199,7 +201,7 @@ const TimerProfileDetail = () => {
                                     <span className="text-sm text-zinc-500">/ {formatDuration(limitMs)}</span>
                                 )}
                                 {!hasLimit && cfg.type === 'interval' && (
-                                    <span className="text-xs text-zinc-400 italic">
+                                    <span className="text-xs text-zinc-600 italic">
                                         {inScope ? 'Blocage actif' : 'Hors plage'}
                                     </span>
                                 )}
@@ -216,9 +218,9 @@ const TimerProfileDetail = () => {
                         <div className="h-2 w-full bg-black rounded-full overflow-hidden border border-zinc-800/50">
                             <div
                                 className={`h-full rounded-full transition-all duration-500 ${!isEnabled ? 'bg-zinc-600'
-                                    : !inScope ? 'bg-zinc-700'
-                                        : exceeded ? 'bg-red-500'
-                                            : 'bg-white'
+                                        : !inScope ? 'bg-zinc-700'
+                                            : exceeded ? 'bg-red-500'
+                                                : 'bg-white'
                                     }`}
                                 style={{ width: `${percent}%` }}
                             />
@@ -240,11 +242,11 @@ const TimerProfileDetail = () => {
                     <div className={`w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center mb-1 ${meta.color}`}>
                         <Icon icon={meta.icon} width="24" />
                     </div>
-                    <span className="text-sm font-medium text-white">{summary.detail}</span>
+                    <span className="text-sm font-semibold text-white">{summary.detail}</span>
                     {summary.extra && (
                         <span className="text-[10px] text-zinc-500 leading-relaxed">{summary.extra}</span>
                     )}
-                    <span className="text-[10px] text-zinc-400 uppercase mt-1">
+                    <span className="text-[10px] text-zinc-600 uppercase mt-1">
                         {currentProfile.sites.length} site{currentProfile.sites.length > 1 ? 's' : ''} surveillé{currentProfile.sites.length > 1 ? 's' : ''}
                     </span>
                 </div>
@@ -272,7 +274,7 @@ const TimerProfileDetail = () => {
                                             <p className="text-xs text-zinc-300">
                                                 {rule.allDay ? 'Toute la journée' : `${rule.startTime} – ${rule.endTime}`}
                                             </p>
-                                            <p className="text-[10px] text-zinc-400 mt-0.5">
+                                            <p className="text-[10px] text-zinc-600 mt-0.5">
                                                 {rule.days.map(d => DAY_LABELS[d as WeekDay]).join(', ')}
                                             </p>
                                         </div>

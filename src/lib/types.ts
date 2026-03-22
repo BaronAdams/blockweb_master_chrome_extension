@@ -26,11 +26,13 @@ export type SubscriptionState = {
 // ─── Usage ────────────────────────────────────────────────────────────────────
 
 export type SiteUsage = {
-  domain: string;
+  domain:      string;
   totalTimeMs: number;
   todayTimeMs: number;
-  lastStart: number | null;
-  lastDay: string; // YYYY-MM-DD
+  lastStart:   number | null;
+  lastDay:     string; // YYYY-MM-DD
+  /** Historique des 30 derniers jours : { 'YYYY-MM-DD': timeMs } */
+  history:     Record<string, number>;
 };
 
 // ─── Profile configs ──────────────────────────────────────────────────────────
@@ -135,4 +137,6 @@ export type State = {
   strictDefaultTime:   number;
 
   siteUsage: Record<string, SiteUsage>;
+  /** Temps total de navigation par jour (tous sites) : { 'YYYY-MM-DD': totalMs } */
+  usageHistory: Record<string, number>;
 };

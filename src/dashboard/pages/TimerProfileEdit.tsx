@@ -6,7 +6,7 @@ import {
     AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
     AlertDialogDescription, AlertDialogFooter, AlertDialogHeader,
     AlertDialogMedia,
-    AlertDialogTitle, AlertDialogTrigger,
+    AlertDialogTitle, AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
 import { IntervalRule, Profile, ProfileConfig, TimeRange, WeekDay } from '@/lib/types'
 import { sendToBackground, isValidUrl, normalizeDomain } from '@/lib/utils'
@@ -72,12 +72,13 @@ export async function action({ request, params }: ActionFunctionArgs) {
     }
 
     const profileId = params.profileId as string
-    const res = await sendToBackground({
+    await sendToBackground({
         type: 'EDIT_PROFILE',
         id: profileId,
         data: { name, sites, config },
     })
-    if (res?.success) return redirect(`/profile/${profileId}`)
+
+    return redirect(`/profile/${profileId}`)
 }
 
 /* =========================================================
@@ -89,15 +90,14 @@ function DaySelector({ selected, onChange, disabled }: {
 }) {
     const toggle = (d: WeekDay) =>
         onChange(selected.includes(d) ? selected.filter(x => x !== d) : [...selected, d])
-
     return (
         <div className="flex gap-1.5 flex-wrap">
             {DAY_LABELS.map(({ key, short, label }) => (
                 <button key={key} type="button" title={label} onClick={() => !disabled && toggle(key)}
                     disabled={disabled}
                     className={`w-8 h-8 rounded-lg text-[10px] font-semibold transition-all border disabled:cursor-not-allowed ${selected.includes(key)
-                        ? 'bg-white text-black border-white'
-                        : 'bg-zinc-900 text-zinc-400 border-zinc-700 hover:border-zinc-500'
+                            ? 'bg-white text-black border-white'
+                            : 'bg-zinc-900 text-zinc-400 border-zinc-700 hover:border-zinc-500'
                         }`}>
                     {short}
                 </button>
@@ -474,8 +474,8 @@ const TimerProfileEdit = () => {
                                                         <button key={key} type="button" disabled={isStrict}
                                                             onClick={() => toggleRuleDay(i, key)}
                                                             className={`w-8 h-8 rounded-lg text-[10px] font-semibold transition-all border disabled:cursor-not-allowed ${rule.days.includes(key)
-                                                                ? 'bg-white text-black border-white'
-                                                                : 'bg-zinc-900 text-zinc-400 border-zinc-700'
+                                                                    ? 'bg-white text-black border-white'
+                                                                    : 'bg-zinc-900 text-zinc-400 border-zinc-700'
                                                                 }`}>
                                                             {short}
                                                         </button>

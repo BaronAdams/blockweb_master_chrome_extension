@@ -123,22 +123,21 @@ const BlockLists: React.FC = () => {
 
     const saveCustomUrl = useCallback(async () => {
         const val = customRef.current?.value ?? ''
-        if (val !== '' && !isValidUrl(val)) {
+        if (!isValidUrl(val)) {
             toast.error("L'URL entrée n'est pas valide.")
             return
         }
         const res = await sendToBackground({ type: 'SET_CUSTOM_URL', customRedirectUrl: val })
-        if (res.success){
-            if(val !== '') toast.success('URL de redirection mise à jour.')
-            else toast.success('URL de redirection non défini. Page de redirection par défaut.')
-        } 
-        else toast.error('Une erreur est survenue.')
+        if (res.success) toast.success('URL de redirection mise à jour.')
+        else             toast.error('Une erreur est survenue.')
     }, [])
 
     /* ── Limites ── */
     const domains         = state?.activeBlockedDomains  ?? []
     const keywords        = state?.activeBlockedKeywords ?? []
     const whitelist       = state?.whitelist             ?? []
+    const frozenDomains   = state?.frozenBlockedDomains  ?? []
+    const frozenKeywords  = state?.frozenBlockedKeywords ?? []
     const isPremium       = state?.isPremium             ?? false
     const isStrict        = !!state?.strictModeUntil
 
@@ -147,11 +146,14 @@ const BlockLists: React.FC = () => {
     const domainFull      = !isPremium && domains.length  >= LIMITS.FREE.domains
     const keywordFull     = !isPremium && keywords.length >= LIMITS.FREE.keywords
 
+    // En mode strict : ADD_WHITE bloqué, REMOVE_WHITE autorisé
+    const whiteAddDisabled = isStrict || !isPremium
+
     const checkPremium = () => {
         if (!isPremium) navigate('/pricing')
     }
 
-    /* ── Rendu d'un item domaine ── */
+    /* ── Rendu d'un item domaine actif ── */
     const renderDomain = (domain: string, idx: number) => (
         <li key={`${domain}_${idx}`}
             className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-zinc-900 border border-zinc-800 group hover:border-zinc-700 transition-colors">
@@ -170,7 +172,20 @@ const BlockLists: React.FC = () => {
         </li>
     )
 
-    /* ── Rendu d'un item mot-clé ── */
+    /* ── Rendu d'un item domaine frozen (flou, non interactif) ── */
+    const renderFrozenDomain = (domain: string, idx: number) => (
+        <li key={`frozen_${domain}_${idx}`}
+            className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-zinc-900/50 border border-zinc-800/50 blur-[1.5px] pointer-events-none select-none opacity-60">
+            <div className="flex items-center gap-2.5">
+                <img src={`https://www.google.com/s2/favicons?domain=${domain}&sz=32`}
+                    className="w-4 h-4 opacity-40" alt="" />
+                <span className="text-xs text-zinc-500">{domain}</span>
+            </div>
+            <Icon icon="solar:lock-keyhole-linear" className="text-amber-500/60" width="13" />
+        </li>
+    )
+
+    /* ── Rendu d'un item mot-clé actif ── */
     const renderKeyword = (keyword: string, idx: number) => (
         <li key={`${keyword}_${idx}`}
             className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-zinc-900 border border-zinc-800 group hover:border-zinc-700 transition-colors">
@@ -188,8 +203,19 @@ const BlockLists: React.FC = () => {
         </li>
     )
 
+    /* ── Rendu d'un item mot-clé frozen ── */
+    const renderFrozenKeyword = (keyword: string, idx: number) => (
+        <li key={`frozen_${keyword}_${idx}`}
+            className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-zinc-900/50 border border-zinc-800/50 blur-[1.5px] pointer-events-none select-none opacity-60">
+            <div className="flex items-center gap-2.5">
+                <span className="text-zinc-600/50 font-mono text-xs">#</span>
+                <span className="text-xs text-zinc-500">{keyword}</span>
+            </div>
+            <Icon icon="solar:lock-keyhole-linear" className="text-amber-500/60" width="13" />
+        </li>
+    )
+
     /* ── Rendu d'un item whitelist ── */
-    // On passe l'index RÉEL dans le tableau complet (pas l'index slicé)
     const renderWhite = (w: string, realIdx: number) => (
         <li key={`${w}_${realIdx}`}
             className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-zinc-900 border border-zinc-800 group hover:border-zinc-700 transition-colors">
@@ -199,27 +225,35 @@ const BlockLists: React.FC = () => {
                 <span className="text-xs text-zinc-300">{w}</span>
             </div>
             <button
-                disabled={isStrict}
                 onClick={() => sendToBackground({ type: 'REMOVE_WHITE', index: realIdx })}
-                className="text-zinc-700 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all disabled:cursor-not-allowed"
+                className="text-zinc-700 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all"
             >
                 <Icon icon="solar:trash-bin-trash-linear" width="14" />
             </button>
         </li>
     )
 
-    /* ── Compteur et badge limite ── */
-    const LimitBadge = ({ count, max }: { count: number; max: number }) => {
-        if (max === Infinity) return (
-            <span className="text-[10px] text-zinc-600">{count}</span>
-        )
-        const full = count >= max
+    /* ── Compteur et badge limite — taille augmentée ── */
+    const LimitBadge = ({ count, max, frozen = 0 }: { count: number; max: number; frozen?: number }) => {
+        const full = max !== Infinity && count >= max
         return (
-            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
-                full ? 'bg-amber-500/15 text-amber-400 border border-amber-500/25' : 'text-zinc-600'
-            }`}>
-                {count}/{max}
-            </span>
+            <div className="flex items-center gap-2">
+                {frozen > 0 && (
+                    <span className="text-sm text-amber-400/70 font-semibold flex items-center gap-1.5">
+                        <Icon icon="solar:lock-keyhole-linear" width="14" />
+                        {frozen} gelé{frozen > 1 ? 's' : ''}
+                    </span>
+                )}
+                <span className={`text-base font-bold px-2.5 py-0.5 rounded-md ${
+                    full
+                        ? 'bg-amber-500/15 text-amber-400 border border-amber-500/25'
+                        : max === Infinity
+                            ? 'text-zinc-400'
+                            : 'text-zinc-300 bg-zinc-800 border border-zinc-700'
+                }`}>
+                    {count}{max !== Infinity ? `/${max}` : ''}
+                </span>
+            </div>
         )
     }
 
@@ -286,13 +320,13 @@ const BlockLists: React.FC = () => {
                             type="checkbox"
                             id="adult-toggle"
                             checked={state?.adultContentBlocked ?? false}
-                            disabled={!isPremium}
+                            disabled={!isPremium || (isStrict && (state?.adultContentBlocked ?? false))}
                             onChange={() => sendToBackground({ type: 'TOGGLE_ADULT_CONTENT' })}
-                            className={`toggle-checkbox absolute ${state?.adultContentBlocked ? 'right-0' : 'left-0'} block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-zinc-700 transition-all duration-300 z-5`}
+                            className={`toggle-checkbox absolute ${state?.adultContentBlocked ? 'right-0' : 'left-0'} block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-zinc-700 transition-all duration-300 z-20`}
                         />
                         <label htmlFor="adult-toggle" className="toggle-label block overflow-hidden h-5 w-10 rounded-full bg-zinc-800 cursor-pointer border border-zinc-700" />
                         {!isPremium && (
-                            <div onClick={checkPremium} className="absolute inset-0 z-8 cursor-pointer" />
+                            <div onClick={checkPremium} className="absolute inset-0 z-30 cursor-pointer" />
                         )}
                     </div>
                 </div>
@@ -305,7 +339,7 @@ const BlockLists: React.FC = () => {
                         <Icon icon="solar:forbidden-circle-linear" className="text-rose-500" width="16" />
                         Domaines Bloqués
                     </h3>
-                    <LimitBadge count={domains.length} max={domainLimit} />
+                    <LimitBadge count={domains.length} max={domainLimit} frozen={frozenDomains.length} />
                 </div>
 
                 {domainFull && (
@@ -322,21 +356,36 @@ const BlockLists: React.FC = () => {
                 )}
 
                 <ListInput
-                    // @ts-ignore
+                // @ts-ignore
                     inputRef={domainRef}
                     onAdd={addDomain}
                     placeholder={domainFull ? 'Limite atteinte' : 'ex: facebook.com'}
                     disabled={domainFull}
                 />
 
-                {domains.length === 0 ? (
+                {domains.length === 0 && frozenDomains.length === 0 ? (
                     <ul><EmptyState icon="mynaui:globe" label="Aucun domaine bloqué" /></ul>
                 ) : (
                     <ul className="space-y-0">
-                        <CollapsibleList total={domains.length}>
-                            {domains.map((d, i) => renderDomain(d, i))}
+                        <CollapsibleList total={domains.length + frozenDomains.length}>
+                            {[
+                                ...domains.map((d, i) => renderDomain(d, i)),
+                                ...frozenDomains.map((d, i) => renderFrozenDomain(d, i)),
+                            ]}
                         </CollapsibleList>
                     </ul>
+                )}
+                {frozenDomains.length > 0 && (
+                    <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/8 border border-amber-500/20 rounded-lg">
+                        <Icon icon="solar:info-circle-linear" className="text-amber-400 shrink-0" width="13" />
+                        <p className="text-xs text-amber-300/80 flex-1">
+                            {frozenDomains.length} domaine{frozenDomains.length > 1 ? 's' : ''} gelé{frozenDomains.length > 1 ? 's' : ''} — passez à Premium pour les réactiver.
+                        </p>
+                        <button onClick={() => navigate('/pricing')}
+                            className="text-[10px] font-bold text-black bg-amber-500 hover:bg-amber-400 px-2 py-1 rounded transition-colors shrink-0">
+                            Upgrader
+                        </button>
+                    </div>
                 )}
             </section>
 
@@ -347,7 +396,7 @@ const BlockLists: React.FC = () => {
                         <Icon icon="solar:text-square-linear" className="text-orange-500" width="16" />
                         Mots-Clés Bloqués
                     </h3>
-                    <LimitBadge count={keywords.length} max={keywordLimit} />
+                    <LimitBadge count={keywords.length} max={keywordLimit} frozen={frozenKeywords.length} />
                 </div>
 
                 {keywordFull && (
@@ -364,21 +413,36 @@ const BlockLists: React.FC = () => {
                 )}
 
                 <ListInput
-                    // @ts-ignore
+                // @ts-ignore
                     inputRef={keywordRef}
                     onAdd={addKeyword}
                     placeholder={keywordFull ? 'Limite atteinte' : 'ex: distractions'}
                     disabled={keywordFull}
                 />
 
-                {keywords.length === 0 ? (
+                {keywords.length === 0 && frozenKeywords.length === 0 ? (
                     <ul><EmptyState icon="tabler:hash" label="Aucun mot-clé bloqué" /></ul>
                 ) : (
                     <ul className="space-y-0">
-                        <CollapsibleList total={keywords.length}>
-                            {keywords.map((k, i) => renderKeyword(k, i))}
+                        <CollapsibleList total={keywords.length + frozenKeywords.length}>
+                            {[
+                                ...keywords.map((k, i) => renderKeyword(k, i)),
+                                ...frozenKeywords.map((k, i) => renderFrozenKeyword(k, i)),
+                            ]}
                         </CollapsibleList>
                     </ul>
+                )}
+                {frozenKeywords.length > 0 && (
+                    <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/8 border border-amber-500/20 rounded-lg">
+                        <Icon icon="solar:info-circle-linear" className="text-amber-400 shrink-0" width="13" />
+                        <p className="text-xs text-amber-300/80 flex-1">
+                            {frozenKeywords.length} mot{frozenKeywords.length > 1 ? 's' : ''}-clé{frozenKeywords.length > 1 ? 's' : ''} gelé{frozenKeywords.length > 1 ? 's' : ''} — passez à Premium pour les réactiver.
+                        </p>
+                        <button onClick={() => navigate('/pricing')}
+                            className="text-[10px] font-bold text-black bg-amber-500 hover:bg-amber-400 px-2 py-1 rounded transition-colors shrink-0">
+                            Upgrader
+                        </button>
+                    </div>
                 )}
             </section>
 
@@ -397,7 +461,7 @@ const BlockLists: React.FC = () => {
                             ref={customRef}
                             type="text"
                             defaultValue={state?.customRedirectUrl ?? ''}
-                            placeholder="Si vide, page de blocage par défaut"
+                            placeholder="https://google.com (par défaut)"
                             className="flex-1 bg-zinc-900 border border-zinc-800 text-white text-xs rounded-lg px-3 py-2.5 outline-none focus:border-blue-500/50 transition-colors placeholder:text-zinc-600"
                         />
                         <button onClick={saveCustomUrl}
@@ -429,10 +493,11 @@ const BlockLists: React.FC = () => {
 
                 <div className={`${!isPremium ? 'opacity-30 pointer-events-none blur-[1px]' : ''} transition-all`}>
                     <ListInput
-                        // @ts-ignore
+                        // @ts-ignore   
                         inputRef={whiteRef}
                         onAdd={addWhite}
-                        placeholder="wikipedia.org"
+                        placeholder={isStrict ? 'Ajout bloqué en mode strict' : 'wikipedia.org'}
+                        disabled={whiteAddDisabled}
                     />
 
                     {isPremium ? (

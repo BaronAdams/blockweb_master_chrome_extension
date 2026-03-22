@@ -26,11 +26,11 @@ export default function App() {
     /* Onglet actif du navigateur */
     const [currentTabDomain, setCurrentTabDomain] = useState<string | null>(null);
     const [tabIsWebPage,     setTabIsWebPage]      = useState<boolean | null>(null); // null = loading
-    const [quickBlockDone,   setQuickBlockDone]    = useState(false);
+    const [quickBlockStatus, setQuickBlockStatus] = useState<'idle' | 'blocked' | 'dismissed'>('idle');
 
     /* ── Chargement state + détection onglet actif ── */
     useEffect(() => {
-      // @ts-ignore
+        // @ts-ignore
         chrome.storage.local.get(STORAGE_KEY, (res) => setState_(res[STORAGE_KEY] ?? null));
         const listener = (changes: any) => {
             if (changes[STORAGE_KEY]) setState_(changes[STORAGE_KEY].newValue);
@@ -84,6 +84,8 @@ export default function App() {
     const isZeroDuration        = days === 0 && hours === 0 && mins === 0;
     const isDomainLimitReached  = !isPremium && (state?.activeBlockedDomains?.length ?? 0) >= LIMITS.FREE.domains;
     const isKeywordLimitReached = !isPremium && (state?.activeBlockedKeywords?.length ?? 0) >= LIMITS.FREE.keywords;
+    const frozenDomains         = state?.frozenBlockedDomains  ?? [];
+    const frozenKeywords        = state?.frozenBlockedKeywords ?? [];
 
     const addDomain = async () => {
         const val = domainRef.current?.value.trim();
@@ -109,7 +111,7 @@ export default function App() {
     const quickBlockCurrentTab = async () => {
         if (!currentTabDomain) return;
         await sendToBackground({ type: 'ADD_DOMAIN', domain: currentTabDomain });
-        setQuickBlockDone(true);
+        setQuickBlockStatus('blocked');
     };
 
     const handleDays = (v: string) => {
@@ -179,7 +181,8 @@ export default function App() {
                     </p>
                 </div>
             )}
-            {tabIsWebPage === true && currentTabDomain && !quickBlockDone && !(state?.activeBlockedDomains ?? []).includes(currentTabDomain) && !isStrict && (
+            {/* Suggestion blocage — site non encore bloqué, pas encore traité */}
+            {tabIsWebPage === true && currentTabDomain && quickBlockStatus === 'idle' && !(state?.activeBlockedDomains ?? []).includes(currentTabDomain) && !isStrict && (
                 <div className="flex items-center gap-2.5 px-3 py-2 bg-rose-500/8 border-b border-rose-500/15">
                     <img src={`https://www.google.com/s2/favicons?domain=${currentTabDomain}&sz=32`}
                         className="w-4 h-4 opacity-70 shrink-0" alt="" />
@@ -187,7 +190,7 @@ export default function App() {
                         Bloquer <strong className="text-white">{currentTabDomain}</strong> ?
                     </p>
                     <div className="flex gap-1.5 shrink-0">
-                        <button onClick={() => setQuickBlockDone(true)}
+                        <button onClick={() => setQuickBlockStatus('dismissed')}
                             className="px-2 py-1 text-[10px] text-zinc-500 hover:text-zinc-300 transition-colors">
                             Non
                         </button>
@@ -199,7 +202,8 @@ export default function App() {
                     </div>
                 </div>
             )}
-            {tabIsWebPage === true && currentTabDomain && !quickBlockDone && (state?.activeBlockedDomains ?? []).includes(currentTabDomain) && (
+            {/* Site déjà bloqué */}
+            {tabIsWebPage === true && currentTabDomain && quickBlockStatus === 'idle' && (state?.activeBlockedDomains ?? []).includes(currentTabDomain) && (
                 <div className="flex items-center gap-2 px-3 py-2 bg-emerald-500/8 border-b border-emerald-500/15">
                     <Icon icon="solar:check-circle-bold" className="text-emerald-400 shrink-0" width="13" />
                     <p className="text-[10px] text-emerald-300">
@@ -207,7 +211,8 @@ export default function App() {
                     </p>
                 </div>
             )}
-            {quickBlockDone && currentTabDomain && (
+            {/* Confirmation après blocage */}
+            {quickBlockStatus === 'blocked' && currentTabDomain && (
                 <div className="flex items-center gap-2 px-3 py-2 bg-emerald-500/8 border-b border-emerald-500/15">
                     <Icon icon="solar:check-circle-bold" className="text-emerald-400 shrink-0" width="13" />
                     <p className="text-[10px] text-emerald-300">
@@ -277,6 +282,17 @@ export default function App() {
                                     </button>
                                 </li>
                             ))}
+                            {/* Frozen domains — flouées */}
+                            {frozenDomains.map((domain, i) => (
+                                <li key={`frozen_${i}`}
+                                    className="flex items-center justify-between px-3 py-2 rounded-lg bg-zinc-900/50 border border-zinc-800/40 blur-[1.5px] pointer-events-none select-none opacity-50">
+                                    <div className="flex items-center gap-2">
+                                        <img src={`https://www.google.com/s2/favicons?domain=${domain}&sz=32`} className="w-4 h-4 opacity-40" alt="" />
+                                        <span className="text-xs text-zinc-500">{domain}</span>
+                                    </div>
+                                    <Icon icon="solar:lock-keyhole-linear" className="text-amber-500/60" width="12" />
+                                </li>
+                            ))}
                         </ul>
                     </div>
                 )}
@@ -324,6 +340,17 @@ export default function App() {
                                     </button>
                                 </li>
                             ))}
+                            {/* Frozen keywords — flouées */}
+                            {frozenKeywords.map((keyword, i) => (
+                                <li key={`frozen_kw_${i}`}
+                                    className="flex items-center justify-between px-3 py-2 rounded-lg bg-zinc-900/50 border border-zinc-800/40 blur-[1.5px] pointer-events-none select-none opacity-50">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-zinc-600/50 font-mono text-xs">#</span>
+                                        <span className="text-xs text-zinc-500">{keyword}</span>
+                                    </div>
+                                    <Icon icon="solar:lock-keyhole-linear" className="text-amber-500/60" width="12" />
+                                </li>
+                            ))}
                         </ul>
                     </div>
                 )}
@@ -368,9 +395,9 @@ export default function App() {
                                 ) : state?.whitelist.map((w, i) => (
                                     <div key={i} className="flex items-center justify-between px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg group">
                                         <span className="text-xs text-zinc-300">{w}</span>
-                                        <button disabled={isStrict}
+                                        <button
                                             onClick={() => sendToBackground({ type: 'REMOVE_WHITE', index: i })}
-                                            className="text-zinc-700 hover:text-rose-500 opacity-0 group-hover:opacity-100 disabled:cursor-not-allowed transition-all">
+                                            className="text-zinc-700 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all">
                                             <Icon icon="solar:trash-bin-trash-linear" width="13" />
                                         </button>
                                     </div>

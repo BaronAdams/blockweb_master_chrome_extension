@@ -2,13 +2,13 @@ import { Profile, State, SubscriptionState } from "@/lib/types"
 import type { SubscriptionPlan } from "@/lib/database.types"
 import { getState, setState } from "./storage"
 import { syncAuth, isSubActive } from "./auth"
-import { startTracking, stopTracking } from "./tracking"
+import { startTracking, stopTracking, isTrackableUrl } from "./tracking"
 import { syncDnrRules, syncProfileRules } from "./blocking"
 import { addBlockedDomain, getDomain, removeBlockedDomain } from "./domains"
 import { addBlockedKeyword, removeBlockedKeyword } from "./keywords"
 import { addProfile, clearExpiredProfileBlocks, editProfile, removeProfile, toggleProfile } from "./profiles"
 import { LIMITS, PREDEFINED_ADULT_DOMAINS } from "@/lib/constants"
-import { normalizeDomain } from "@/lib/utils"
+import { normalizeDomain, matchingProfileSite } from "@/lib/utils"
 import { hourKey, isProfileLimitReached, todayKey } from "./time"
 import { supabase, supabaseWithToken } from "@/lib/supabase"
 
@@ -47,6 +47,9 @@ export function downgradeToFree(state: State): void {
     for (const p of overflowProfiles) if (!frozenProfileIds.has(p.id)) state.frozenProfiles.push(p)
 
     state.isPremium = false
+
+    // Désactiver le blocage adulte (fonctionnalité Premium)
+    state.adultContentBlocked = false
 
     // Plafonne le mode strict à 24h en Free
     if (state.strictDefaultTime > 86_400_000) state.strictDefaultTime = 86_400_000
@@ -179,6 +182,7 @@ chrome.runtime.onInstalled.addListener(async () => {
         strictModeUntil: null,
         strictDefaultTime: 86_400_000,
         siteUsage: {},
+        usageHistory: {},
     }
 
     const existing = await chrome.storage.local.get('blockweb_master_state')
@@ -195,7 +199,7 @@ chrome.runtime.onInstalled.addListener(async () => {
     await chrome.alarms.clearAll()
 
     chrome.alarms.create('subscription-check', { periodInMinutes: 60 }) // 1h
-    chrome.alarms.create('tracking-safety-flush', { periodInMinutes: 0.5 }) // 30s
+    chrome.alarms.create('tracking-safety-flush', { periodInMinutes: 0.1667 }) // 10s
     chrome.alarms.create('clear-expired-profile-blocks', { periodInMinutes: 5 }) // 5min
     chrome.alarms.create('hourly-profile-reset', { periodInMinutes: 1 }) // 1min
     chrome.alarms.create('weekly-profile-reset', { periodInMinutes: 1 }) // 1min
@@ -278,14 +282,14 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
            ce qui laisse l'utilisateur naviguer librement tant qu'il ne bouge pas.
         ──────────────────────────────────────────────────────────────────────── */
         case 'tracking-safety-flush': {
-            await stopTracking(activeDomain, activeStartTime)
-            activeDomain    = null
-            activeStartTime = null
+            // 1. Flush le temps accumulé depuis le dernier flush (30s)
+            const stopRes = await stopTracking(activeDomain, activeStartTime)
+            activeDomain    = stopRes.activeDomain    // null
+            activeStartTime = stopRes.activeStartTime // null
 
             const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true })
             if (!tab?.id || !tab.url) break
 
-            // Recharger le state après stopTracking (les siteUsage sont mis à jour)
             const freshState = await getState()
             const domain     = getDomain(tab.url)
 
@@ -293,13 +297,16 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
                 const normalizedDomain = normalizeDomain(domain)
                 const now              = Date.now()
 
+                // Après stopTracking, le temps a été flushé dans siteUsage.
+                // isProfileLimitReached lit getProfileTotalTime qui appelle
+                // getLiveTodayTime — maintenant that getLiveTodayTime inclut
+                // toujours lastStart, mais lastStart vient d'être mis à null
+                // par stopTracking. On relit le state frais (post-flush).
                 for (const profile of freshState.activeProfiles) {
                     if (!profile.isActive) continue
-                    if (!profile.sites.includes(normalizedDomain)) continue
+                    if (!matchingProfileSite(normalizedDomain, profile.sites)) continue
 
                     if (isProfileLimitReached(profile, freshState.siteUsage, now)) {
-                        // Limite atteinte — rediriger immédiatement sans attendre
-                        // un changement d'onglet
                         chrome.tabs.update(tab.id, {
                             url: chrome.runtime.getURL(
                                 `/src/blocked/index.html?profile=${encodeURIComponent(profile.id)}`
@@ -313,8 +320,9 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
                 }
             }
 
-            // Si pas de redirection, relancer le tracking normalement
-            if (activeTabId === null && domain) {
+            // 2. Relancer le tracking — startTracking retourne le même timestamp
+            //    que celui écrit dans lastStart (un seul Date.now())
+            if (tab.url && isTrackableUrl(tab.url)) {
                 const res   = await startTracking(tab.id, tab.url)
                 activeTabId     = res.activeTabId ?? null
                 activeDomain    = res.activeDomain
@@ -381,6 +389,27 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
             const stopRes = await stopTracking(activeDomain, activeStartTime)
             activeDomain    = stopRes.activeDomain
             activeStartTime = stopRes.activeStartTime
+
+            // Purger l'historique > 30 jours pour limiter la taille du storage
+            // Garder 14 jours d'historique (clés 'YYYY-MM-DD' et 'YYYY-MM-DD:HH')
+            const cutoff = new Date()
+            cutoff.setDate(cutoff.getDate() - 14)
+            const cutoffKey = cutoff.toISOString().slice(0, 10)
+
+            const stateForPurge = await getState()
+            for (const usage of Object.values(stateForPurge.siteUsage)) {
+                if (usage.history) {
+                    for (const day of Object.keys(usage.history)) {
+                        if (day < cutoffKey) delete usage.history[day]
+                    }
+                }
+            }
+            if (stateForPurge.usageHistory) {
+                for (const day of Object.keys(stateForPurge.usageHistory)) {
+                    if (day < cutoffKey) delete stateForPurge.usageHistory[day]
+                }
+            }
+            await setState(stateForPurge)
 
             const freshState = await getState()
             const today      = todayKey()
@@ -450,14 +479,34 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         /* 🔐 Actions bloquées en mode strict */
         if (strictActive) {
             const BLOCKED_IN_STRICT = [
-                'REMOVE_DOMAIN', 'REMOVE_PROFILE', 'TOGGLE_PROFILE',
-                'TOGGLE_ADULT_CONTENT', 'ADD_WHITE', 'REMOVE_WHITE',
-                'REMOVE_KEYWORD',
+                'REMOVE_DOMAIN', 'REMOVE_PROFILE', 'ADD_WHITE', 'REMOVE_KEYWORD',
             ]
             if (BLOCKED_IN_STRICT.includes(request.type)) {
                 sendResponse({ success: false, reason: 'STRICT_MODE_ACTIVE', strictModeUntil: state.strictModeUntil })
                 return
             }
+
+            // TOGGLE_PROFILE : autorisé uniquement pour ACTIVER un profil inactif
+            // Désactiver un profil en mode strict est interdit
+            if (request.type === 'TOGGLE_PROFILE') {
+                const profileId = request.id as string
+                const profile   = state.activeProfiles.find(p => p.id === profileId)
+                    ?? state.frozenProfiles.find(p => p.id === profileId)
+                if (profile?.isActive) {
+                    // Profil déjà actif → désactivation interdite en mode strict
+                    sendResponse({ success: false, reason: 'STRICT_MODE_ACTIVE', strictModeUntil: state.strictModeUntil })
+                    return
+                }
+            }
+
+            // TOGGLE_ADULT_CONTENT : autorisé uniquement pour ACTIVER (pas désactiver)
+            if (request.type === 'TOGGLE_ADULT_CONTENT' && state.adultContentBlocked) {
+                sendResponse({ success: false, reason: 'STRICT_MODE_ACTIVE', strictModeUntil: state.strictModeUntil })
+                return
+            }
+
+            // REMOVE_WHITE : autorisé (retirer de la whitelist = renforcer le blocage)
+            // ADD_WHITE est déjà dans BLOCKED_IN_STRICT
         }
 
         switch (request.type) {
@@ -951,9 +1000,47 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
    STORAGE CHANGED → resync DNR
 ========================================================= */
 
-chrome.storage.onChanged.addListener((changes) => {
-    if (changes.blockweb_master_state) {
-        syncDnrRules(changes.blockweb_master_state.newValue as State)
+chrome.storage.onChanged.addListener(async (changes) => {
+    if (!changes.blockweb_master_state) return
+
+    const newState = changes.blockweb_master_state.newValue as State
+    const oldState = changes.blockweb_master_state.oldValue as State | undefined
+
+    // 1. Resync toujours les règles DNR
+    syncDnrRules(newState)
+
+    // 2. Détecter si un nouveau domaine vient d'être ajouté aux bloqués
+    //    Si l'onglet actif est sur ce domaine → rediriger immédiatement
+    //    (les règles DNR ne redirigent que les nouvelles navigations,
+    //     pas les onglets déjà chargés)
+    if (!activeDomain) return
+
+    const normalizedActive = normalizeDomain(activeDomain)
+    const oldDomains  = oldState?.activeBlockedDomains ?? []
+    const newDomains  = newState.activeBlockedDomains ?? []
+
+    // Domaines nouvellement ajoutés dans cette mise à jour
+    const addedDomains = newDomains.filter(d => !oldDomains.includes(d))
+
+    // Vérifier aussi les domaines adultes si le blocage adulte vient d'être activé
+    const adultJustEnabled = !oldState?.adultContentBlocked && newState.adultContentBlocked
+    const adultDomains = adultJustEnabled ? (PREDEFINED_ADULT_DOMAINS ?? []) : []
+
+    const allNewlyBlocked = [...addedDomains, ...adultDomains]
+
+    const isActiveTabNowBlocked = allNewlyBlocked.some(d =>
+        normalizeDomain(d) === normalizedActive ||
+        normalizedActive.endsWith('.' + normalizeDomain(d))
+    )
+
+    if (isActiveTabNowBlocked && activeTabId) {
+        chrome.tabs.update(activeTabId, {
+            url: chrome.runtime.getURL(
+                `/src/blocked/index.html?url=${encodeURIComponent(normalizedActive)}`
+            ),
+        })
+        activeDomain    = null
+        activeStartTime = null
     }
 })
 
@@ -974,7 +1061,7 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
         const state = await getState()
         for (const profile of state.activeProfiles) {
             if (!profile.isActive) continue
-            if (!profile.sites.includes(normalizeDomain(domain))) continue
+            if (!matchingProfileSite(normalizeDomain(domain), profile.sites)) continue
             if (isProfileLimitReached(profile, state.siteUsage)) {
                 chrome.tabs.update(tabId, {
                     url: chrome.runtime.getURL(
@@ -1005,7 +1092,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
 
     for (const profile of state.activeProfiles) {
         if (!profile.isActive) continue
-        if (!profile.sites.includes(domain)) continue
+        if (!matchingProfileSite(normalizeDomain(domain), profile.sites)) continue
         if (isProfileLimitReached(profile, state.siteUsage, now)) {
             chrome.tabs.update(tabId, {
                 url: chrome.runtime.getURL(`/src/blocked/index.html?profile=${profile.id}`),

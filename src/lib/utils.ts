@@ -51,12 +51,19 @@ const todayKey = () => new Date().toISOString().slice(0, 10);
 export function getLiveTodayTime(
   usage?: SiteUsage,
   now: number = Date.now(),
-  activeDomain: string | null = null
 ) {
   if (!usage) return 0;
   if (usage.lastDay !== todayKey()) return 0;
-  if (usage.lastStart && activeDomain === usage.domain) {
-    return usage.todayTimeMs + (now - usage.lastStart);
+  // Inclure toujours le temps en cours (lastStart) si présent.
+  // Avant, on exigeait activeDomain === usage.domain, ce qui faisait
+  // que le temps live entre deux flushes était ignoré dans getProfileSiteTime
+  // et dans isProfileLimitReached → la limite n'était jamais atteinte en temps réel.
+  if (usage.lastStart && usage.lastStart > 0) {
+    const live = now - usage.lastStart;
+    // Ignorer les valeurs aberrantes (> 8h = SW probablement tué)
+    if (live > 0 && live < 8 * 60 * 60 * 1000) {
+      return usage.todayTimeMs + live;
+    }
   }
   return usage.todayTimeMs;
 }
@@ -68,23 +75,34 @@ export const getProfileSiteTime = (
   now = Date.now()
 ): number => {
   if (!profile.isActive) {
-    return profile.frozenSiteMs?.[domain] ?? 0;
+    // Profil inactif : sommer tous les sous-domaines figés qui correspondent
+    return Object.entries(profile.frozenSiteMs ?? {})
+      .filter(([d]) => domainMatchesSite(d, domain))
+      .reduce((sum, [, ms]) => sum + ms, 0);
   }
-  const usage    = siteUsage[domain];
-  const baseline = profile.baselineUsage[domain];
-  if (!usage || !baseline) return 0;
 
   const today = todayKey();
-  const live  = getLiveTodayTime(usage, now);
 
-  // Si la baseline vient d'un jour précédent, le delta repart de 0 aujourd'hui.
-  // Cela évite d'afficher le temps accumulé hier au début d'une nouvelle journée
-  // si l'alarm daily-reset n'a pas encore tourné (navigateur fermé à minuit etc.)
-  if (baseline.day !== today) {
-    return live; // toute la session d'aujourd'hui compte depuis 0
+  // Sommer tous les sous-domaines trackés qui correspondent au domaine du profil
+  // Ex: profile.sites = ['youtube.com'] → additionne youtube.com + music.youtube.com + ...
+  const matchingKeys = Object.keys(siteUsage).filter(d => domainMatchesSite(d, domain));
+
+  let total = 0;
+  for (const key of matchingKeys) {
+    const usage    = siteUsage[key];
+    const baseline = profile.baselineUsage[key] ?? profile.baselineUsage[domain];
+    if (!usage) continue;
+
+    const live = getLiveTodayTime(usage, now);
+
+    if (!baseline || baseline.day !== today) {
+      // Pas de baseline ou baseline obsolète → tout le temps d'aujourd'hui compte
+      total += live;
+    } else {
+      total += Math.max(0, live - baseline.todayTimeMs);
+    }
   }
-
-  return Math.max(0, live - baseline.todayTimeMs);
+  return total;
 };
 
 export const getProfileTotalTime = (
@@ -139,6 +157,33 @@ export function normalizeDomain(input: string): string {
     .replace(/^www\./, "")
     .split("/")[0]
     .trim();
+}
+
+/**
+ * Vérifie si un domaine visité correspond à un site configuré dans un profil,
+ * en tenant compte des sous-domaines.
+ *
+ * Exemples :
+ *   domainMatchesSite('music.youtube.com', 'youtube.com') → true
+ *   domainMatchesSite('youtube.com',       'youtube.com') → true
+ *   domainMatchesSite('notoutube.com',     'youtube.com') → false
+ *   domainMatchesSite('www.youtube.com',   'youtube.com') → true  (www déjà retiré par normalizeDomain)
+ */
+export function domainMatchesSite(visitedDomain: string, profileSite: string): boolean {
+  const v = normalizeDomain(visitedDomain);
+  const s = normalizeDomain(profileSite);
+  return v === s || v.endsWith('.' + s);
+}
+
+/**
+ * Retourne le site configuré dans le profil qui correspond au domaine visité,
+ * ou null si aucun ne correspond.
+ */
+export function matchingProfileSite(
+  visitedDomain: string,
+  profileSites:  string[]
+): string | null {
+  return profileSites.find(site => domainMatchesSite(visitedDomain, site)) ?? null;
 }
 
 export function isValidUrl(input: string): boolean {

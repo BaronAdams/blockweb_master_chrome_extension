@@ -22,11 +22,20 @@ const TimerProfiles: React.FC = () => {
         return () => clearInterval(id);
     }, []);
 
-    const profiles = state?.activeProfiles ?? [];
-    const hasProfiles = profiles.length > 0;
+    const profiles       = state?.activeProfiles  ?? [];
+    const frozenProfiles = state?.frozenProfiles   ?? [];
+    const hasProfiles    = profiles.length > 0 || frozenProfiles.length > 0;
 
-    // Grouper par type
+    // Grouper profils actifs par type
     const grouped = profiles.reduce<Record<string, Profile[]>>((acc, p) => {
+        const type = p.config.type;
+        if (!acc[type]) acc[type] = [];
+        acc[type].push(p);
+        return acc;
+    }, {});
+
+    // Grouper profils frozen par type
+    const frozenGrouped = frozenProfiles.reduce<Record<string, Profile[]>>((acc, p) => {
         const type = p.config.type;
         if (!acc[type]) acc[type] = [];
         acc[type].push(p);
@@ -43,8 +52,8 @@ const TimerProfiles: React.FC = () => {
                 <div>
                     <h2 className="text-sm font-medium text-white">Vos Profils</h2>
                     <p className="text-xs text-zinc-500 mt-1">
-                        {hasProfiles
-                            ? `${profiles.length} profil${profiles.length > 1 ? "s" : ""} configuré${profiles.length > 1 ? "s" : ""}`
+                        {profiles.length > 0
+                            ? `${profiles.length} profil${profiles.length > 1 ? "s" : ""} actif${profiles.length > 1 ? "s" : ""}${frozenProfiles.length > 0 ? ` · ${frozenProfiles.length} gelé${frozenProfiles.length > 1 ? 's' : ''}` : ''}`
                             : "Gérez vos limitations par thématique."
                         }
                     </p>
@@ -80,8 +89,9 @@ const TimerProfiles: React.FC = () => {
 
             {/* ── Sections par type ─────────────────────────────────────────── */}
             {hasProfiles && typeOrder.map((type) => {
-                const group = grouped[type];
-                if (!group?.length) return null;
+                const group       = grouped[type]       ?? [];
+                const frozenGroup = frozenGrouped[type] ?? [];
+                if (!group.length && !frozenGroup.length) return null;
 
                 const meta = TYPE_META[type];
 
@@ -94,21 +104,51 @@ const TimerProfiles: React.FC = () => {
                             <span className="text-[10px] text-zinc-600">— {meta.desc}</span>
                             <div className="flex-1 h-px bg-zinc-800 ml-2" />
                             <span className="text-[10px] text-zinc-600">{group.length}</span>
+                            {frozenGroup.length > 0 && (
+                                <span className="text-[10px] text-amber-500/70 flex items-center gap-1">
+                                    <Icon icon="solar:lock-keyhole-linear" width="10" />
+                                    {frozenGroup.length}
+                                </span>
+                            )}
                         </div>
 
-                        {/* Grille de cartes */}
+                        {/* Grille de cartes actives */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {group.map((profile) => (
-                                <ProfileCard
-                                    key={profile.id}
-                                    profile={profile}
-                                    now={now}
-                                />
+                                <ProfileCard key={profile.id} profile={profile} now={now} />
+                            ))}
+                            {/* Cartes frozen — flouées, non-cliquables */}
+                            {frozenGroup.map((profile) => (
+                                <div key={profile.id} className="relative">
+                                    <div className="blur-[2px] pointer-events-none select-none opacity-50">
+                                        <ProfileCard profile={profile} now={now} />
+                                    </div>
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-xl">
+                                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900/90 border border-amber-500/30 rounded-full">
+                                            <Icon icon="solar:lock-keyhole-linear" className="text-amber-400" width="12" />
+                                            <span className="text-[10px] font-medium text-amber-300">Gelé — Plan Premium</span>
+                                        </div>
+                                    </div>
+                                </div>
                             ))}
                         </div>
                     </div>
                 );
             })}
+
+            {/* Bannière upgrade si frozen profiles */}
+            {frozenProfiles.length > 0 && (
+                <div className="flex items-center gap-3 p-4 bg-amber-500/8 border border-amber-500/20 rounded-xl">
+                    <Icon icon="solar:info-circle-linear" className="text-amber-400 shrink-0" width="16" />
+                    <p className="text-xs text-amber-300/80 flex-1">
+                        {frozenProfiles.length} profil{frozenProfiles.length > 1 ? 's' : ''} gelé{frozenProfiles.length > 1 ? 's' : ''} suite au passage en plan gratuit.
+                        Passez à Premium pour les réactiver.
+                    </p>
+                    <Link to="/pricing" className="no-underline text-[10px] font-bold text-black bg-amber-500 hover:bg-amber-400 px-3 py-1.5 rounded-lg transition-colors shrink-0">
+                        Upgrader
+                    </Link>
+                </div>
+            )}
         </div>
     );
 };

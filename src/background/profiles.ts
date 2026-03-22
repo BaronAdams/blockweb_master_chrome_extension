@@ -1,7 +1,7 @@
 import { Profile, ProfileConfig, State } from "@/lib/types";
 import { getState, setState } from "./storage";
 import { LIMITS } from "@/lib/constants";
-import { computeProfileUsage, normalizeDomain } from "@/lib/utils";
+import { computeProfileUsage, normalizeDomain, domainMatchesSite } from "@/lib/utils";
 import { todayKey } from "./time";
 import { clearProfileRules } from "./blocking";
 
@@ -56,33 +56,58 @@ export async function toggleProfile(id: string) {
     if (!profile) return;
 
     if (profile.isActive) {
-        /* ── DÉSACTIVATION — figer le temps ── */
+        /* ── DÉSACTIVATION — figer le temps (sous-domaines inclus) ── */
         profile.frozenSiteMs = {};
         for (const domain of profile.sites) {
-            const usage    = state.siteUsage[domain];
-            const baseline = profile.baselineUsage[domain];
-            if (!usage || !baseline) { profile.frozenSiteMs[domain] = 0; continue; }
-            const live = usage.lastDay === today
-                ? usage.todayTimeMs + (usage.lastStart ? Date.now() - usage.lastStart : 0)
-                : 0;
-            profile.frozenSiteMs[domain] = Math.max(0, live - baseline.todayTimeMs);
+            // Agréger tous les sous-domaines trackés pour ce site
+            const matchingKeys = Object.keys(state.siteUsage).filter(d => domainMatchesSite(d, domain));
+            let totalFrozen = 0;
+            for (const key of matchingKeys) {
+                const usage    = state.siteUsage[key];
+                const baseline = profile.baselineUsage[key] ?? profile.baselineUsage[domain];
+                if (!usage || !baseline) continue;
+                const live = usage.lastDay === today
+                    ? usage.todayTimeMs + (usage.lastStart ? Date.now() - usage.lastStart : 0)
+                    : 0;
+                totalFrozen += Math.max(0, live - baseline.todayTimeMs);
+            }
+            profile.frozenSiteMs[domain] = totalFrozen;
         }
         profile.isActive = false;
 
     } else {
-        /* ── RÉACTIVATION — reconstruire la baseline ── */
+        /* ── RÉACTIVATION — reconstruire la baseline (sous-domaines inclus) ── */
         const newBaseline: Profile["baselineUsage"] = {};
         for (const domain of profile.sites) {
-            const usage = state.siteUsage[domain];
-            const currentLive = usage?.lastDay === today
-                ? usage.todayTimeMs + (usage.lastStart ? Date.now() - usage.lastStart : 0)
-                : 0;
-            const frozen = profile.frozenSiteMs?.[domain] ?? 0;
-            newBaseline[domain] = {
-                todayTimeMs: Math.max(0, currentLive - frozen),
-                totalTimeMs: usage?.totalTimeMs ?? 0,
-                day: today,
-            };
+            const frozen       = profile.frozenSiteMs?.[domain] ?? 0;
+            const matchingKeys = Object.keys(state.siteUsage).filter(d => domainMatchesSite(d, domain));
+
+            if (matchingKeys.length === 0) {
+                newBaseline[domain] = { todayTimeMs: 0, totalTimeMs: 0, day: today };
+                continue;
+            }
+
+            // Calculer le live total de tous les sous-domaines
+            const totalLive = matchingKeys.reduce((sum, key) => {
+                const u = state.siteUsage[key];
+                if (u?.lastDay !== today) return sum;
+                return sum + u.todayTimeMs + (u.lastStart ? Date.now() - u.lastStart : 0);
+            }, 0);
+
+            // Distribuer le frozen proportionnellement
+            for (const key of matchingKeys) {
+                const usage       = state.siteUsage[key];
+                const currentLive = usage?.lastDay === today
+                    ? usage.todayTimeMs + (usage.lastStart ? Date.now() - usage.lastStart : 0)
+                    : 0;
+                const ratio       = totalLive > 0 ? currentLive / totalLive : 1 / matchingKeys.length;
+                const frozenShare = Math.round(frozen * ratio);
+                newBaseline[key]  = {
+                    todayTimeMs: Math.max(0, currentLive - frozenShare),
+                    totalTimeMs: usage?.totalTimeMs ?? 0,
+                    day: today,
+                };
+            }
         }
         profile.baselineUsage = newBaseline;
         profile.isActive      = true;
