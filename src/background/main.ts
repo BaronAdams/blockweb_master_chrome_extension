@@ -936,6 +936,87 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 return
             }
 
+            /* ── Connexion Google via chrome.identity.getAuthToken ──────────────────
+               Utilise l'API Chrome Identity — lit oauth2.client_id depuis le manifest.
+               Fonctionne en dev (dist chargé localement) et en prod (Web Store)
+               sans aucun changement de code, grâce à la key RSA qui fixe l'ID.
+
+               Flux :
+               1. Chrome affiche le popup de consentement Google
+               2. getAuthToken retourne un access_token Google
+               3. supabase.auth.signInWithIdToken échange ce token contre une session
+               4. On sauvegarde la session exactement comme SIGN_IN classique
+            ── */
+            case 'SIGN_IN_GOOGLE': {
+                try {
+                    // 1. Obtenir le token Google via l'API Chrome Identity
+                    //    getAuthToken lit oauth2.client_id depuis le manifest automatiquement
+                    const token = await new Promise<string>((resolve, reject) => {
+                        chrome.identity.getAuthToken({ interactive: true }, (token) => {
+                            if (chrome.runtime.lastError || !token) {
+                                reject(new Error(chrome.runtime.lastError?.message ?? 'Token non obtenu'))
+                            } else {
+                                // @ts-ignore
+                                resolve(token)
+                            }
+                        })
+                    })
+
+                    // 2. Échanger le token Google contre une session Supabase
+                    const { data, error } = await supabase.auth.signInWithIdToken({
+                        provider: 'google',
+                        token,
+                    })
+
+                    if (error) {
+                        sendResponse({ error: error.message })
+                        return
+                    }
+                    if (!data.session) {
+                        sendResponse({ error: 'Connexion Google échouée.' })
+                        return
+                    }
+
+                    // 3. Sauvegarder la session — même logique que SIGN_IN classique
+                    const session      = data.session
+                    const sub          = await fetchSubFromDB(session.user.id, session.access_token)
+                    const wasAlreadyPremium = state.isPremium
+
+                    const newState: State = {
+                        ...state,
+                        auth: {
+                            isAuthenticated: true,
+                            userId:          session.user.id,
+                            userName:        (session.user.user_metadata?.full_name as string)
+                                             ?? (session.user.user_metadata?.name as string)
+                                             ?? null,
+                            email:           session.user.email ?? null,
+                            accessToken:     session.access_token,
+                            refreshToken:    session.refresh_token,
+                            lastSyncAt:      Date.now(),
+                        },
+                        subscription: {
+                            ...state.subscription,
+                            plan:       sub.plan,
+                            expiresAt:  sub.expiresAt,
+                            graceUntil: sub.graceUntil,
+                            isValid:    sub.isValid,
+                        },
+                        isPremium: sub.isPremium,
+                    }
+
+                    if (sub.isPremium && !wasAlreadyPremium) upgradeToPremium(newState)
+
+                    await setState(newState)
+                    sendResponse({ error: null })
+                } catch (err: any) {
+                    // L'utilisateur a annulé le popup ou pas de client_id configuré
+                    const msg = err?.message ?? 'Connexion Google annulée.'
+                    sendResponse({ error: msg.includes('canceled') ? null : msg, canceled: msg.includes('canceled') })
+                }
+                return
+            }
+
             case 'SIGN_UP': {
                 const { data, error } = await supabase.auth.signUp({
                     email: request.email as string,

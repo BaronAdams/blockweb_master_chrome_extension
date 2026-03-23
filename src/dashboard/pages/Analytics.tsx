@@ -76,7 +76,7 @@ const HourlyTooltip = ({ active, payload, label }: any) => {
             <p className="text-zinc-400 mb-2 font-medium">{label}h00</p>
             {active_.map((p: any) => (
                 <p key={p.dataKey} className="flex justify-between gap-4" style={{ color: p.fill }}>
-                    <span className="truncate max-w-27.5">{p.dataKey}</span>
+                    <span className="truncate max-w-[110px]">{p.dataKey}</span>
                     <span className="font-mono shrink-0">{formatDuration(p.value)}</span>
                 </p>
             ))}
@@ -417,8 +417,11 @@ const Analytics: React.FC = () => {
                         </div>
                         <button
                             onClick={() => {
-                                setCompareMode(v => !v)
-                                if (!compareMode) {
+                                const next = !compareMode
+                                setCompareMode(next)
+                                // À la DÉSACTIVATION de la comparaison → reset sur aujourd'hui
+                                // (avant : le reset était à l'activation, c'était inversé)
+                                if (!next) {
                                     setSelectedDays([today])
                                     setSelectedDay(today)
                                 }

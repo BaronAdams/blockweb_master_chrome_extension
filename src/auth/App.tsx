@@ -53,7 +53,6 @@ async function sendToBackground(
    COMPOSANT
 ========================================================= */
 export default function App() {
-    // const { state } = useStateContext()
     const [mode,   setMode]   = useState<Mode>('login')
     const [status, setStatus] = useState<Status>('idle')
 
@@ -79,9 +78,43 @@ export default function App() {
     /* ── Champ forgot ── */
     const forgotEmail = useRef<HTMLInputElement>(null)
 
+    /* ── Visibilité des mots de passe ── */
+    const [showLoginPwd,  setShowLoginPwd]  = useState(false)
+    const [showRegPwd,    setShowRegPwd]    = useState(false)
+
+    /* ── Google OAuth ── */
+    const [googleLoading, setGoogleLoading] = useState(false)
+
     /* ── Aller au dashboard ── */
     const goToDashboard = () => {
         window.location.href = chrome.runtime.getURL('src/dashboard/index.html')
+    }
+
+    /* ── Connexion / Inscription Google ──
+       Fonctionne pour les deux cas (login + register) — Supabase crée le compte
+       automatiquement si l'adresse Google n'existe pas encore.
+       Chrome affiche un popup de consentement Google, puis retourne un token
+       que le background échange contre une session Supabase.
+    ── */
+    const handleGoogleSignIn = async () => {
+        setGoogleLoading(true)
+        setError(null)
+        setInfo(null)
+
+        const result = await sendToBackground({ type: 'SIGN_IN_GOOGLE' })
+
+        setGoogleLoading(false)
+        // @ts-ignore
+        if (result?.canceled) {
+            // L'utilisateur a fermé le popup — pas d'erreur affichée
+            return
+        }
+        if (result.error) {
+            setError(result.error)
+            return
+        }
+        // Succès — même destination que la connexion classique
+        goToDashboard()
     }
 
     /* ── Switch de tab ──
@@ -114,9 +147,6 @@ export default function App() {
             email:    loginEmailValue,
             password: loginPassword.current?.value,
         })
-
-        // console.log("Misa à jour du state", state)
-        // setInterval(()=>console.log("Temps d'attente pour voir la souscription"),20000)
 
         if (result.notConfirmed) {
             setStatus('error')
@@ -227,7 +257,7 @@ export default function App() {
                         </button>
                         <button
                             onClick={goToDashboard}
-                            className="text-xl font-medium text-white tracking-tight mb-2 hover:text-zinc-300 transition-colors block mx-auto"
+                            className="text-xl font-semibold text-white tracking-tight mb-2 hover:text-zinc-300 transition-colors block mx-auto"
                         >
                             Blockweb Master
                         </button>
@@ -409,12 +439,20 @@ export default function App() {
                                                     <Icon icon="solar:lock-password-linear" className="absolute left-3 top-2.5 text-zinc-500 transition-colors group-focus-within:text-white" />
                                                     <input
                                                         ref={loginPassword}
-                                                        type="password"
+                                                        type={showLoginPwd ? 'text' : 'password'}
                                                         placeholder="••••••••"
                                                         tabIndex={mode === 'login' ? 0 : -1}
-                                                        className="w-full bg-zinc-900/50 border border-zinc-800 text-white text-xs rounded-lg pl-9 pr-3 py-2.5 outline-none focus:border-white/20 focus:bg-zinc-900 transition-all placeholder:text-zinc-600"
+                                                        className="w-full bg-zinc-900/50 border border-zinc-800 text-white text-xs rounded-lg pl-9 pr-9 py-2.5 outline-none focus:border-white/20 focus:bg-zinc-900 transition-all placeholder:text-zinc-600"
                                                         required
                                                     />
+                                                    <button
+                                                        type="button"
+                                                        tabIndex={-1}
+                                                        onClick={() => setShowLoginPwd(v => !v)}
+                                                        className="absolute right-2.5 top-2 p-0.5 text-zinc-600 hover:text-zinc-300 transition-colors"
+                                                    >
+                                                        <Icon icon={showLoginPwd ? 'solar:eye-closed-linear' : 'solar:eye-linear'} width="15" />
+                                                    </button>
                                                 </div>
                                             </div>
                                             <button
@@ -467,12 +505,20 @@ export default function App() {
                                                     <Icon icon="solar:lock-password-linear" className="absolute left-3 top-2.5 text-zinc-500 transition-colors group-focus-within:text-white" />
                                                     <input
                                                         ref={regPassword}
-                                                        type="password"
+                                                        type={showRegPwd ? 'text' : 'password'}
                                                         placeholder="Créer un mot de passe"
                                                         tabIndex={mode === 'register' ? 0 : -1}
-                                                        className="w-full bg-zinc-900/50 border border-zinc-800 text-white text-xs rounded-lg pl-9 pr-3 py-2.5 outline-none focus:border-white/20 focus:bg-zinc-900 transition-all placeholder:text-zinc-600"
+                                                        className="w-full bg-zinc-900/50 border border-zinc-800 text-white text-xs rounded-lg pl-9 pr-9 py-2.5 outline-none focus:border-white/20 focus:bg-zinc-900 transition-all placeholder:text-zinc-600"
                                                         required
                                                     />
+                                                    <button
+                                                        type="button"
+                                                        tabIndex={-1}
+                                                        onClick={() => setShowRegPwd(v => !v)}
+                                                        className="absolute right-2.5 top-2 p-0.5 text-zinc-600 hover:text-zinc-300 transition-colors"
+                                                    >
+                                                        <Icon icon={showRegPwd ? 'solar:eye-closed-linear' : 'solar:eye-linear'} width="15" />
+                                                    </button>
                                                 </div>
                                             </div>
                                             <button
@@ -503,14 +549,17 @@ export default function App() {
                                         <span className="bg-zinc-950 px-2 text-zinc-500">Ou continuer avec</span>
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <button className="flex items-center justify-center gap-2 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 text-xs transition-colors">
-                                        <Icon icon="devicon:google" width="14" /> Google
-                                    </button>
-                                    <button className="flex items-center justify-center gap-2 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 text-xs transition-colors">
-                                        <Icon icon="devicon:github" width="14" className="invert opacity-80" /> Github
-                                    </button>
-                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleGoogleSignIn}
+                                    disabled={googleLoading || isLoading}
+                                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed border border-zinc-800 text-zinc-300 text-xs transition-colors"
+                                >
+                                    {googleLoading
+                                        ? <><Icon icon="svg-spinners:ring-resize" width="14" /> Connexion Google…</>
+                                        : <><Icon icon="devicon:google" width="14" /> Continuer avec Google</>
+                                    }
+                                </button>
                             </>
                         )}
 

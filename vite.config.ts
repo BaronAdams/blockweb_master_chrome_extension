@@ -28,6 +28,8 @@ export default defineConfig(({ mode }) => {
         JSON.stringify(env.VITE_SUPABASE_URL),
       'import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY':
         JSON.stringify(env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY),
+      'import.meta.env.VITE_GOOGLE_CLIENT_ID':
+        JSON.stringify(env.VITE_GOOGLE_CLIENT_ID),
     },
 
     plugins: [
