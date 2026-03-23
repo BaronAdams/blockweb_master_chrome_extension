@@ -228,7 +228,7 @@ function checkBodyContent(
     const domain   = getCurrentDomain()
     const bodyText = normalize(document.body?.innerText?.slice(0, 800) ?? '')
     if (!bodyText) return
-
+    console.log(adultDomains)
     // Domaine sûr → jamais marqué adulte
     if (isSafeDomain(domain)) {
         // On passe directement aux mots-clés utilisateur

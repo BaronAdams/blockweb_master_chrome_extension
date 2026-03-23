@@ -15,11 +15,6 @@ import {
 /* =========================================================
    PALETTE
 ========================================================= */
-export const SITE_COLORS = [
-    '#f87171','#fb923c','#fbbf24','#a3e635',
-    '#34d399','#22d3ee','#818cf8','#e879f9',
-    '#f472b6','#94a3b8','#60a5fa','#4ade80',
-]
 const DAY_COMPARE_COLORS = ['#818cf8', '#34d399', '#fb923c']
 
 /* =========================================================
@@ -81,7 +76,7 @@ const HourlyTooltip = ({ active, payload, label }: any) => {
             <p className="text-zinc-400 mb-2 font-medium">{label}h00</p>
             {active_.map((p: any) => (
                 <p key={p.dataKey} className="flex justify-between gap-4" style={{ color: p.fill }}>
-                    <span className="truncate max-w-[110px]">{p.dataKey}</span>
+                    <span className="truncate max-w-27.5">{p.dataKey}</span>
                     <span className="font-mono shrink-0">{formatDuration(p.value)}</span>
                 </p>
             ))}
@@ -122,21 +117,6 @@ const LineTooltip = ({ active, payload, label }: any) => {
     )
 }
 
-export const StackedTooltip = ({ active, payload, label }: any) => {
-    if (!active || !payload?.length) return null
-    return (
-        <div className="bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-xs shadow-xl">
-            <p className="text-zinc-400 mb-1.5">{label}</p>
-            {payload.map((p: any, i: number) => (
-                <p key={i} style={{ color: p.fill }} className="flex justify-between gap-4">
-                    <span>{p.name}</span>
-                    <span className="font-mono">{formatDuration(p.value)}</span>
-                </p>
-            ))}
-        </div>
-    )
-}
-
 /* =========================================================
    COMPOSANT PRINCIPAL
 ========================================================= */
@@ -145,7 +125,10 @@ const Analytics: React.FC = () => {
     const [now, setNow] = useState(Date.now())
     const navigate = useNavigate()
     const [selectedDays, setSelectedDays] = useState<string[]>([todayKey()])
-    const [compareMode, setCompareMode] = useState(false)
+    const [compareMode,   setCompareMode]   = useState(false)
+    // selectedDay = jour actif pour le donut, la table et le sélecteur de la table.
+    // Se synchronise avec selectedDays[0] quand on change de jour dans le bar chart.
+    const [selectedDay, setSelectedDay] = useState<string>(todayKey())
 
     useEffect(() => {
         const id = setInterval(() => setNow(Date.now()), 5000)
@@ -262,9 +245,24 @@ const Analytics: React.FC = () => {
 
     const hasActivity = hourlyData.some(r => activeDomains.some(d => (r[d] ?? 0) > 0))
 
-    /* ── Données donut "répartition aujourd'hui" ── */
+    /* ── Sites pour le jour sélectionné (donut + table) ── */
+    const sitesForDay = useMemo(() => {
+        const isToday = selectedDay === today
+        return Object.values(state?.siteUsage ?? {})
+            .map(u => {
+                // Pour aujourd'hui : utiliser getLiveTodayTime (inclut le live)
+                // Pour les autres jours : lire depuis history[day]
+                const ms = isToday
+                    ? getLiveTodayTime(u, now)
+                    : (u.history?.[selectedDay] ?? 0)
+                return { ...u, liveMs: ms }
+            })
+            .filter(u => u.liveMs > 0)
+            .sort((a, b) => b.liveMs - a.liveMs)
+    }, [state?.siteUsage, selectedDay, today, now])
+
+    /* ── Données donut — répartition par catégorie pour le jour sélectionné ── */
     const donutData = useMemo(() => {
-        // Accumuler le temps par catégorie
         const totals: Record<SiteCategory, number> = {
             adult:         0,
             distraction:   0,
@@ -273,14 +271,12 @@ const Analytics: React.FC = () => {
             other:         0,
         }
 
-        for (const u of sites) {
+        for (const u of sitesForDay) {
             const cat = classifyDomain(u.domain)
             totals[cat] += u.liveMs
         }
 
         const total = Object.values(totals).reduce((s, v) => s + v, 0)
-
-        // Construire les segments dans l'ordre d'importance
         const order: SiteCategory[] = ['adult', 'distraction', 'entertainment', 'productivity', 'other']
         const segments = order
             .filter(cat => totals[cat] > 0)
@@ -295,10 +291,10 @@ const Analytics: React.FC = () => {
             segments,
             totals,
             total,
-            hasAdult:    totals.adult > 0,
+            hasAdult:     totals.adult > 0,
             adultBlocked: state?.adultContentBlocked ?? false,
         }
-    }, [sites, state?.adultContentBlocked, state?.detectedAdultDomains])
+    }, [sitesForDay, state?.adultContentBlocked, state?.detectedAdultDomains])
 
     /* ── Données BarChart "Moyenne vs Aujourd'hui" (7 jours) ── */
     const avgVsTodayData = useMemo(() => {
@@ -351,13 +347,16 @@ const Analytics: React.FC = () => {
         return rows
     }, [state?.usageHistory, last30])
 
-    const totalToday = sites.reduce((s, u) => s + u.liveMs, 0)
+    // totalToday = total du jour sélectionné (pas forcément aujourd'hui)
+    const totalToday = sitesForDay.reduce((s, u) => s + u.liveMs, 0)
     const totalHist  = Object.entries(state?.usageHistory ?? {})
         .filter(([k]) => !k.includes(':'))
         .reduce((s, [, v]) => s + v, 0)
 
     /* ── Sélection de jours ── */
     const toggleDay = (day: string) => {
+        // Synchroniser toujours selectedDay (donut + table)
+        setSelectedDay(day)
         if (!compareMode) { setSelectedDays([day]); return }
         setSelectedDays(prev => {
             if (prev.includes(day)) return prev.length > 1 ? prev.filter(d => d !== day) : prev
@@ -374,7 +373,7 @@ const Analytics: React.FC = () => {
                     { icon: 'solar:forbidden-circle-linear', label: 'Sites Bloqués',  value: state?.activeBlockedDomains.length ?? 0 },
                     { icon: 'solar:text-square-linear',      label: 'Mots-Clés',      value: state?.activeBlockedKeywords.length ?? 0 },
                     { icon: 'solar:hourglass-line-linear',   label: 'Profils Actifs', value: state?.activeProfiles.filter(p => p.isActive).length ?? 0 },
-                    { icon: 'solar:eye-linear',              label: 'Visites (24h)',  value: sites.length },
+                    { icon: 'solar:eye-linear',              label: selectedDay === today ? 'Visites (24h)' : `Visites ${shortDate(selectedDay)}`, value: sitesForDay.length },
                 ].map(({ icon, label, value }) => (
                     <div key={label} className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 flex flex-col justify-between h-24">
                         <div className="flex items-center justify-between text-zinc-500">
@@ -389,7 +388,9 @@ const Analytics: React.FC = () => {
             {/* ── Totaux ── */}
             <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800">
-                    <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1">Temps total aujourd'hui</p>
+                    <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1">
+                        {selectedDay === today ? "Temps total aujourd'hui" : `Total ${shortDate(selectedDay)}`}
+                    </p>
                     <p className="text-2xl font-bold text-white">{formatDuration(totalToday)}</p>
                 </div>
                 <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800">
@@ -415,7 +416,13 @@ const Analytics: React.FC = () => {
                             </p>
                         </div>
                         <button
-                            onClick={() => { setCompareMode(v => !v); if (!compareMode) setSelectedDays([today]) }}
+                            onClick={() => {
+                                setCompareMode(v => !v)
+                                if (!compareMode) {
+                                    setSelectedDays([today])
+                                    setSelectedDay(today)
+                                }
+                            }}
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-semibold border transition-colors shrink-0 ${
                                 compareMode
                                     ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300'
@@ -574,7 +581,8 @@ const Analytics: React.FC = () => {
                             Où va ton temps aujourd'hui ?
                         </h3>
                         <p className="text-[10px] text-zinc-600 mb-4">
-                            Répartition par catégorie de navigation · {donutData.total > 0 ? formatDuration(donutData.total) : '—'} total
+                            {selectedDay === today ? "Aujourd'hui" : shortDate(selectedDay)}
+                            {' · '}{donutData.total > 0 ? formatDuration(donutData.total) : '—'}
                         </p>
 
                         {donutData.segments.length === 0 ? (
@@ -867,37 +875,84 @@ const Analytics: React.FC = () => {
             {/* ── Table + Strict Mode ── */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-4">
-                    <h3 className="text-sm font-medium text-white flex items-center gap-2">
-                        <Icon icon="solar:history-linear" className="text-zinc-500" />
-                        Historique de Navigation (aujourd'hui)
-                    </h3>
+                    {/* Header avec sélecteur de jour */}
+                    <div className="flex items-center justify-between gap-4 flex-wrap">
+                        <h3 className="text-sm font-medium text-white flex items-center gap-2">
+                            <Icon icon="solar:history-linear" className="text-zinc-500" />
+                            Historique de Navigation
+                        </h3>
+                        {/* Sélecteur de jour — met à jour donut + table + bar chart */}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                            {last14.map((day, i) => {
+                                const hasData = (state?.usageHistory?.[day] ?? 0) > 0 || day === today
+                                const isActive = selectedDay === day
+                                const label = i === 0 ? 'Auj.' : i === 1 ? 'Hier' : shortDate(day)
+                                return (
+                                    <button key={day}
+                                        onClick={() => { setSelectedDay(day); if (!compareMode) setSelectedDays([day]) }}
+                                        disabled={!hasData}
+                                        className={`px-2 py-0.5 rounded text-[10px] font-medium border transition-all
+                                            disabled:opacity-20 disabled:cursor-not-allowed ${
+                                            isActive
+                                                ? 'bg-white text-black border-white'
+                                                : 'text-zinc-500 border-zinc-700 hover:border-zinc-500 hover:text-zinc-300'
+                                        }`}
+                                    >
+                                        {label}
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    </div>
+                    {/* Label jour affiché */}
+                    <p className="text-[10px] text-zinc-600">
+                        {selectedDay === today
+                            ? "Aujourd'hui"
+                            : `Navigation du ${shortDate(selectedDay)}`
+                        }
+                        {' · '}
+                        {sitesForDay.length} site{sitesForDay.length > 1 ? 's' : ''}
+                        {' · '}
+                        {formatDuration(sitesForDay.reduce((s, u) => s + u.liveMs, 0))} total
+                    </p>
                     <div className="rounded-xl border border-zinc-800 overflow-hidden">
                         <table className="w-full text-left border-collapse">
                             <thead className="bg-zinc-900 text-xs text-zinc-500 uppercase">
                                 <tr>
                                     <th className="px-4 py-3 font-medium">Site Web</th>
+                                    <th className="px-4 py-3 font-medium">Catégorie</th>
                                     <th className="px-4 py-3 font-medium text-right">Temps Passé</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-800 bg-black text-xs">
-                                {sites.length === 0 ? (
+                                {sitesForDay.length === 0 ? (
                                     <tr>
-                                        <td colSpan={2} className="px-4 py-8 text-center text-zinc-600">
-                                            Aucune navigation aujourd'hui
+                                        <td colSpan={3} className="px-4 py-8 text-center text-zinc-600">
+                                            Aucune navigation ce jour-là
                                         </td>
                                     </tr>
-                                ) : sites.map(u => (
-                                    <tr key={u.domain} className="hover:bg-zinc-900/30">
-                                        <td className="px-4 py-2 flex items-center gap-3">
-                                            <img src={`https://www.google.com/s2/favicons?domain=${u.domain}&sz=32`}
-                                                className="w-4 h-4 opacity-70" alt="" />
-                                            <span className="text-zinc-300">{u.domain}</span>
-                                        </td>
-                                        <td className="px-4 py-2 text-right text-zinc-400 font-mono">
-                                            {formatDuration(u.liveMs)}
-                                        </td>
-                                    </tr>
-                                ))}
+                                ) : sitesForDay.map(u => {
+                                    const cat = classifyDomain(u.domain)
+                                    const meta = CATEGORY_META[cat]
+                                    return (
+                                        <tr key={u.domain} className="hover:bg-zinc-900/30">
+                                            <td className="px-4 py-2 flex items-center gap-3">
+                                                <img src={`https://www.google.com/s2/favicons?domain=${u.domain}&sz=32`}
+                                                    className="w-4 h-4 opacity-70" alt="" />
+                                                <span className="text-zinc-300">{u.domain}</span>
+                                            </td>
+                                            <td className="px-4 py-2">
+                                                <span className="flex items-center gap-1.5 text-[10px]" style={{ color: meta.color }}>
+                                                    <span>{meta.emoji}</span>
+                                                    <span>{meta.label}</span>
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-2 text-right text-zinc-400 font-mono">
+                                                {formatDuration(u.liveMs)}
+                                            </td>
+                                        </tr>
+                                    )
+                                })}
                             </tbody>
                         </table>
                     </div>
