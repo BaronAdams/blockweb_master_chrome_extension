@@ -183,6 +183,7 @@ chrome.runtime.onInstalled.addListener(async () => {
         strictDefaultTime: 86_400_000,
         siteUsage: {},
         usageHistory: {},
+        detectedAdultDomains: [],
     }
 
     const existing = await chrome.storage.local.get('blockweb_master_state')
@@ -681,6 +682,42 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             }
 
             /* ── AUTH ── */
+
+            /* ── Marque un domaine comme adulte détecté par le content script ──
+               Appelé toujours, que adultContentBlocked soit activé ou non.
+               Permet de classifier ce domaine dans Analytics → catégorie "Adulte".
+            ── */
+            case 'MARK_ADULT_DOMAIN': {
+                const domain = (request.domain as string)?.toLowerCase().replace(/^www\./, '').trim()
+                if (!domain) { sendResponse({ success: false }); return }
+
+                if (!state.detectedAdultDomains) state.detectedAdultDomains = []
+
+                // Ne pas marquer un domaine déjà dans une catégorie connue non-adulte.
+                // Le content script a une SAFE_DOMAINS list, mais le background est la
+                // dernière ligne de défense contre les faux positifs.
+                // const allKnownSafe = [
+                //     ...LIMITS ? [] : [], // placeholder — les catégories sont côté client
+                //     // On vérifie via les listes de blocage utilisateur : si le domaine
+                //     // est dans activeBlockedDomains il peut être adulte (l'user l'a bloqué).
+                //     // En revanche si il est dans la whitelist, il est sûr.
+                // ]
+                const isWhitelisted = (state.whitelist ?? []).some(w =>
+                    domain === w.toLowerCase().replace(/^www\./, '') ||
+                    domain.endsWith('.' + w.toLowerCase().replace(/^www\./, ''))
+                )
+                if (isWhitelisted) {
+                    sendResponse({ success: false, reason: 'whitelisted' })
+                    return
+                }
+
+                if (!state.detectedAdultDomains.includes(domain)) {
+                    state.detectedAdultDomains.push(domain)
+                    await setState(state)
+                }
+                sendResponse({ success: true })
+                return
+            }
 
             /* ── Vérifie le mot de passe sans le changer ──
                Utilisé pour protéger la déconnexion : un visiteur

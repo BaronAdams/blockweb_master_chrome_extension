@@ -21,6 +21,55 @@
 
 /* ── Signaux pour la détection adulte ───────────────────────────────────── */
 
+/* ── Domaines considérés comme sûrs — jamais bloqués par la détection dynamique ──
+   Ces domaines sont dans des catégories connues (productivité, divertissement légitime).
+   Même si une page contient des mots-clés adultes (ex: article, repo GitHub, Wikipedia),
+   le domaine ne sera jamais marqué comme adulte.
+   La liste couvre les catégories SITE_CATEGORIES de constants.ts.
+───────────────────────────────────────────────────────────────────────────────────── */
+const SAFE_DOMAINS: string[] = [
+    // Productivité & code
+    'github.com', 'gitlab.com', 'bitbucket.org', 'stackoverflow.com',
+    'notion.so', 'figma.com', 'linear.app', 'trello.com', 'asana.com',
+    'jira.atlassian.com', 'confluence.atlassian.com', 'clickup.com',
+    'monday.com', 'airtable.com', 'miro.com', 'loom.com',
+    'docs.google.com', 'sheets.google.com', 'slides.google.com',
+    'drive.google.com', 'calendar.google.com', 'gmail.com',
+    'outlook.com', 'office.com', 'teams.microsoft.com', 'slack.com',
+    'zoom.us', 'meet.google.com', 'vercel.com', 'netlify.com',
+    'supabase.com', 'firebase.google.com', 'aws.amazon.com',
+    'vscode.dev', 'codepen.io', 'codesandbox.io', 'replit.com',
+    'leetcode.com', 'hackerrank.com', 'freecodecamp.org',
+    'developer.mozilla.org', 'npmjs.com', 'pypi.org',
+    'anthropic.com', 'openai.com', 'huggingface.co',
+    // Recherche & encyclopédies
+    'google.com', 'bing.com', 'duckduckgo.com', 'yahoo.com',
+    'wikipedia.org', 'wikimedia.org', 'wiktionary.org',
+    // Divertissement légitime
+    'youtube.com', 'netflix.com', 'spotify.com', 'deezer.com',
+    'twitch.tv', 'vimeo.com', 'soundcloud.com',
+    // Réseaux sociaux
+    'twitter.com', 'x.com', 'facebook.com', 'instagram.com',
+    'linkedin.com', 'reddit.com', 'discord.com', 'telegram.org',
+    'tiktok.com', 'pinterest.com', 'snapchat.com',
+    // News & médias
+    'bbc.com', 'cnn.com', 'lemonde.fr', 'lefigaro.fr', 'liberation.fr',
+    'nytimes.com', 'theguardian.com', 'reuters.com', 'apnews.com',
+    // E-commerce & services
+    'amazon.com', 'amazon.fr', 'ebay.com', 'paypal.com',
+    'stripe.com', 'shopify.com',
+]
+
+/**
+ * Vérifie si un domaine est considéré comme sûr (catégorie connue non-adulte).
+ * Un domaine sûr ne sera JAMAIS marqué comme adulte par la détection dynamique,
+ * même si sa page contient des mots-clés adultes dans son contenu.
+ */
+function isSafeDomain(domain: string): boolean {
+    const d = domain.toLowerCase().replace(/^www\./, '')
+    return SAFE_DOMAINS.some(safe => d === safe || d.endsWith('.' + safe))
+}
+
 const ADULT_SIGNALS: string[] = [
     'porn', 'xxx', 'xvideos', 'xhamster', 'pornhub', 'redtube', 'youporn',
     'brazzers', 'onlyfans', 'chaturbate', 'livejasmin', 'stripchat',
@@ -39,6 +88,17 @@ function getCurrentDomain(): string {
 
 function redirectTo(url: string): void {
     location.replace(url)
+}
+
+/**
+ * Notifie le background qu'un domaine adulte a été détecté par analyse de contenu.
+ * Appelé TOUJOURS quand un site adulte est détecté, qu'il soit bloqué ou non.
+ * Le background l'ajoute à state.detectedAdultDomains pour Analytics.
+ */
+function markAsAdult(domain: string): void {
+    chrome.runtime.sendMessage({ type: 'MARK_ADULT_DOMAIN', domain }).catch(() => {
+        // Service worker endormi — non critique, on réessaiera à la prochaine visite
+    })
 }
 
 function normalize(text: string): string {
@@ -75,34 +135,59 @@ function resolveRedirect(
     )
 }
 
-/* ── Détection adulte ────────────────────────────────────────────────────── */
+/* ── Détection adulte (Phase 1 — HEAD) ─────────────────────────────────────
+   Seuil de confiance renforcé pour éviter les faux positifs :
+
+   - Signal FORT unique suffit : domaine dans la liste prédéfinie, ou og:type adulte
+   - Signal FAIBLE : mot-clé dans une source (URL, titre, meta...)
+     → 2 signaux faibles dans des sources DISTINCTES requis pour déclencher
+
+   Jamais déclenché sur un domaine dans SAFE_DOMAINS.
+──────────────────────────────────────────────────────────────────────────── */
 
 function isAdultContent(adultDomains: Set<string>): { detected: boolean; signal: string } {
     const domain = getCurrentDomain()
 
-    // 1. Domaine connu (filet de sécurité)
-    if (adultDomains.has(domain) || [...adultDomains].some(d => domain.endsWith(`.${d}`))) {
+    // Domaine sûr → jamais adulte, quoi qu'il arrive
+    if (isSafeDomain(domain)) return { detected: false, signal: '' }
+
+    // Signal FORT 1 : domaine dans la liste prédéfinie
+    if (adultDomains.has(domain) || [...adultDomains].some(d => domain.endsWith('.' + d))) {
         return { detected: true, signal: domain }
     }
 
-    // 2. og:type
+    // Signal FORT 2 : og:type explicitement adulte
     const ogType = getMetaContent('og:type').toLowerCase()
     if (ADULT_OG_TYPES.some(t => ogType.includes(t))) {
         return { detected: true, signal: `og:type=${ogType}` }
     }
 
-    // 3. Titre + metas + URL
-    const aggregate = [
-        document.title,
-        getMetaContent('description'),
-        getMetaContent('og:description'),
-        getMetaContent('og:title'),
-        getMetaContent('keywords'),
-        location.href,
-    ].map(normalize).join(' ')
+    // Signaux FAIBLES — chaque source est indépendante
+    const sources = {
+        url:         normalize(location.href),
+        title:       normalize(document.title),
+        description: normalize(getMetaContent('description') + ' ' + getMetaContent('og:description')),
+        keywords:    normalize(getMetaContent('keywords')),
+        ogTitle:     normalize(getMetaContent('og:title')),
+    }
 
-    const hit = ADULT_SIGNALS.find(s => aggregate.includes(normalize(s)))
-    if (hit) return { detected: true, signal: hit }
+    // Compter combien de sources DISTINCTES contiennent un signal adulte
+    let hits = 0
+    const hitSources: string[] = []
+
+    for (const [srcName, srcText] of Object.entries(sources)) {
+        if (!srcText.trim()) continue
+        const found = ADULT_SIGNALS.find(s => srcText.includes(normalize(s)))
+        if (found) {
+            hits++
+            hitSources.push(`${srcName}:${found}`)
+        }
+    }
+
+    // Exiger au moins 2 sources distinctes pour confirmer
+    if (hits >= 2) {
+        return { detected: true, signal: hitSources.join(', ') }
+    }
 
     return { detected: false, signal: '' }
 }
@@ -140,15 +225,24 @@ function checkBodyContent(
     keywords:          string[],
     customRedirectUrl: string
 ): void {
-    console.log(adultDomains)
+    const domain   = getCurrentDomain()
     const bodyText = normalize(document.body?.innerText?.slice(0, 800) ?? '')
     if (!bodyText) return
 
-    if (adultBlocked) {
-        const adultHit = ADULT_SIGNALS.find(s => bodyText.includes(normalize(s)))
-        if (adultHit) {
-            redirectTo(resolveRedirect(customRedirectUrl, 'adult', adultHit))
-            return
+    // Domaine sûr → jamais marqué adulte
+    if (isSafeDomain(domain)) {
+        // On passe directement aux mots-clés utilisateur
+    } else {
+        // Détection adulte sur le body — compter les signaux dans le body
+        // Pour marquer/bloquer via le body seul, exiger 3+ occurrences de signaux distincts
+        // (le body peut contenir des mentions accidentelles dans des articles légitimes)
+        const bodySignals = ADULT_SIGNALS.filter(s => bodyText.includes(normalize(s)))
+        if (bodySignals.length >= 3) {
+            markAsAdult(domain)
+            if (adultBlocked) {
+                redirectTo(resolveRedirect(customRedirectUrl, 'adult', bodySignals[0]))
+                return
+            }
         }
     }
 
@@ -171,39 +265,43 @@ async function init(): Promise<void> {
     const stored = await chrome.storage.local.get(['blockweb_master_state'])
     const state  = stored?.blockweb_master_state
     if (!state) return
-
     // @ts-ignore
-    const adultBlocked:   boolean  = state?.adultContentBlocked ?? false
+    const adultBlocked:   boolean  = state.adultContentBlocked ?? false
     // @ts-ignore
-    const keywords:       string[] = state?.activeBlockedKeywords ?? []
+    const keywords:       string[] = state.activeBlockedKeywords ?? []
     // @ts-ignore
-    const customRedirect: string   = state?.customRedirectUrl ?? ''
+    const customRedirect: string   = state.customRedirectUrl ?? ''
 
-    if (!adultBlocked && keywords.length === 0) return
+    // On ne sort PAS si adultBlocked est false —
+    // on doit toujours détecter les sites adultes pour les marquer dans Analytics.
+    // Le blocage effectif (redirection) n'intervient que si adultBlocked === true.
+    const needsKeywordCheck = keywords.length > 0
+    // const needsAnyCheck     = true // toujours détecter l'adulte
 
-    // Récupérer la liste des domaines adultes
+    // Récupérer la liste des domaines adultes connus (pour Phase 1)
     let adultDomains = new Set<string>()
-    if (adultBlocked) {
-        try {
-            const res  = await chrome.runtime.sendMessage({ type: 'GET_ADULT_DOMAINS' })
-            const list: string[] = res?.domains ?? []
-            adultDomains = new Set(list.map(d => d.toLowerCase().replace(/^www\./, '')))
-        } catch {
-            // Service worker endormi — la détection par contenu prend le relais
-        }
+    try {
+        const res  = await chrome.runtime.sendMessage({ type: 'GET_ADULT_DOMAINS' })
+        const list: string[] = res?.domains ?? []
+        adultDomains = new Set(list.map(d => d.toLowerCase().replace(/^www\./, '')))
+    } catch {
+        // Service worker endormi — la détection par contenu (Phase 2) prend le relais
     }
 
     /* ── Phase 1 : HEAD — disponible à document_start ── */
 
-    if (adultBlocked) {
-        const { detected, signal } = isAdultContent(adultDomains)
-        if (detected) {
+    const { detected: adultDetected, signal } = isAdultContent(adultDomains)
+    if (adultDetected) {
+        // Marquer TOUJOURS le domaine comme adulte (pour Analytics)
+        markAsAdult(getCurrentDomain())
+        // Rediriger SEULEMENT si le blocage adulte est activé
+        if (adultBlocked) {
             redirectTo(resolveRedirect(customRedirect, 'adult', signal))
             return
         }
     }
 
-    if (keywords.length > 0) {
+    if (needsKeywordCheck) {
         const { matched, keyword } = matchesKeyword(keywords)
         if (matched) {
             redirectTo(resolveRedirect(customRedirect, 'keyword', keyword))
@@ -212,6 +310,7 @@ async function init(): Promise<void> {
     }
 
     /* ── Phase 2 : BODY — disponible après DOMContentLoaded ── */
+    // checkBodyContent gère aussi la détection sans blocage
 
     const runBodyCheck = () =>
         checkBodyContent(adultBlocked, adultDomains, keywords, customRedirect)

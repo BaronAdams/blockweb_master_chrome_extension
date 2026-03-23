@@ -322,7 +322,7 @@ const BlockLists: React.FC = () => {
                             checked={state?.adultContentBlocked ?? false}
                             disabled={!isPremium || (isStrict && (state?.adultContentBlocked ?? false))}
                             onChange={() => sendToBackground({ type: 'TOGGLE_ADULT_CONTENT' })}
-                            className={`toggle-checkbox absolute ${state?.adultContentBlocked ? 'right-0' : 'left-0'} block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-zinc-700 transition-all duration-300 z-20`}
+                            className={`toggle-checkbox absolute ${state?.adultContentBlocked ? 'right-0' : 'left-0'} block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-zinc-700 transition-all duration-300 z-5`}
                         />
                         <label htmlFor="adult-toggle" className="toggle-label block overflow-hidden h-5 w-10 rounded-full bg-zinc-800 cursor-pointer border border-zinc-700" />
                         {!isPremium && (

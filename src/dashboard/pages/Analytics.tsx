@@ -1,18 +1,21 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { Icon } from "@iconify/react";
-import { formatDuration, getLiveTodayTime } from '@/lib/utils';
+import { formatDuration, getLiveTodayTime, domainMatchesSite } from '@/lib/utils';
+import { SITE_CATEGORIES, CATEGORY_META, SiteCategory } from '@/lib/constants';
+import { PREDEFINED_ADULT_DOMAINS } from '@/lib/constants';
 import { useNavigate } from 'react-router-dom';
 import { useStateContext } from '@/context/GlobalStateContext';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid,
     Tooltip, ResponsiveContainer, Legend,
     LineChart, Line,
+    PieChart, Pie, Cell,
 } from 'recharts';
 
 /* =========================================================
    PALETTE
 ========================================================= */
-const SITE_COLORS = [
+export const SITE_COLORS = [
     '#f87171','#fb923c','#fbbf24','#a3e635',
     '#34d399','#22d3ee','#818cf8','#e879f9',
     '#f472b6','#94a3b8','#60a5fa','#4ade80',
@@ -119,7 +122,7 @@ const LineTooltip = ({ active, payload, label }: any) => {
     )
 }
 
-const StackedTooltip = ({ active, payload, label }: any) => {
+export const StackedTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null
     return (
         <div className="bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-xs shadow-xl">
@@ -162,11 +165,45 @@ const Analytics: React.FC = () => {
             .sort((a, b) => b.liveMs - a.liveMs)
     , [state?.siteUsage, now])
 
+    /* ── Classifier un domaine dans une catégorie de productivité ──
+       Déclaré avant domainColor pour éviter la Temporal Dead Zone (TDZ).
+       Le build minifie les const arrow functions — si classifyDomain est déclaré
+       après domainColor, le bundler lève "Cannot access 'x' before initialization".
+    ── */
+    const classifyDomain = (domain: string): SiteCategory => {
+        // Les catégories connues ont la PRIORITÉ ABSOLUE sur la détection adulte dynamique.
+        // Un domaine dans productivity/distraction/entertainment ne peut jamais être
+        // reclassifié comme adulte, même si detectedAdultDomains le contient.
+        // Cela évite les faux positifs (ex: github.com avec un repo contenant des variables adultes).
+        if (SITE_CATEGORIES.distraction.some(s => domainMatchesSite(domain, s)))   return 'distraction'
+        if (SITE_CATEGORIES.entertainment.some(s => domainMatchesSite(domain, s))) return 'entertainment'
+        if (SITE_CATEGORIES.productivity.some(s => domainMatchesSite(domain, s)))  return 'productivity'
+
+        // Adulte vérifié APRÈS les catégories connues — deux sources :
+        // 1. Liste prédéfinie PREDEFINED_ADULT_DOMAINS (haute fiabilité)
+        // 2. Domaines détectés dynamiquement (après filtrage SAFE_DOMAINS dans le content script)
+        const adultList    = PREDEFINED_ADULT_DOMAINS as readonly string[]
+        const detectedList = state?.detectedAdultDomains ?? []
+
+        const isAdult =
+            adultList.some((s: string) => domainMatchesSite(domain, s)) ||
+            detectedList.some((s: string) => domainMatchesSite(domain, s))
+
+        if (isAdult) return 'adult'
+
+        return 'other'
+    }
+
     /* ── Couleur stable par domaine ── */
+    // Couleur par domaine = couleur de sa catégorie de productivité
+    // → cohérence visuelle entre le donut et le bar chart horaire
     const domainColor = useMemo(() => {
-        const all = [...new Set(Object.keys(state?.siteUsage ?? {}))].sort()
-        return Object.fromEntries(all.map((d, i) => [d, SITE_COLORS[i % SITE_COLORS.length]]))
-    }, [state?.siteUsage])
+        const all = [...new Set(Object.keys(state?.siteUsage ?? {}))]
+        return Object.fromEntries(
+            all.map(d => [d, CATEGORY_META[classifyDomain(d)].color])
+        )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [state?.siteUsage, state?.detectedAdultDomains])
 
     /* ── Domaines actifs sur les jours sélectionnés ── */
     const activeDomains = useMemo(() => {
@@ -224,6 +261,78 @@ const Analytics: React.FC = () => {
     }, [state?.siteUsage, selectedDays, compareMode, today])
 
     const hasActivity = hourlyData.some(r => activeDomains.some(d => (r[d] ?? 0) > 0))
+
+    /* ── Données donut "répartition aujourd'hui" ── */
+    const donutData = useMemo(() => {
+        // Accumuler le temps par catégorie
+        const totals: Record<SiteCategory, number> = {
+            adult:         0,
+            distraction:   0,
+            entertainment: 0,
+            productivity:  0,
+            other:         0,
+        }
+
+        for (const u of sites) {
+            const cat = classifyDomain(u.domain)
+            totals[cat] += u.liveMs
+        }
+
+        const total = Object.values(totals).reduce((s, v) => s + v, 0)
+
+        // Construire les segments dans l'ordre d'importance
+        const order: SiteCategory[] = ['adult', 'distraction', 'entertainment', 'productivity', 'other']
+        const segments = order
+            .filter(cat => totals[cat] > 0)
+            .map(cat => ({
+                cat,
+                ...CATEGORY_META[cat],
+                value: totals[cat],
+                pct:   total > 0 ? Math.round(totals[cat] / total * 100) : 0,
+            }))
+
+        return {
+            segments,
+            totals,
+            total,
+            hasAdult:    totals.adult > 0,
+            adultBlocked: state?.adultContentBlocked ?? false,
+        }
+    }, [sites, state?.adultContentBlocked, state?.detectedAdultDomains])
+
+    /* ── Données BarChart "Moyenne vs Aujourd'hui" (7 jours) ── */
+    const avgVsTodayData = useMemo(() => {
+        const past6Days    = getLast7Days().slice(0, 6)
+
+        return sites.slice(0, 8).map(u => {
+            const history      = u.history ?? {}
+            const daysWithData = past6Days.filter(d => (history[d] ?? 0) > 0)
+
+            // Diviser par le nombre de jours RÉELLEMENT trackés (pas forcément 6).
+            // Si l'utilisateur a 2 jours de données on moyenne sur 2.
+            // Quand il atteint 6 jours la moyenne se stabilise à pleine résolution.
+            const avgMs = daysWithData.length > 0
+                ? daysWithData.reduce((s, d) => s + (history[d] ?? 0), 0) / daysWithData.length
+                : 0
+
+            return {
+                domain:      u.domain.length > 14 ? u.domain.slice(0,12)+'…' : u.domain,
+                Moyenne:     Math.round(avgMs),
+                Aujourd_hui: u.liveMs,
+                daysTracked: daysWithData.length,
+            }
+        })
+    }, [sites])
+
+    // Nombre de jours avec historique dispo (max 6 = les 6 jours avant aujourd'hui)
+    const daysOfHistoryAvailable = useMemo(() => {
+        const past6  = getLast7Days().slice(0, 6)
+        const usageH = state?.usageHistory ?? {}
+        return past6.filter(d => (usageH[d] ?? 0) > 0).length
+    }, [state?.usageHistory])
+
+    // Label dynamique pour la légende/tooltip selon les jours réels
+    const avgLabel = daysOfHistoryAvailable > 0 ? `Moyenne ${daysOfHistoryAvailable}j` : 'Moyenne'
 
     /* ── 7 jours ── */
     const lineData = useMemo(() =>
@@ -375,13 +484,22 @@ const Analytics: React.FC = () => {
                                         <XAxis dataKey="hour" tick={{ fill: '#71717a', fontSize: 10 }}
                                             axisLine={false} tickLine={false}
                                             tickFormatter={h => Number(h) % 2 === 0 ? `${h}h` : ''} />
-                                        <YAxis tickFormatter={v => v === 0 ? '' : formatDuration(v)}
+                                        <YAxis
+                                            domain={[0, 3_599_999]}
+                                            ticks={[0, 900_000, 1_800_000, 2_700_000, 3_599_999]}
+                                            tickFormatter={v => {
+                                                if (v === 0)         return '0'
+                                                if (v === 900_000)   return '15min'
+                                                if (v === 1_800_000) return '30min'
+                                                if (v === 2_700_000) return '45min'
+                                                return '60min'
+                                            }}
                                             tick={{ fill: '#52525b', fontSize: 9 }}
-                                            axisLine={false} tickLine={false} width={44} />
+                                            axisLine={false} tickLine={false} width={46} />
                                         <Tooltip content={<HourlyTooltip />} cursor={{ fill: '#27272a' }} />
                                         {activeDomains.map((domain, i) => (
                                             <Bar key={domain} dataKey={domain} stackId="h"
-                                                fill={domainColor[domain] ?? SITE_COLORS[i % SITE_COLORS.length]}
+                                                fill={domainColor[domain] ?? CATEGORY_META['other'].color}
                                                 radius={i === activeDomains.length - 1 ? [3,3,0,0] : [0,0,0,0]} />
                                         ))}
                                     </BarChart>
@@ -405,9 +523,18 @@ const Analytics: React.FC = () => {
                                     <XAxis dataKey="hour" tick={{ fill: '#71717a', fontSize: 10 }}
                                         axisLine={false} tickLine={false}
                                         tickFormatter={h => Number(h) % 2 === 0 ? `${h}h` : ''} />
-                                    <YAxis tickFormatter={v => v === 0 ? '' : formatDuration(v)}
+                                    <YAxis
+                                        domain={[0, 3_599_999]}
+                                        ticks={[0, 900_000, 1_800_000, 2_700_000, 3_599_999]}
+                                        tickFormatter={v => {
+                                            if (v === 0)         return '0'
+                                            if (v === 900_000)   return '15min'
+                                            if (v === 1_800_000) return '30min'
+                                            if (v === 2_700_000) return '45min'
+                                            return '60min'
+                                        }}
                                         tick={{ fill: '#52525b', fontSize: 9 }}
-                                        axisLine={false} tickLine={false} width={44} />
+                                        axisLine={false} tickLine={false} width={46} />
                                     <Tooltip content={<CompareTooltip />} />
                                     {selectedDays.map((day, i) => {
                                         const name = day === today ? "Aujourd'hui" : shortDate(day)
@@ -434,36 +561,238 @@ const Analytics: React.FC = () => {
                 </div>
             </div>
 
-            {/* ═══════════════════════════════════════════
-                BARRES EMPILÉES — historique vs aujourd'hui
-            ═══════════════════════════════════════════ */}
+            {/* ═══════════════════════════════════════════════════════
+                DONUT + BAR CHART "MOYENNE VS AUJOURD'HUI"
+                Affichés côte à côte sur grand écran
+            ═══════════════════════════════════════════════════════ */}
             {sites.length > 0 && (
-                <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-5">
-                    <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1">
-                        Temps cumulé — Historique vs Aujourd'hui
-                    </h3>
-                    <p className="text-[10px] text-zinc-600 mb-4">
-                        Poids de la session du jour dans l'usage total par site.
-                    </p>
-                    <ResponsiveContainer width="100%" height={220}>
-                        <BarChart
-                            data={sites.slice(0, 8).map(u => ({
-                                domain:        u.domain.length > 14 ? u.domain.slice(0,12)+'…' : u.domain,
-                                Historique:    Math.max(0, u.totalTimeMs - u.liveMs),
-                                "Aujourd'hui": u.liveMs,
-                            }))}
-                            margin={{ left: 8, right: 16 }}
-                        >
-                            <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
-                            <XAxis dataKey="domain" tick={{ fill: '#a1a1aa', fontSize: 10 }} axisLine={false} tickLine={false} />
-                            <YAxis tickFormatter={v => formatDuration(v)} tick={{ fill: '#71717a', fontSize: 9 }}
-                                axisLine={false} tickLine={false} width={50} />
-                            <Tooltip content={<StackedTooltip />} cursor={{ fill: '#27272a' }} />
-                            <Legend wrapperStyle={{ fontSize: '10px', color: '#a1a1aa' }} />
-                            <Bar dataKey="Historique"   stackId="a" fill="#3f3f46" radius={[0,0,4,4]} />
-                            <Bar dataKey="Aujourd'hui" stackId="a" fill="#f59e0b" radius={[4,4,0,0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                    {/* ── Donut : répartition du temps aujourd'hui ── */}
+                    <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-5">
+                        <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1">
+                            Où va ton temps aujourd'hui ?
+                        </h3>
+                        <p className="text-[10px] text-zinc-600 mb-4">
+                            Répartition par catégorie de navigation · {donutData.total > 0 ? formatDuration(donutData.total) : '—'} total
+                        </p>
+
+                        {donutData.segments.length === 0 ? (
+                            <div className="flex items-center justify-center py-10 text-zinc-700">
+                                <p className="text-xs">Aucune donnée aujourd'hui.</p>
+                            </div>
+                        ) : (
+                            <>
+                                {/* Centre du donut — score de productivité
+                                    Le score est positionné via CSS pur (pas dans le stacking
+                                    context du PieChart) pour ne pas interférer avec le z-index
+                                    du tooltip Recharts.
+                                    Le tooltip a wrapperStyle.zIndex=100 et son contenu utilise
+                                    position:relative + isolation:isolate pour être toujours
+                                    au-dessus du score.
+                                */}
+                                <div style={{ position: 'relative' }}>
+                                    {/* Score au centre — z-index bas, pointer-events none */}
+                                    <div style={{
+                                        position:       'absolute',
+                                        inset:          0,
+                                        display:        'flex',
+                                        flexDirection:  'column',
+                                        alignItems:     'center',
+                                        justifyContent: 'center',
+                                        pointerEvents:  'none',
+                                        zIndex:         1,
+                                    }}>
+                                        <span style={{ fontSize: '20px', fontWeight: 800, color: '#fff', lineHeight: 1 }}>
+                                            {donutData.total > 0
+                                                ? Math.round((donutData.totals.productivity / donutData.total) * 100)
+                                                : 0}%
+                                        </span>
+                                        <span style={{ fontSize: '9px', color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '3px' }}>
+                                            productif
+                                        </span>
+                                    </div>
+
+                                    <ResponsiveContainer width="100%" height={190}>
+                                        <PieChart>
+                                            <Pie
+                                                data={donutData.segments}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={56}
+                                                outerRadius={84}
+                                                paddingAngle={2}
+                                                dataKey="value"
+                                                startAngle={90}
+                                                endAngle={-270}
+                                            >
+                                                {donutData.segments.map((s, i) => (
+                                                    <Cell key={i} fill={s.color} stroke="transparent" />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip
+                                                wrapperStyle={{ zIndex: 100, outline: 'none' }}
+                                                content={({ active, payload }) => {
+                                                    if (!active || !payload?.length) return null
+                                                    const p = payload[0].payload
+                                                    return (
+                                                        <div style={{
+                                                            position:     'relative',
+                                                            isolation:    'isolate',
+                                                            background:   '#09090b',
+                                                            border:       '1px solid #3f3f46',
+                                                            borderRadius: '10px',
+                                                            padding:      '10px 14px',
+                                                            fontSize:     '12px',
+                                                            boxShadow:    '0 8px 32px rgba(0,0,0,0.9)',
+                                                            minWidth:     '160px',
+                                                        }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                                                                <span style={{ fontSize: '16px' }}>{p.emoji}</span>
+                                                                <span style={{ color: p.color, fontWeight: 700 }}>{p.label}</span>
+                                                            </div>
+                                                            <p style={{ color: '#e4e4e7', fontFamily: 'monospace', marginBottom: '2px' }}>
+                                                                {formatDuration(p.value)}
+                                                            </p>
+                                                            <p style={{ color: p.color, fontWeight: 800, fontSize: '14px', marginBottom: '4px' }}>
+                                                                {p.pct}%
+                                                            </p>
+                                                            <p style={{ color: '#52525b', fontSize: '10px' }}>{p.desc}</p>
+                                                        </div>
+                                                    )
+                                                }}
+                                            />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                </div>
+
+                                {/* Légende avec durée + % */}
+                                <div className="space-y-2 mt-1">
+                                    {donutData.segments.map(s => (
+                                        <div key={s.cat} className="flex items-center gap-2.5">
+                                            <span className="text-sm shrink-0">{s.emoji}</span>
+                                            <span className="text-[10px] text-zinc-400 flex-1 leading-tight">{s.label}</span>
+                                            <span className="text-[10px] font-mono text-zinc-300">{formatDuration(s.value)}</span>
+                                            <div className="w-8 text-right">
+                                                <span className="text-[10px] font-bold" style={{ color: s.color }}>{s.pct}%</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Alertes contextuelles */}
+                                <div className="space-y-2 mt-3">
+                                    {/* Alerte contenu adulte */}
+                                    {donutData.hasAdult && (
+                                        <div className="flex items-start gap-2 p-2.5 rounded-lg"
+                                            style={{ background: 'rgba(244,63,94,0.08)', border: '1px solid rgba(244,63,94,0.2)' }}>
+                                            <span className="text-[11px] shrink-0">🔞</span>
+                                            <p className="text-[10px] leading-relaxed" style={{ color: '#fda4af' }}>
+                                                {donutData.adultBlocked
+                                                    ? <>Contenu adulte <strong style={{ color: '#fb7185' }}>{formatDuration(donutData.totals.adult)}</strong> — bloqué par l'extension avant chargement.</>
+                                                    : <><strong style={{ color: '#fb7185' }}>{formatDuration(donutData.totals.adult)}</strong> passé sur des sites à contenu adulte. Active le blocage pour les filtrer.</>
+                                                }
+                                            </p>
+                                        </div>
+                                    )}
+                                    {/* Alerte distraction */}
+                                    {donutData.totals.distraction > 0 && donutData.total > 0 &&
+                                     Math.round(donutData.totals.distraction / donutData.total * 100) >= 40 && (
+                                        <div className="flex items-start gap-2 p-2.5 bg-rose-500/8 border border-rose-500/15 rounded-lg">
+                                            <span className="text-[11px] shrink-0">📱</span>
+                                            <p className="text-[10px] text-rose-400/80 leading-relaxed">
+                                                <strong className="text-rose-300">{Math.round(donutData.totals.distraction / donutData.total * 100)}%</strong> de ton temps va aux réseaux sociaux.
+                                                Envisage de les bloquer ou de créer un profil limiteur.
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        )}
+                    </div>
+
+                    {/* ── Bar chart : Moyenne quotidienne vs Aujourd'hui ── */}
+                    <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-5">
+                        <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1">
+                            Aujourd'hui vs ta moyenne
+                        </h3>
+                        <p className="text-[10px] text-zinc-600 mb-4">
+                            Barres grises = ta moyenne ({avgLabel}) sur tes jours réels. Ambre = aujourd'hui. Dépasse le gris → au-dessus de tes habitudes.
+                        </p>
+
+                        {daysOfHistoryAvailable === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
+                                <div className="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center">
+                                    <Icon icon="solar:calendar-linear" className="text-zinc-500" width="18" />
+                                </div>
+                                <div>
+                                    <p className="text-xs text-zinc-500 font-medium">Historique insuffisant</p>
+                                    <p className="text-[10px] text-zinc-700 mt-1 max-w-[200px] leading-relaxed">
+                                        Ce graphe se construit au fil des jours. Reviens dans quelques jours
+                                        pour voir tes moyennes.
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-1.5 mt-1">
+                                    {[...Array(6)].map((_, i) => (
+                                        <div key={i} className={`w-5 h-1.5 rounded-full ${
+                                            i < daysOfHistoryAvailable ? 'bg-zinc-400' : 'bg-zinc-800'
+                                        }`} />
+                                    ))}
+                                    <span className="text-[9px] text-zinc-600 ml-1">
+                                        {daysOfHistoryAvailable}/6 jours trackés
+                                    </span>
+                                </div>
+                            </div>
+                        ) : (
+                            // Données partielles (< 3j) ou suffisantes (>= 3j) — même graphe
+                            <div className="space-y-3">
+                                {daysOfHistoryAvailable < 3 && (
+                                    <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/8 border border-amber-500/20 rounded-lg">
+                                        <Icon icon="solar:info-circle-linear" className="text-amber-400 shrink-0" width="13" />
+                                        <p className="text-[10px] text-amber-300/80">
+                                            Moyenne calculée sur {daysOfHistoryAvailable} jour{daysOfHistoryAvailable > 1 ? 's' : ''} — elle se stabilise à 6 jours.
+                                        </p>
+                                    </div>
+                                )}
+                                <ResponsiveContainer width="100%" height={220}>
+                                    <BarChart data={avgVsTodayData} margin={{ left: 8, right: 8 }} barCategoryGap="25%">
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+                                        <XAxis dataKey="domain" tick={{ fill: '#a1a1aa', fontSize: 9 }}
+                                            axisLine={false} tickLine={false} />
+                                        <YAxis tickFormatter={v => v === 0 ? '' : formatDuration(v)}
+                                            tick={{ fill: '#71717a', fontSize: 9 }}
+                                            axisLine={false} tickLine={false} width={48} />
+                                        <Tooltip
+                                            content={({ active, payload, label }) => {
+                                                if (!active || !payload?.length) return null
+                                                const over = (payload.find((p: any) => p.dataKey === 'Aujourd_hui')?.value ?? 0) >
+                                                             (payload.find((p: any) => p.dataKey === 'Moyenne')?.value ?? 0)
+                                                return (
+                                                    <div className="bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-xs shadow-xl min-w-[140px]">
+                                                        <p className="text-zinc-400 mb-1.5">{label}</p>
+                                                        {payload.map((p: any) => (
+                                                            <p key={p.dataKey} className="flex justify-between gap-4" style={{ color: p.fill }}>
+                                                                <span>{p.dataKey === 'Aujourd_hui' ? "Aujourd'hui" : avgLabel}</span>
+                                                                <span className="font-mono">{formatDuration(p.value)}</span>
+                                                            </p>
+                                                        ))}
+                                                        {over && <p className="text-rose-400 text-[10px] mt-1.5">↑ Au-dessus de ta moyenne</p>}
+                                                    </div>
+                                                )
+                                            }}
+                                            cursor={{ fill: '#27272a' }}
+                                        />
+                                        <Legend
+                                            formatter={v => v === 'Aujourd_hui' ? "Aujourd'hui" : avgLabel}
+                                            wrapperStyle={{ fontSize: '10px', color: '#a1a1aa' }}
+                                        />
+                                        <Bar dataKey="Moyenne"     fill="#3f3f46" radius={[3,3,0,0]} />
+                                        <Bar dataKey="Aujourd_hui" fill="#f59e0b" radius={[3,3,0,0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
 

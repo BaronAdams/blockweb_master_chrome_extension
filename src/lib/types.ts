@@ -135,8 +135,16 @@ export type State = {
   adultContentBlocked: boolean;
   strictModeUntil:     number | null;
   strictDefaultTime:   number;
+  // strictPinHash:       string | null;  // SHA-256 du PIN en hex — jamais le PIN en clair
 
   siteUsage: Record<string, SiteUsage>;
   /** Temps total de navigation par jour (tous sites) : { 'YYYY-MM-DD': totalMs } */
   usageHistory: Record<string, number>;
+  /**
+   * Domaines détectés comme adultes par le content script (analyse de contenu),
+   * indépendamment de l'activation du blocage adulte.
+   * Permet de classifier ces sites dans Analytics même si l'utilisateur n'a pas
+   * activé le blocage.
+   */
+  detectedAdultDomains: string[];
 };
