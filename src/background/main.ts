@@ -696,12 +696,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 // Ne pas marquer un domaine déjà dans une catégorie connue non-adulte.
                 // Le content script a une SAFE_DOMAINS list, mais le background est la
                 // dernière ligne de défense contre les faux positifs.
-                // const allKnownSafe = [
-                //     ...LIMITS ? [] : [], // placeholder — les catégories sont côté client
-                //     // On vérifie via les listes de blocage utilisateur : si le domaine
-                //     // est dans activeBlockedDomains il peut être adulte (l'user l'a bloqué).
-                //     // En revanche si il est dans la whitelist, il est sûr.
-                // ]
+                const allKnownSafe = [
+                    ...LIMITS ? [] : [], // placeholder — les catégories sont côté client
+                    // On vérifie via les listes de blocage utilisateur : si le domaine
+                    // est dans activeBlockedDomains il peut être adulte (l'user l'a bloqué).
+                    // En revanche si il est dans la whitelist, il est sûr.
+                ]
                 const isWhitelisted = (state.whitelist ?? []).some(w =>
                     domain === w.toLowerCase().replace(/^www\./, '') ||
                     domain.endsWith('.' + w.toLowerCase().replace(/^www\./, ''))
@@ -936,36 +936,74 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 return
             }
 
-            /* ── Connexion Google via chrome.identity.getAuthToken ──────────────────
-               Utilise l'API Chrome Identity — lit oauth2.client_id depuis le manifest.
-               Fonctionne en dev (dist chargé localement) et en prod (Web Store)
-               sans aucun changement de code, grâce à la key RSA qui fixe l'ID.
+            /* ── Connexion Google via launchWebAuthFlow ──────────────────────────────
+               Pourquoi pas getAuthToken ?
+               getAuthToken retourne un ACCESS TOKEN (opaque), pas un ID TOKEN (JWT).
+               Supabase signInWithIdToken attend un ID token — d'où l'erreur "Bad ID token".
+
+               Solution : launchWebAuthFlow avec response_type=id_token + token.
+               Google retourne les deux dans le hash de l'URL de callback.
+               On extrait l'id_token et on le passe à Supabase.
 
                Flux :
-               1. Chrome affiche le popup de consentement Google
-               2. getAuthToken retourne un access_token Google
-               3. supabase.auth.signInWithIdToken échange ce token contre une session
+               1. launchWebAuthFlow ouvre un popup Chrome avec l'URL OAuth Google
+               2. Google redirige vers https://<extensionId>.chromiumapp.org/ avec
+                  #id_token=...&access_token=... dans le hash
+               3. On extrait id_token → supabase.auth.signInWithIdToken
                4. On sauvegarde la session exactement comme SIGN_IN classique
             ── */
             case 'SIGN_IN_GOOGLE': {
                 try {
-                    // 1. Obtenir le token Google via l'API Chrome Identity
-                    //    getAuthToken lit oauth2.client_id depuis le manifest automatiquement
-                    const token = await new Promise<string>((resolve, reject) => {
-                        chrome.identity.getAuthToken({ interactive: true }, (token) => {
-                            if (chrome.runtime.lastError || !token) {
-                                reject(new Error(chrome.runtime.lastError?.message ?? 'Token non obtenu'))
-                            } else {
-                                // @ts-ignore
-                                resolve(token)
+                    const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string
+                    if (!GOOGLE_CLIENT_ID) {
+                        sendResponse({ error: 'VITE_GOOGLE_CLIENT_ID manquant dans .env' })
+                        return
+                    }
+
+                    // URL de callback — Chrome intercepte cette URL et ferme le popup
+                    const redirectUri = `https://${chrome.runtime.id}.chromiumapp.org/`
+
+                    // Construire l'URL OAuth Google
+                    // response_type=id_token token → Google retourne les deux dans le hash
+                    const nonce   = crypto.randomUUID()
+                    const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth')
+                    authUrl.searchParams.set('client_id',     GOOGLE_CLIENT_ID)
+                    authUrl.searchParams.set('redirect_uri',  redirectUri)
+                    authUrl.searchParams.set('response_type', 'id_token token')
+                    authUrl.searchParams.set('scope',         'openid email profile')
+                    authUrl.searchParams.set('nonce',         nonce)
+                    authUrl.searchParams.set('prompt',        'select_account')
+
+                    // 1. Ouvrir le popup OAuth Google
+                    const responseUrl = await new Promise<string>((resolve, reject) => {
+                        chrome.identity.launchWebAuthFlow(
+                            { url: authUrl.toString(), interactive: true },
+                            (callbackUrl) => {
+                                if (chrome.runtime.lastError || !callbackUrl) {
+                                    reject(new Error(chrome.runtime.lastError?.message ?? 'Annulé'))
+                                } else {
+                                    resolve(callbackUrl)
+                                }
                             }
-                        })
+                        )
                     })
 
-                    // 2. Échanger le token Google contre une session Supabase
+                    // 2. Extraire id_token depuis le hash de l'URL de callback
+                    const hashParams = new URLSearchParams(
+                        new URL(responseUrl).hash.replace('#', '')
+                    )
+                    const idToken = hashParams.get('id_token')
+
+                    if (!idToken) {
+                        sendResponse({ error: 'ID token Google non reçu.' })
+                        return
+                    }
+
+                    // 3. Passer l'id_token à Supabase
                     const { data, error } = await supabase.auth.signInWithIdToken({
                         provider: 'google',
-                        token,
+                        token:    idToken,
+                        nonce,
                     })
 
                     if (error) {
@@ -977,9 +1015,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                         return
                     }
 
-                    // 3. Sauvegarder la session — même logique que SIGN_IN classique
-                    const session      = data.session
-                    const sub          = await fetchSubFromDB(session.user.id, session.access_token)
+                    // 4. Sauvegarder la session — même logique que SIGN_IN classique
+                    const session           = data.session
+                    const sub               = await fetchSubFromDB(session.user.id, session.access_token)
                     const wasAlreadyPremium = state.isPremium
 
                     const newState: State = {
@@ -1009,10 +1047,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
                     await setState(newState)
                     sendResponse({ error: null })
+
                 } catch (err: any) {
-                    // L'utilisateur a annulé le popup ou pas de client_id configuré
-                    const msg = err?.message ?? 'Connexion Google annulée.'
-                    sendResponse({ error: msg.includes('canceled') ? null : msg, canceled: msg.includes('canceled') })
+                    const msg = err?.message ?? ''
+                    // Annulation silencieuse si l'utilisateur ferme le popup
+                    const canceled = msg.includes('canceled') || msg.includes('cancel') || msg.includes('closed')
+                    sendResponse({ error: canceled ? null : (msg || 'Connexion Google échouée.'), canceled })
                 }
                 return
             }

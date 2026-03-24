@@ -4,104 +4,99 @@ import pkg from './package.json'
 /* ─────────────────────────────────────────────────────────────────────────────
    GOOGLE OAUTH — CONFIGURATION
    ─────────────────────────────────────────────────────────────────────────────
-   DEV  : utilise VITE_GOOGLE_CLIENT_ID_DEV  dans .env.development
-   PROD : utilise VITE_GOOGLE_CLIENT_ID_PROD dans .env.production
+   Le manifest est évalué par @crxjs/vite-plugin AVANT l'injection Vite,
+   donc process.env.VITE_* est vide à ce stade.
 
-   Comment obtenir ces IDs :
-   1. Aller sur https://console.developers.google.com/auth/clients
-   2. Créer un client OAuth → type : "Extension Chrome"
-   3. Entrer l'ID de l'extension (chrome://extensions en dev, Web Store en prod)
-   4. Coller le client_id généré dans la variable correspondante
+   Solution : exporter une FONCTION qui reçoit l'env depuis vite.config.ts,
+   où loadEnv() a déjà chargé les variables .env.
 
-   STABILISER L'ID EN DEV :
-   Pour éviter que l'ID change à chaque rechargement en dev, ajouter le champ "key"
-   dans ce manifest (voir commentaire KEY ci-dessous).
-   Récupérer la clé : uploader le .zip de l'extension dans le Chrome Web Store
-   Developer Dashboard (sans publier) → onglet Package → "Afficher la clé publique".
+   Dans vite.config.ts :
+     import { createManifest } from './manifest.config'
+     // puis dans defineConfig :
+     crx({ manifest: createManifest(env) })
 ───────────────────────────────────────────────────────────────────────────── */
-// Un seul client OAuth suffit — la key RSA fixe l'ID en dev ET en prod
-const GOOGLE_CLIENT_ID = process.env.VITE_GOOGLE_CLIENT_ID ?? ''
 
-export default defineManifest({
-  manifest_version: 3,
-  name: pkg.name,
-  version: pkg.version,
-  description: "Reduce your exposure to adult content on the web. Powered by AI and customizable filters.",
-  icons: {
-    48: 'public/icon48.png',
-  },
+export function createManifest(env: Record<string, string>) {
+    const GOOGLE_CLIENT_ID = env.VITE_GOOGLE_CLIENT_ID ?? ''
 
-  /* KEY — non nécessaire en dev si tu recharges toujours depuis le même dossier.
-     Chrome conserve l'ID dhdkoaggccklldmlllfmhpifbgcfllkb tant que le chemin
-     du dossier dist ne change pas.
-     En prod : le Web Store assigne son propre ID stable, pas besoin de key non plus.
-     Ne décommente ce champ que si tu constates que ton ID change entre les reloads.
+    return defineManifest({
+        manifest_version: 3,
+        name: pkg.name,
+        version: pkg.version,
+        description:"Une extension de contrôle parental pour limiter l'accès à certains sites web sur Chrome, avec un dashboard de gestion et une authentification Google.",
+        icons: {
+            48: 'public/icon48.png',
+        },
 
-  key: "...",
-  */
+        /* KEY — non nécessaire en dev si tu recharges toujours depuis le même dossier.
+           Chrome conserve l'ID dhdkoaggccklldmlllfmhpifbgcfllkb tant que le chemin
+           du dossier dist ne change pas.
+           En prod : le Web Store assigne son propre ID stable, pas besoin de key non plus.
+           Ne décommente ce champ que si tu constates que ton ID change entre les reloads.
 
-  background: {
-    service_worker: "src/background/main.ts",
-    type: "module"
-  },
-  action: {
-    default_icon: {
-      48: 'public/icon48.png',
-    },
-    default_popup: 'src/popup/index.html',
-  },
-  permissions: [
-    'idle',
-    'sidePanel',
-    'storage',
-    'webNavigation',
-    'declarativeNetRequest',
-    'declarativeNetRequestFeedback',
-    'declarativeNetRequestWithHostAccess',
-    'alarms',
-    'tabs',
-    'notifications',
-    'identity',  // requis pour chrome.identity.getAuthToken (Google OAuth)
-  ],
+        key: "...",
+        */
 
-  /* OAuth2 — lu par chrome.identity.getAuthToken automatiquement.
-     Le client_id change entre dev et prod (deux apps Google Cloud distinctes). */
-  ...(GOOGLE_CLIENT_ID ? {
-    oauth2: {
-      client_id: GOOGLE_CLIENT_ID,
-      scopes: [
-        'openid',
-        'email',
-        'profile',
-      ],
-    },
-  } : {}),
-  host_permissions: ["<all_urls>"],
-  content_scripts: [
-    {
-      // Injecté sur tous les sites dès le début — tracking de visibilité
-      js: ['src/content/visibility.ts'],
-      matches: ['https://*/*'],
-      run_at: 'document_start',
-    },
-    {
-      // Injecté sur TOUS les sites — deux rôles :
-      //   1. Bloquer les sites adultes inconnus par analyse du contenu (titre, metas, body)
-      //   2. Masquer les résultats adultes dans les moteurs de recherche
-      // document_start : nécessaire pour intercepter avant le rendu (Phase 1 HEAD).
-      //   Le script gère lui-même la Phase 2 BODY via DOMContentLoaded.
-      js: ['src/content/adultcontentscript.ts'],
-      matches: ['https://*/*'],
-      run_at: 'document_start',
-    },
-  ],
-  side_panel: {
-    default_path: 'src/sidepanel/index.html',
-  },
-  web_accessible_resources: [
-    {
-      resources: ["src/dashboard/index.html", "src/auth/index.html", "src/blocked/index.html"],
-      matches: ["<all_urls>"]
-    }
-  ]
-})
+        background: {
+            service_worker: "src/background/main.ts",
+            type: "module"
+        },
+        action: {
+            default_icon: {
+                48: 'public/icon48.png',
+            },
+            default_popup: 'src/popup/index.html',
+        },
+        permissions: [
+            'idle',
+            'sidePanel',
+            'storage',
+            'webNavigation',
+            'declarativeNetRequest',
+            'declarativeNetRequestFeedback',
+            'declarativeNetRequestWithHostAccess',
+            'alarms',
+            'tabs',
+            'notifications',
+            'identity',  // requis pour chrome.identity.getAuthToken (Google OAuth)
+        ],
+        host_permissions: ["<all_urls>"],
+
+        // oauth2 injecté seulement si VITE_GOOGLE_CLIENT_ID est défini dans .env
+        ...(GOOGLE_CLIENT_ID ? {
+            oauth2: {
+                client_id: GOOGLE_CLIENT_ID,
+                scopes: [
+                    'openid',
+                    'email',
+                    'profile',
+                ],
+            },
+        } : {}),
+
+        content_scripts: [
+            {
+                js: ['src/content/visibility.ts'],
+                matches: ['https://*/*'],
+                run_at: 'document_start',
+            },
+            {
+                js: ['src/content/adultcontentscript.ts'],
+                matches: ['https://*/*'],
+                run_at: 'document_start',
+            },
+        ],
+        side_panel: {
+            default_path: 'src/sidepanel/index.html',
+        },
+        web_accessible_resources: [
+            {
+                resources: ["src/dashboard/index.html", "src/auth/index.html", "src/blocked/index.html"],
+                matches: ["<all_urls>"]
+            }
+        ]
+    })
+}
+
+// Export par défaut sans Google OAuth (utilisé si vite.config.ts n'importe pas createManifest)
+export default createManifest({})

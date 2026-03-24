@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 import { defineConfig, loadEnv } from 'vite'
 import zip from 'vite-plugin-zip-pack'
 import tailwindcss from '@tailwindcss/vite'
-import manifest from './manifest.config.js'
+import { createManifest } from './manifest.config'
 import { name, version } from './package.json'
 import { resolve } from 'path'
 
@@ -30,12 +30,14 @@ export default defineConfig(({ mode }) => {
         JSON.stringify(env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY),
       'import.meta.env.VITE_GOOGLE_CLIENT_ID':
         JSON.stringify(env.VITE_GOOGLE_CLIENT_ID),
+      // VITE_GOOGLE_CLIENT_ID est passé au manifest via createManifest(env)
+      // et n'a pas besoin d'être dans define (il n'est pas utilisé dans le code runtime)
     },
 
     plugins: [
       react(),
       tailwindcss(),
-      crx({ manifest }),
+      crx({ manifest: createManifest(env) }),
       zip({ outDir: 'release', outFileName: `crx-${name}-${version}.zip` }),
     ],
 
