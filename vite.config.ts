@@ -28,10 +28,10 @@ export default defineConfig(({ mode }) => {
         JSON.stringify(env.VITE_SUPABASE_URL),
       'import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY':
         JSON.stringify(env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY),
+      // Nécessaire dans le service worker (main.ts) pour construire l'URL OAuth
+      // launchWebAuthFlow a besoin du client_id dans le code runtime
       'import.meta.env.VITE_GOOGLE_CLIENT_ID':
-        JSON.stringify(env.VITE_GOOGLE_CLIENT_ID),
-      // VITE_GOOGLE_CLIENT_ID est passé au manifest via createManifest(env)
-      // et n'a pas besoin d'être dans define (il n'est pas utilisé dans le code runtime)
+        JSON.stringify(env.VITE_GOOGLE_CLIENT_ID ?? ''),
     },
 
     plugins: [

@@ -207,12 +207,12 @@ chrome.runtime.onInstalled.addListener(async () => {
     chrome.alarms.create('auth-sync', { periodInMinutes: 50 }) // 50min — refresh avant expiration du JWT (1h)
 
     // Alarm quotidienne à minuit pile — reset des baselines daily + nettoyage siteUsage
-    const now      = new Date()
+    const now = new Date()
     const midnight = new Date(now)
     midnight.setHours(24, 0, 0, 0) // prochain minuit
     const msUntilMidnight = midnight.getTime() - now.getTime()
     chrome.alarms.create('daily-reset', {
-        when:           Date.now() + msUntilMidnight,
+        when: Date.now() + msUntilMidnight,
         periodInMinutes: 24 * 60, // se répète toutes les 24h
     })
 })
@@ -285,18 +285,18 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
         case 'tracking-safety-flush': {
             // 1. Flush le temps accumulé depuis le dernier flush (30s)
             const stopRes = await stopTracking(activeDomain, activeStartTime)
-            activeDomain    = stopRes.activeDomain    // null
+            activeDomain = stopRes.activeDomain    // null
             activeStartTime = stopRes.activeStartTime // null
 
             const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true })
             if (!tab?.id || !tab.url) break
 
             const freshState = await getState()
-            const domain     = getDomain(tab.url)
+            const domain = getDomain(tab.url)
 
             if (domain) {
                 const normalizedDomain = normalizeDomain(domain)
-                const now              = Date.now()
+                const now = Date.now()
 
                 // Après stopTracking, le temps a été flushé dans siteUsage.
                 // isProfileLimitReached lit getProfileTotalTime qui appelle
@@ -313,8 +313,8 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
                                 `/src/blocked/index.html?profile=${encodeURIComponent(profile.id)}`
                             ),
                         })
-                        activeTabId     = null
-                        activeDomain    = null
+                        activeTabId = null
+                        activeDomain = null
                         activeStartTime = null
                         break
                     }
@@ -324,9 +324,9 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
             // 2. Relancer le tracking — startTracking retourne le même timestamp
             //    que celui écrit dans lastStart (un seul Date.now())
             if (tab.url && isTrackableUrl(tab.url)) {
-                const res   = await startTracking(tab.id, tab.url)
-                activeTabId     = res.activeTabId ?? null
-                activeDomain    = res.activeDomain
+                const res = await startTracking(tab.id, tab.url)
+                activeTabId = res.activeTabId ?? null
+                activeDomain = res.activeDomain
                 activeStartTime = res.activeStartTime
             }
             break
@@ -388,7 +388,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
         case 'daily-reset': {
             // 1. Flush le temps accumulé sur l'onglet actif
             const stopRes = await stopTracking(activeDomain, activeStartTime)
-            activeDomain    = stopRes.activeDomain
+            activeDomain = stopRes.activeDomain
             activeStartTime = stopRes.activeStartTime
 
             // Purger l'historique > 30 jours pour limiter la taille du storage
@@ -413,8 +413,8 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
             await setState(stateForPurge)
 
             const freshState = await getState()
-            const today      = todayKey()
-            let changed      = false
+            const today = todayKey()
+            let changed = false
 
             for (const profile of freshState.activeProfiles) {
                 if (!profile.isActive) continue
@@ -429,7 +429,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
                         newBaseline[domain] = {
                             todayTimeMs: usage?.lastDay === today ? usage.todayTimeMs : 0,
                             totalTimeMs: usage?.totalTimeMs ?? 0,
-                            day:         today,
+                            day: today,
                         }
                     }
                     profile.baselineUsage = newBaseline
@@ -450,9 +450,9 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
             // 3. Relancer le tracking sur l'onglet actif
             const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true })
             if (tab?.id && tab.url) {
-                const startRes  = await startTracking(tab.id, tab.url)
-                activeTabId     = startRes.activeTabId ?? null
-                activeDomain    = startRes.activeDomain
+                const startRes = await startTracking(tab.id, tab.url)
+                activeTabId = startRes.activeTabId ?? null
+                activeDomain = startRes.activeDomain
                 activeStartTime = startRes.activeStartTime
             }
             break
@@ -491,7 +491,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             // Désactiver un profil en mode strict est interdit
             if (request.type === 'TOGGLE_PROFILE') {
                 const profileId = request.id as string
-                const profile   = state.activeProfiles.find(p => p.id === profileId)
+                const profile = state.activeProfiles.find(p => p.id === profileId)
                     ?? state.frozenProfiles.find(p => p.id === profileId)
                 if (profile?.isActive) {
                     // Profil déjà actif → désactivation interdite en mode strict
@@ -621,7 +621,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 // (SAVE_STRICT_TIME était bloqué si le mode strict était déjà actif)
                 await setState({
                     ...state,
-                    strictModeUntil:   request.time as number,
+                    strictModeUntil: request.time as number,
                     strictDefaultTime: request.duration as number ?? state.strictDefaultTime,
                 })
                 sendResponse({ success: true })
@@ -696,12 +696,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 // Ne pas marquer un domaine déjà dans une catégorie connue non-adulte.
                 // Le content script a une SAFE_DOMAINS list, mais le background est la
                 // dernière ligne de défense contre les faux positifs.
-                const allKnownSafe = [
-                    ...LIMITS ? [] : [], // placeholder — les catégories sont côté client
-                    // On vérifie via les listes de blocage utilisateur : si le domaine
-                    // est dans activeBlockedDomains il peut être adulte (l'user l'a bloqué).
-                    // En revanche si il est dans la whitelist, il est sûr.
-                ]
+                // const allKnownSafe = [
+                //     ...LIMITS ? [] : [], // placeholder — les catégories sont côté client
+                //     // On vérifie via les listes de blocage utilisateur : si le domaine
+                //     // est dans activeBlockedDomains il peut être adulte (l'user l'a bloqué).
+                //     // En revanche si il est dans la whitelist, il est sûr.
+                // ]
                 const isWhitelisted = (state.whitelist ?? []).some(w =>
                     domain === w.toLowerCase().replace(/^www\./, '') ||
                     domain.endsWith('.' + w.toLowerCase().replace(/^www\./, ''))
@@ -731,7 +731,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 }
                 const { password: verifyPwd } = request as { password: string }
                 const { error: verifyError } = await supabase.auth.signInWithPassword({
-                    email:    state.auth.email,
+                    email: state.auth.email,
                     password: verifyPwd,
                 })
                 if (verifyError) {
@@ -751,7 +751,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
                 // 1. Vérifier le mot de passe actuel
                 const { error: checkError } = await supabase.auth.signInWithPassword({
-                    email:    state.auth.email,
+                    email: state.auth.email,
                     password: currentPwd,
                 })
                 if (checkError) {
@@ -764,8 +764,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 const updateRes = await fetch(`${SUPABASE_URL_PWD}/auth/v1/user`, {
                     method: 'PUT',
                     headers: {
-                        'Content-Type':  'application/json',
-                        'apikey':        import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY as string,
+                        'Content-Type': 'application/json',
+                        'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY as string,
                         'Authorization': `Bearer ${state.auth.accessToken}`,
                     },
                     body: JSON.stringify({ password: newPwd }),
@@ -817,7 +817,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
                 // 1. Vérifier le mot de passe avant toute suppression
                 const { error: checkError } = await supabase.auth.signInWithPassword({
-                    email:    state.auth.email,
+                    email: state.auth.email,
                     password,
                 })
                 if (checkError) {
@@ -834,7 +834,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                         {
                             method: 'POST',
                             headers: {
-                                'Content-Type':  'application/json',
+                                'Content-Type': 'application/json',
                                 'Authorization': `Bearer ${state.auth.accessToken}`,
                             },
                         }
@@ -953,31 +953,57 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                4. On sauvegarde la session exactement comme SIGN_IN classique
             ── */
             case 'SIGN_IN_GOOGLE': {
+                /* ── Connexion Google via launchWebAuthFlow — approche officielle Supabase ──
+                   Source : https://supabase.com/docs/guides/auth/social-login/auth-google?platform=chrome-extensions
+
+                   Flux :
+                   1. response_type=id_token  → Google retourne l'id_token directement dans
+                      le HASH de la redirect URL (pas dans le query string)
+                   2. chrome.identity.launchWebAuthFlow intercepte la redirect
+                   3. On parse url.hash (en supprimant le '#' initial) pour extraire id_token
+                   4. supabase.auth.signInWithIdToken({ provider: 'google', token: id_token })
+
+                   Prérequis Google Cloud Console :
+                   - Client OAuth type "Web application"
+                   - Authorized redirect URIs : https://<extensionId>.chromiumapp.org
+                     (SANS slash final — Chrome l'ajoute en interne)
+
+                   Prérequis Supabase Dashboard :
+                   - Authentication > Providers > Google : activé
+                   - Client ID + Client Secret renseignés
+                   - "Skip nonce check" : activé (on n'envoie pas de nonce ici,
+                     c'est le flux implicite officiel pour les extensions)
+
+                   Prérequis manifest.config.ts :
+                   - oauth2.client_id doit être défini (déjà le cas via VITE_GOOGLE_CLIENT_ID)
+                   - oauth2.scopes : ['openid', 'email', 'profile']
+                ── */
                 try {
-                    const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string
-                    if (!GOOGLE_CLIENT_ID) {
-                        sendResponse({ error: 'VITE_GOOGLE_CLIENT_ID manquant dans .env' })
+                    // Lire le client_id depuis le manifest (déjà injecté par createManifest)
+                    const manifest = chrome.runtime.getManifest() as chrome.runtime.Manifest & {
+                        oauth2?: { client_id: string; scopes: string[] }
+                    }
+
+                    if (!manifest.oauth2?.client_id) {
+                        sendResponse({ error: 'oauth2.client_id manquant dans le manifest. Vérifie VITE_GOOGLE_CLIENT_ID dans .env' })
                         return
                     }
 
-                    // URL de callback — Chrome intercepte cette URL et ferme le popup
-                    const redirectUri = `https://${chrome.runtime.id}.chromiumapp.org/`
+                    // ── Construire l'URL OAuth Google ──
+                    // response_type=id_token → flux implicite, pas PKCE
+                    // Google retourne l'id_token dans le fragment (#) de la redirect URL
+                    const url = new URL('https://accounts.google.com/o/oauth2/auth')
+                    url.searchParams.set('client_id', manifest.oauth2.client_id)
+                    url.searchParams.set('response_type', 'id_token')
+                    url.searchParams.set('access_type', 'offline')
+                    url.searchParams.set('redirect_uri', `https://${chrome.runtime.id}.chromiumapp.org/`)
+                    url.searchParams.set('scope', manifest.oauth2.scopes.join(' '))
+                    url.searchParams.set('nonce', crypto.randomUUID()) // requis par Google pour id_token
 
-                    // Construire l'URL OAuth Google
-                    // response_type=id_token token → Google retourne les deux dans le hash
-                    const nonce   = crypto.randomUUID()
-                    const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth')
-                    authUrl.searchParams.set('client_id',     GOOGLE_CLIENT_ID)
-                    authUrl.searchParams.set('redirect_uri',  redirectUri)
-                    authUrl.searchParams.set('response_type', 'id_token token')
-                    authUrl.searchParams.set('scope',         'openid email profile')
-                    authUrl.searchParams.set('nonce',         nonce)
-                    authUrl.searchParams.set('prompt',        'select_account')
-
-                    // 1. Ouvrir le popup OAuth Google
-                    const responseUrl = await new Promise<string>((resolve, reject) => {
+                    // ── Ouvrir le popup OAuth via Chrome Identity API ──
+                    const redirectedTo = await new Promise<string>((resolve, reject) => {
                         chrome.identity.launchWebAuthFlow(
-                            { url: authUrl.toString(), interactive: true },
+                            { url: url.href, interactive: true },
                             (callbackUrl) => {
                                 if (chrome.runtime.lastError || !callbackUrl) {
                                     reject(new Error(chrome.runtime.lastError?.message ?? 'Annulé'))
@@ -988,22 +1014,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                         )
                     })
 
-                    // 2. Extraire id_token depuis le hash de l'URL de callback
-                    const hashParams = new URLSearchParams(
-                        new URL(responseUrl).hash.replace('#', '')
-                    )
-                    const idToken = hashParams.get('id_token')
+                    // ── Extraire l'id_token depuis le HASH de la redirect URL ──
+                    // url.hash ressemble à "#id_token=xxx&token_type=Bearer&..."
+                    // Il faut supprimer le '#' avant de parser avec URLSearchParams
+                    const redirectedUrl = new URL(redirectedTo)
+                    const params = new URLSearchParams(redirectedUrl.hash.substring(1))
+                    const idToken = params.get('id_token')
 
                     if (!idToken) {
-                        sendResponse({ error: 'ID token Google non reçu.' })
+                        const errCode = params.get('error') ?? 'id_token introuvable dans la réponse Google'
+                        sendResponse({ error: errCode })
                         return
                     }
 
-                    // 3. Passer l'id_token à Supabase
+                    // ── Authentifier auprès de Supabase avec l'id_token Google ──
                     const { data, error } = await supabase.auth.signInWithIdToken({
                         provider: 'google',
-                        token:    idToken,
-                        nonce,
+                        token: idToken,
                     })
 
                     if (error) {
@@ -1015,30 +1042,30 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                         return
                     }
 
-                    // 4. Sauvegarder la session — même logique que SIGN_IN classique
-                    const session           = data.session
-                    const sub               = await fetchSubFromDB(session.user.id, session.access_token)
+                    // 5. Sauvegarder la session
+                    const session = data.session
+                    const sub = await fetchSubFromDB(session.user.id, session.access_token)
                     const wasAlreadyPremium = state.isPremium
 
                     const newState: State = {
                         ...state,
                         auth: {
                             isAuthenticated: true,
-                            userId:          session.user.id,
-                            userName:        (session.user.user_metadata?.full_name as string)
-                                             ?? (session.user.user_metadata?.name as string)
-                                             ?? null,
-                            email:           session.user.email ?? null,
-                            accessToken:     session.access_token,
-                            refreshToken:    session.refresh_token,
-                            lastSyncAt:      Date.now(),
+                            userId: session.user.id,
+                            userName: (session.user.user_metadata?.full_name as string)
+                                ?? (session.user.user_metadata?.name as string)
+                                ?? null,
+                            email: session.user.email ?? null,
+                            accessToken: session.access_token,
+                            refreshToken: session.refresh_token,
+                            lastSyncAt: Date.now(),
                         },
                         subscription: {
                             ...state.subscription,
-                            plan:       sub.plan,
-                            expiresAt:  sub.expiresAt,
+                            plan: sub.plan,
+                            expiresAt: sub.expiresAt,
                             graceUntil: sub.graceUntil,
-                            isValid:    sub.isValid,
+                            isValid: sub.isValid,
                         },
                         isPremium: sub.isPremium,
                     }
@@ -1050,13 +1077,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
                 } catch (err: any) {
                     const msg = err?.message ?? ''
-                    // Annulation silencieuse si l'utilisateur ferme le popup
+                    // launchWebAuthFlow renvoie "canceled" ou "closed" si l'user ferme le popup
                     const canceled = msg.includes('canceled') || msg.includes('cancel') || msg.includes('closed')
                     sendResponse({ error: canceled ? null : (msg || 'Connexion Google échouée.'), canceled })
                 }
                 return
             }
-
             case 'SIGN_UP': {
                 const { data, error } = await supabase.auth.signUp({
                     email: request.email as string,
@@ -1174,8 +1200,8 @@ chrome.storage.onChanged.addListener(async (changes) => {
     if (!activeDomain) return
 
     const normalizedActive = normalizeDomain(activeDomain)
-    const oldDomains  = oldState?.activeBlockedDomains ?? []
-    const newDomains  = newState.activeBlockedDomains ?? []
+    const oldDomains = oldState?.activeBlockedDomains ?? []
+    const newDomains = newState.activeBlockedDomains ?? []
 
     // Domaines nouvellement ajoutés dans cette mise à jour
     const addedDomains = newDomains.filter(d => !oldDomains.includes(d))
@@ -1197,7 +1223,7 @@ chrome.storage.onChanged.addListener(async (changes) => {
                 `/src/blocked/index.html?url=${encodeURIComponent(normalizedActive)}`
             ),
         })
-        activeDomain    = null
+        activeDomain = null
         activeStartTime = null
     }
 })

@@ -23,7 +23,6 @@ const Sidebar: React.FC = () => {
                         {/* <Icon icon="solar:shield-check-linear" className="text-white" width="18" /> */}
                         <img src={logo} className="w-6 h-6 object-cover" />
                     </div>
-
                     <span className="text-sm font-medium tracking-tight text-white">BlockWeb Master</span>
                 </div>
 

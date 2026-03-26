@@ -140,6 +140,7 @@ export default function App() {
     };
 
     const goToDashboard = () => chrome.tabs.create({ url: '/src/dashboard/index.html' });
+    const goToAuthPage = () => chrome.tabs.create({ url: '/src/auth/index.html' });
     const goToPricing   = () => chrome.tabs.create({ url: '/src/dashboard/index.html#/pricing' });
 
     return (
@@ -159,7 +160,7 @@ export default function App() {
                         </div>
                     )}
                     {!state?.auth.isAuthenticated && (
-                        <button onClick={() => window.location.href = chrome.runtime.getURL('src/auth/index.html')}
+                        <button onClick={goToAuthPage}
                             className="px-3 py-1.5 bg-white hover:bg-zinc-200 text-black text-xs font-medium rounded-lg transition-colors">
                             Connexion
                         </button>
