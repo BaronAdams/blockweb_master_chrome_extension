@@ -103,8 +103,11 @@ export const stopTracking = async (
 
     const elapsed = now - startRef;
 
-    // Ignorer les valeurs aberrantes (négatif ou > 8h)
-    if (elapsed <= 0 || elapsed > 8 * 60 * 60 * 1000) {
+    // Ignorer les valeurs aberrantes (négatif ou > 5min)
+    // La safety-flush alarm tourne toutes les 10s → toute session > 5min
+    // sans flush = veille / redémarrage PC → on ne comptabilise pas.
+    const MAX_SESSION_MS = 5 * 60 * 1000 // 5 minutes
+    if (elapsed <= 0 || elapsed > MAX_SESSION_MS) {
         usage.lastStart = null;
         state.siteUsage[domainToFlush] = usage;
         await setState(state);
@@ -219,12 +222,16 @@ export const startTracking = async (tabId: number, url?: string) => {
 
     // Flush implicite si un tracking était en cours sans avoir été stoppé
     // (double startTracking, ou SW redémarré avant un stopTracking)
+    // Garde : 5min max — au-delà c'est une veille/redémarrage, on ignore.
     if (usage.lastStart !== null) {
         const implicitElapsed = startTime - usage.lastStart;
-        if (implicitElapsed > 0 && implicitElapsed < 8 * 60 * 60 * 1000) {
+        const MAX_IMPLICIT_MS = 5 * 60 * 1000 // 5 minutes
+        if (implicitElapsed > 0 && implicitElapsed < MAX_IMPLICIT_MS) {
             usage.todayTimeMs += implicitElapsed;
             usage.totalTimeMs += implicitElapsed;
         }
+        // Toujours reset lastStart même si on n'a pas comptabilisé
+        usage.lastStart = null;
     }
 
     usage.lastStart = startTime;

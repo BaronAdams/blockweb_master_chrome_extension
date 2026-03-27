@@ -224,6 +224,21 @@ chrome.runtime.onInstalled.addListener(async () => {
 chrome.runtime.onStartup.addListener(async () => {
     const state = await getState()
 
+    // ── Nettoyer tous les lastStart orphelins au démarrage ──────────────────
+    // Quand le navigateur ou le PC s'éteint, lastStart reste dans le storage.
+    // Au redémarrage, ces timestamps sont invalides (ils datent d'avant l'arrêt).
+    // On les remet à null pour éviter de comptabiliser le temps d'arrêt/veille.
+    let hadOrphanedStarts = false
+    for (const usage of Object.values(state.siteUsage)) {
+        if (usage.lastStart !== null) {
+            usage.lastStart = null
+            hadOrphanedStarts = true
+        }
+    }
+    if (hadOrphanedStarts) {
+        await setState(state)
+    }
+
     // Les alarms ne tournent pas navigateur fermé.
     // Au démarrage, on vérifie manuellement si la sub a expiré pendant la fermeture.
     checkSubscriptionExpiry(state)
@@ -953,57 +968,65 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                4. On sauvegarde la session exactement comme SIGN_IN classique
             ── */
             case 'SIGN_IN_GOOGLE': {
-                /* ── Connexion Google via launchWebAuthFlow — approche officielle Supabase ──
-                   Source : https://supabase.com/docs/guides/auth/social-login/auth-google?platform=chrome-extensions
+                /* ── Google OAuth pour Chrome Extension — flux validé par la communauté ──
+                   Sources :
+                   - https://beastx.ro/supabase-login-with-oauth-in-chrome-extensions
+                   - https://github.com/orgs/supabase/discussions/19547
+                   - Docs Supabase Chrome Extensions
+
+                   CONFIGURATION REQUISE :
+                   ┌─ Google Cloud Console ──────────────────────────────────────────────┐
+                   │  Client OAuth type : "Web application"                              │
+                   │  Authorized redirect URIs :                                         │
+                   │    https://dhdkoaggccklldmlllfmhpifbgcfllkb.chromiumapp.org        │
+                   │    (SANS slash final — chrome.runtime.id ne l'inclut pas)           │
+                   └────────────────────────────────────────────────────────────────────┘
+                   ┌─ Supabase Dashboard ────────────────────────────────────────────────┐
+                   │  Auth → Providers → Google                                          │
+                   │    Client ID     = <web_app_client_id>                              │
+                   │    Client Secret = <web_app_client_secret>                          │
+                   │    Skip nonce check = DÉSACTIVÉ                                     │
+                   │  Auth → URL Configuration → Redirect URLs :                         │
+                   │    https://dhdkoaggccklldmlllfmhpifbgcfllkb.chromiumapp.org        │
+                   └────────────────────────────────────────────────────────────────────┘
+
+                   VITE_GOOGLE_CLIENT_ID = Client ID du client "Web application"
 
                    Flux :
-                   1. response_type=id_token  → Google retourne l'id_token directement dans
-                      le HASH de la redirect URL (pas dans le query string)
-                   2. chrome.identity.launchWebAuthFlow intercepte la redirect
-                   3. On parse url.hash (en supprimant le '#' initial) pour extraire id_token
-                   4. supabase.auth.signInWithIdToken({ provider: 'google', token: id_token })
-
-                   Prérequis Google Cloud Console :
-                   - Client OAuth type "Web application"
-                   - Authorized redirect URIs : https://<extensionId>.chromiumapp.org
-                     (SANS slash final — Chrome l'ajoute en interne)
-
-                   Prérequis Supabase Dashboard :
-                   - Authentication > Providers > Google : activé
-                   - Client ID + Client Secret renseignés
-                   - "Skip nonce check" : activé (on n'envoie pas de nonce ici,
-                     c'est le flux implicite officiel pour les extensions)
-
-                   Prérequis manifest.config.ts :
-                   - oauth2.client_id doit être défini (déjà le cas via VITE_GOOGLE_CLIENT_ID)
-                   - oauth2.scopes : ['openid', 'email', 'profile']
+                   1. launchWebAuthFlow → accounts.google.com avec response_type=id_token
+                   2. Google redirige vers chromiumapp.org#id_token=...
+                   3. On parse le hash pour extraire id_token
+                   4. signInWithIdToken(id_token, nonceRaw) → session Supabase
                 ── */
                 try {
-                    // Lire le client_id depuis le manifest (déjà injecté par createManifest)
-                    const manifest = chrome.runtime.getManifest() as chrome.runtime.Manifest & {
-                        oauth2?: { client_id: string; scopes: string[] }
-                    }
-
-                    if (!manifest.oauth2?.client_id) {
-                        sendResponse({ error: 'oauth2.client_id manquant dans le manifest. Vérifie VITE_GOOGLE_CLIENT_ID dans .env' })
+                    const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string
+                    if (!GOOGLE_CLIENT_ID) {
+                        sendResponse({ error: 'VITE_GOOGLE_CLIENT_ID manquant dans .env' })
                         return
                     }
 
-                    // ── Construire l'URL OAuth Google ──
-                    // response_type=id_token → flux implicite, pas PKCE
-                    // Google retourne l'id_token dans le fragment (#) de la redirect URL
-                    const url = new URL('https://accounts.google.com/o/oauth2/auth')
-                    url.searchParams.set('client_id', manifest.oauth2.client_id)
-                    url.searchParams.set('response_type', 'id_token')
-                    url.searchParams.set('access_type', 'offline')
-                    url.searchParams.set('redirect_uri', `https://${chrome.runtime.id}.chromiumapp.org/`)
-                    url.searchParams.set('scope', manifest.oauth2.scopes.join(' '))
-                    url.searchParams.set('nonce', crypto.randomUUID()) // requis par Google pour id_token
+                    // Nonce brut → Supabase | nonce hashé hex → Google
+                    const nonceRaw  = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))))
+                    const nonceHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(nonceRaw))
+                    const nonceHex  = Array.from(new Uint8Array(nonceHash))
+                        .map(b => b.toString(16).padStart(2, '0')).join('')
 
-                    // ── Ouvrir le popup OAuth via Chrome Identity API ──
+                    // redirect_uri SANS slash final — doit correspondre exactement
+                    // à ce qui est dans Google Cloud Console Authorized redirect URIs
+                    const redirectUri = `https://${chrome.runtime.id}.chromiumapp.org`
+
+                    const authUrl = new URL('https://accounts.google.com/o/oauth2/auth')
+                    authUrl.searchParams.set('client_id',     GOOGLE_CLIENT_ID)
+                    authUrl.searchParams.set('response_type', 'id_token')
+                    authUrl.searchParams.set('access_type',   'offline')
+                    authUrl.searchParams.set('redirect_uri',  redirectUri)
+                    authUrl.searchParams.set('scope',         'openid email profile')
+                    authUrl.searchParams.set('nonce',         nonceHex)
+                    authUrl.searchParams.set('prompt',        'select_account')
+
                     const redirectedTo = await new Promise<string>((resolve, reject) => {
                         chrome.identity.launchWebAuthFlow(
-                            { url: url.href, interactive: true },
+                            { url: authUrl.href, interactive: true },
                             (callbackUrl) => {
                                 if (chrome.runtime.lastError || !callbackUrl) {
                                     reject(new Error(chrome.runtime.lastError?.message ?? 'Annulé'))
@@ -1014,70 +1037,73 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                         )
                     })
 
-                    // ── Extraire l'id_token depuis le HASH de la redirect URL ──
-                    // url.hash ressemble à "#id_token=xxx&token_type=Bearer&..."
-                    // Il faut supprimer le '#' avant de parser avec URLSearchParams
-                    const redirectedUrl = new URL(redirectedTo)
-                    const params = new URLSearchParams(redirectedUrl.hash.substring(1))
+                    // id_token dans le hash : chromiumapp.org#id_token=xxx&...
+                    const params  = new URLSearchParams(new URL(redirectedTo).hash.substring(1))
                     const idToken = params.get('id_token')
-
                     if (!idToken) {
-                        const errCode = params.get('error') ?? 'id_token introuvable dans la réponse Google'
-                        sendResponse({ error: errCode })
+                        sendResponse({ error: params.get('error') ?? 'id_token introuvable.' })
                         return
                     }
 
-                    // ── Authentifier auprès de Supabase avec l'id_token Google ──
                     const { data, error } = await supabase.auth.signInWithIdToken({
                         provider: 'google',
-                        token: idToken,
+                        token:    idToken,
+                        nonce:    nonceRaw,
                     })
 
-                    if (error) {
-                        sendResponse({ error: error.message })
-                        return
-                    }
-                    if (!data.session) {
-                        sendResponse({ error: 'Connexion Google échouée.' })
+                    if (error || !data.session) {
+                        sendResponse({ error: error?.message ?? 'Connexion Google échouée.' })
                         return
                     }
 
-                    // 5. Sauvegarder la session
                     const session = data.session
-                    const sub = await fetchSubFromDB(session.user.id, session.access_token)
+                    const sub     = await fetchSubFromDB(session.user.id, session.access_token)
                     const wasAlreadyPremium = state.isPremium
+
+                    // Récupérer le username existant depuis la table profiles
+                    // pour ne pas l'écraser avec le nom Google si l'utilisateur
+                    // avait déjà un username via email/password
+                    const { data: profile } = await supabaseWithToken(session.access_token)
+                        .from('profiles')
+                        .select('username')
+                        .eq('id', session.user.id)
+                        .maybeSingle()
+
+                    // Priorité : username en base → nom Google → null
+                    // @ts-ignore
+                    const existingUsername = profile?.username as string | null
+                    const googleName = (session.user.user_metadata?.full_name as string)
+                                    ?? (session.user.user_metadata?.name as string)
+                                    ?? null
+                    const finalUsername = existingUsername ?? googleName
 
                     const newState: State = {
                         ...state,
                         auth: {
                             isAuthenticated: true,
-                            userId: session.user.id,
-                            userName: (session.user.user_metadata?.full_name as string)
-                                ?? (session.user.user_metadata?.name as string)
-                                ?? null,
-                            email: session.user.email ?? null,
-                            accessToken: session.access_token,
-                            refreshToken: session.refresh_token,
-                            lastSyncAt: Date.now(),
+                            userId:          session.user.id,
+                            userName:        finalUsername,
+                            email:           session.user.email ?? null,
+                            accessToken:     session.access_token,
+                            refreshToken:    session.refresh_token,
+                            lastSyncAt:      Date.now(),
                         },
                         subscription: {
                             ...state.subscription,
-                            plan: sub.plan,
-                            expiresAt: sub.expiresAt,
+                            plan:       sub.plan,
+                            expiresAt:  sub.expiresAt,
                             graceUntil: sub.graceUntil,
-                            isValid: sub.isValid,
+                            isValid:    sub.isValid,
                         },
                         isPremium: sub.isPremium,
                     }
 
                     if (sub.isPremium && !wasAlreadyPremium) upgradeToPremium(newState)
-
                     await setState(newState)
                     sendResponse({ error: null })
 
                 } catch (err: any) {
-                    const msg = err?.message ?? ''
-                    // launchWebAuthFlow renvoie "canceled" ou "closed" si l'user ferme le popup
+                    const msg      = err?.message ?? ''
                     const canceled = msg.includes('canceled') || msg.includes('cancel') || msg.includes('closed')
                     sendResponse({ error: canceled ? null : (msg || 'Connexion Google échouée.'), canceled })
                 }
@@ -1311,12 +1337,26 @@ chrome.idle.setDetectionInterval(15)
 
 chrome.idle.onStateChanged.addListener(async (idleState) => {
     if (idleState === 'idle' || idleState === 'locked') {
+        // Stop propre : flush le temps en cours avant la mise en veille
         const res = await stopTracking(activeDomain, activeStartTime)
         activeDomain = res.activeDomain
         activeStartTime = res.activeStartTime
         activeTabId = null
     }
     if (idleState === 'active') {
+        // Retour de veille : nettoyer les lastStart orphelins qui auraient
+        // pu subsister si stopTracking n'a pas eu le temps de s'exécuter
+        const state = await getState()
+        let cleaned = false
+        for (const usage of Object.values(state.siteUsage)) {
+            if (usage.lastStart !== null) {
+                usage.lastStart = null
+                cleaned = true
+            }
+        }
+        if (cleaned) await setState(state)
+
+        // Puis relancer le tracking sur l'onglet actif
         const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true })
         if (tab?.id && tab.url) {
             const res = await startTracking(tab.id, tab.url)

@@ -60,8 +60,10 @@ export function getLiveTodayTime(
   // et dans isProfileLimitReached → la limite n'était jamais atteinte en temps réel.
   if (usage.lastStart && usage.lastStart > 0) {
     const live = now - usage.lastStart;
-    // Ignorer les valeurs aberrantes (> 8h = SW probablement tué)
-    if (live > 0 && live < 8 * 60 * 60 * 1000) {
+    // Ignorer si > 5min : la safety-flush alarm tourne toutes les 10s.
+    // Un lastStart > 5min = veille / redémarrage → ne pas comptabiliser.
+    const MAX_LIVE_MS = 5 * 60 * 1000 // 5 minutes
+    if (live > 0 && live < MAX_LIVE_MS) {
       return usage.todayTimeMs + live;
     }
   }
