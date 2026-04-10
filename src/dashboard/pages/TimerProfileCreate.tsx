@@ -1,4 +1,5 @@
 import { useStateContext } from '@/context/GlobalStateContext'
+import { useT } from '@/lib/i18n'
 import { LIMITS } from '@/lib/constants'
 import { IntervalRule, Profile, ProfileConfig, ProfileType, TimeRange, WeekDay } from '@/lib/types'
 import { normalizeDomain, sendToBackground } from '@/lib/utils'
@@ -20,24 +21,24 @@ export async function action({ request }: ActionFunctionArgs) {
     const sitesRaw = formData.get('sites') as string
     const configRaw = formData.get('config') as string
 
-    if (!name || !sitesRaw || !configRaw) return { error: 'Données manquantes.' }
+    if (!name || !sitesRaw || !configRaw) return { error: navigator.language?.startsWith('fr') ? 'Données manquantes.' : 'Missing data.' }
 
     let sites: string[]
     let config: ProfileConfig
     try {
         sites = JSON.parse(sitesRaw)
         config = JSON.parse(configRaw)
-    } catch { return { error: 'Données corrompues.' } }
+    } catch { return { error: navigator.language?.startsWith('fr') ? 'Données corrompues.' : 'Corrupted data.' } }
 
-    if (!sites.length) return { error: 'Ajoute au moins un site.' }
+    if (!sites.length) return { error: navigator.language?.startsWith('fr') ? 'Ajoute au moins un site.' : 'Add at least one site.' }
     if (config.type !== 'interval') {
         const limit =
             config.type === 'daily' ? config.dailyLimit :
                 config.type === 'hourly' ? config.hourlyLimit :
                     config.weeklyLimit
-        if (!limit) return { error: 'La limite doit être supérieure à 0.' }
+        if (!limit) return { error: navigator.language?.startsWith('fr') ? 'La limite doit être supérieure à 0.' : 'The limit must be greater than 0.' }
     } else if (!config.rules.length) {
-        return { error: 'Ajoute au moins une plage de blocage.' }
+        return { error: navigator.language?.startsWith('fr') ? 'Ajoute au moins une plage de blocage.' : 'Add at least one block period.' }
     }
 
     const profile: Profile = {
@@ -87,10 +88,10 @@ const TYPE_OPTIONS: {
     icon: string
     color: string
 }[] = [
-        { type: 'daily', label: 'Limite Quotidienne', desc: 'Temps maximum autorisé par jour sur des sites définis. Par ex 2h par jour sur Tiktok', icon: 'solar:sun-linear', color: 'text-amber-400' },
-        { type: 'hourly', label: 'Limite Horaire', desc: 'Temps maximum autorisé par heure sur des sites définis. Par ex 30min par jour sur Tiktok', icon: 'solar:clock-circle-linear', color: 'text-blue-400' },
-        { type: 'weekly', label: 'Limite Hebdomadaire', desc: 'Temps maximum autorisé par semaine sur des sites définis. Par exemple 7h par semaine sur Youtube ', icon: 'solar:calendar-linear', color: 'text-violet-400' },
-        { type: 'interval', label: 'Blocage Programmé', desc: 'Blocage total de sites sur des plages horaires et jours configurés', icon: 'solar:shield-minimalistic-linear', color: 'text-rose-400' },
+        { type: 'daily', label: navigator.language?.startsWith('fr') ? 'Limite Quotidienne' : 'Daily Limit', desc: navigator.language?.startsWith('fr') ? 'Temps maximum autorisé par jour sur des sites définis. Par ex 2h par jour sur Tiktok' : 'Maximum time allowed per day on defined sites. E.g. 2h per day on TikTok', icon: 'solar:sun-linear', color: 'text-amber-400' },
+        { type: 'hourly', label: navigator.language?.startsWith('fr') ? 'Limite Horaire' : 'Hourly Limit', desc: navigator.language?.startsWith('fr') ? 'Temps maximum autorisé par heure sur des sites définis. Par ex 30min par jour sur Tiktok' : 'Maximum time allowed per hour on defined sites. E.g. 30min per hour on TikTok', icon: 'solar:clock-circle-linear', color: 'text-blue-400' },
+        { type: 'weekly', label: navigator.language?.startsWith('fr') ? 'Limite Hebdomadaire' : 'Weekly Limit', desc: navigator.language?.startsWith('fr') ? 'Temps maximum autorisé par semaine sur des sites définis. Par exemple 7h par semaine sur Youtube' : 'Maximum time allowed per week on defined sites. E.g. 7h per week on YouTube', icon: 'solar:calendar-linear', color: 'text-violet-400' },
+        { type: 'interval', label: navigator.language?.startsWith('fr') ? 'Blocage Programmé' : 'Scheduled Block', desc: navigator.language?.startsWith('fr') ? 'Blocage total de sites sur des plages horaires et jours configurés' : 'Complete site blocking on configured time slots and days', icon: 'solar:shield-minimalistic-linear', color: 'text-rose-400' },
     ]
 
 /* =========================================================
@@ -194,6 +195,8 @@ function ErrorBanner({ msg }: { msg: string }) {
 ========================================================= */
 
 const TimerProfileCreate = () => {
+    const t  = useT('profiles')
+    const tc = useT('common')
     const { state } = useStateContext()
     const navigate = useNavigate()
     const actionData = useActionData() as { profileId?: string } | undefined
@@ -296,11 +299,11 @@ const TimerProfileCreate = () => {
     /* ── Validation avant submit ── */
     const handleBeforeSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         setStepError(null)
-        if (!name.trim()) { e.preventDefault(); setStepError('Donne un nom au profil.'); return }
-        if (!sites.length) { e.preventDefault(); setStepError('Ajoute au moins un site.'); return }
+        if (!name.trim()) { e.preventDefault(); setStepError(navigator.language?.startsWith('fr') ? 'Donne un nom au profil.' : 'Give the profile a name.'); return }
+        if (!sites.length) { e.preventDefault(); setStepError(navigator.language?.startsWith('fr') ? 'Ajoute au moins un site.' : 'Add at least one site.'); return }
         const totalMins = duration.hours * 60 + duration.mins
-        if (profileType !== 'interval' && totalMins === 0) { e.preventDefault(); setStepError('La limite doit être supérieure à 0.'); return }
-        if (profileType === 'interval' && !intervalRules.length) { e.preventDefault(); setStepError('Ajoute au moins une plage.'); return }
+        if (profileType !== 'interval' && totalMins === 0) { e.preventDefault(); setStepError(navigator.language?.startsWith('fr') ? 'La limite doit être supérieure à 0.' : 'The limit must be greater than 0.'); return }
+        if (profileType === 'interval' && !intervalRules.length) { e.preventDefault(); setStepError(navigator.language?.startsWith('fr') ? 'Ajoute au moins une plage.' : 'Add at least one period.'); return }
         if (sitesInputRef.current) sitesInputRef.current.value = JSON.stringify(sites)
         if (configInputRef.current) configInputRef.current.value = JSON.stringify(buildConfig())
         if (nameInputRef.current) nameInputRef.current.value = name.trim()
@@ -318,9 +321,9 @@ const TimerProfileCreate = () => {
                 </button>
                 <div className="flex-1">
                     <div className="flex items-center justify-between mb-1.5">
-                        <h2 className="text-[13px] font-semibold text-white">Nouveau Profil</h2>
+                        <h2 className="text-[13px] font-semibold text-white">{t('newProfile')}</h2>
                         <span className="text-[13px] text-zinc-500">
-                            {step === 1 ? 'Étape 1 — Type' : 'Étape 2 — Paramètres'}
+                            {step === 1 ? t('step1') : t('step2')}
                         </span>
                     </div>
                     <StepIndicator current={(step - 1) as 0 | 1} />
@@ -338,15 +341,13 @@ const TimerProfileCreate = () => {
                         <div className="flex items-start gap-3 p-3 bg-amber-500/10 border border-amber-500/25 rounded-xl">
                             <Icon icon="solar:danger-triangle-linear" className="text-amber-400 shrink-0 mt-0.5" width="16" />
                             <div className="flex-1 min-w-0">
-                                <p className="text-[13px] font-medium text-amber-300">Limite de profils atteinte</p>
+                                <p className="text-[13px] font-medium text-amber-300">{t('limitReached')}</p>
                                 <p className="text-[13px] text-amber-400/80 mt-0.5">
-                                    {LIMITS.FREE.profiles} profils max en plan gratuit. Passe à Premium pour en créer davantage.
+                                    {LIMITS.FREE.profiles} {t('limitDesc', LIMITS.FREE.profiles).split(LIMITS.FREE.profiles.toString())[1]}
                                 </p>
                             </div>
                             <Link to="/pricing"
-                                className="no-underline shrink-0 px-2.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-black text-[13px] font-bold rounded-lg transition-colors">
-                                Upgrader
-                            </Link>
+                                className="no-underline shrink-0 px-2.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-black text-[13px] font-bold rounded-lg transition-colors">{tc('upgrade')}</Link>
                         </div>
                     )}
 
@@ -386,31 +387,31 @@ const TimerProfileCreate = () => {
                     <input ref={configInputRef} type="hidden" name="config" />
 
                     {/* Nom */}
-                    <Section title="Nom du profil">
+                    <Section title={t('profileName')}>
                         <input type="text" value={name} onChange={e => setName(e.target.value)}
-                            placeholder="Ex : Réseaux Sociaux"
+                            placeholder={t('namePlaceholder')}
                             className="w-full bg-black border border-zinc-700 text-white text-[13px] rounded-lg px-3 py-2 outline-none focus:border-zinc-500 transition-colors placeholder:text-zinc-400" />
                     </Section>
 
                     {/* DAILY */}
                     {profileType === 'daily' && (<>
-                        <Section title="Durée max par jour">
+                        <Section title={t('maxPerDay')}>
                             <DurationPicker maxHours={23} value={duration} onChange={setDuration} />
                         </Section>
-                        <Section title="Jours d'application" hint="Laisser vide = tous les jours">
+                        <Section title={t('appDays')} hint="Laisser vide = tous les jours">
                             <DaySelector selected={selectedDays} onChange={setSelectedDays} />
                         </Section>
                     </>)}
 
                     {/* HOURLY */}
                     {profileType === 'hourly' && (<>
-                        <Section title="Durée max par heure" hint="Entre 1 et 59 minutes">
+                        <Section title={t('maxPerHour')} hint={t('between1and59')}>
                             <DurationPicker maxHours={0} value={{ hours: 0, mins: duration.mins }} onChange={v => setDuration({ hours: 0, mins: v.mins })} />
                         </Section>
-                        <Section title="Jours d'application" hint="Laisser vide = tous les jours">
+                        <Section title={t('appDays')} hint="Laisser vide = tous les jours">
                             <DaySelector selected={selectedDays} onChange={setSelectedDays} />
                         </Section>
-                        <Section title="Plages horaires" hint="Laisser vide = toute la journée">
+                        <Section title={t('timeRanges')} hint={t('emptyRanges')}>
                             <div className="flex gap-2 items-center flex-wrap">
                                 <input type="time" value={newRangeStart} onChange={e => setNewRangeStart(e.target.value)}
                                     className="bg-black border border-zinc-700 text-white text-[13px] rounded-lg px-3 py-2 outline-none focus:border-zinc-500" />
@@ -419,7 +420,7 @@ const TimerProfileCreate = () => {
                                     className="bg-black border border-zinc-700 text-white text-[13px] rounded-lg px-3 py-2 outline-none focus:border-zinc-500" />
                                 <button type="button" onClick={addTimeRange}
                                     className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-[13px] rounded-lg border border-zinc-700 transition-colors">
-                                    + Ajouter
+                                    {t('add')}
                                 </button>
                             </div>
                             {timeRanges.length > 0 && (
@@ -438,7 +439,7 @@ const TimerProfileCreate = () => {
 
                     {/* WEEKLY */}
                     {profileType === 'weekly' && (
-                        <Section title="Durée max par semaine">
+                        <Section title={t('maxPerWeek')}>
                             <DurationPicker maxHours={167} value={duration} onChange={setDuration} />
                         </Section>
                     )}
@@ -452,7 +453,7 @@ const TimerProfileCreate = () => {
                                         style={{ height: '18px' }}>
                                         <span className={`absolute top-0.5 w-3.5 h-3.5 rounded-full bg-black transition-transform ${newRuleAllDay ? 'translate-x-4' : 'translate-x-0.5'}`} />
                                     </div>
-                                    <span className="text-[13px] text-zinc-400">Toute la journée (00:00 – 23:59)</span>
+                                    <span className="text-[13px] text-zinc-400">{t('allDay')}</span>
                                 </label>
                                 <div className="space-y-1.5">
                                     <p className="text-[13px] text-zinc-500">Jours</p>
@@ -469,7 +470,7 @@ const TimerProfileCreate = () => {
                                 )}
                                 <button type="button" onClick={addIntervalRule}
                                     className="w-full py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-[13px] font-medium rounded-lg border border-zinc-700 transition-colors">
-                                    + Ajouter cette plage
+                                    {t('addRange')}
                                 </button>
                                 {intervalRules.length > 0 && (
                                     <div className="space-y-1.5">
@@ -477,7 +478,7 @@ const TimerProfileCreate = () => {
                                             <div key={i} className="flex items-center justify-between px-3 py-2 bg-zinc-800/60 rounded-lg border border-zinc-700">
                                                 <div>
                                                     <p className="text-[13px] text-white">
-                                                        {rule.allDay ? 'Toute la journée' : `${rule.startTime} → ${rule.endTime}`}
+                                                        {rule.allDay ? t('allDay') : `${rule.startTime} → ${rule.endTime}`}
                                                     </p>
                                                     <p className="text-[13px] text-zinc-500 mt-0.5">
                                                         {rule.days.map(d => DAY_LABELS.find(x => x.key === d)?.short).join(' · ')}
@@ -514,31 +515,55 @@ const TimerProfileCreate = () => {
                         </div>
                     </Section>
 
-                    {/* Sites fréquents avec favicon */}
-                    {state?.siteUsage && Object.keys(state.siteUsage).length > 0 && (() => {
-                        const frequent = Object.entries(state.siteUsage)
+                    {/* Sites les plus visités — critères stricts */}
+                    {(() => {
+                        if (!state?.siteUsage) return null
+                        const MIN_DAILY_MS  = 5  * 60 * 1000  // 5min minimum par jour
+                        const MIN_TOTAL_MS  = 10 * 60 * 1000  // 10min minimum au total
+                        const MIN_DAYS      = 2               // présent au moins 2 jours différents
+
+                        const topSites = Object.entries(state.siteUsage)
+                            .filter(([d, u]) => {
+                                // Exclure les suggestions déjà affichées
+                                if (SUGGESTED_SITES.some(s => s.domain === d)) return false
+                                // Exclure si temps total insuffisant
+                                if ((u.totalTimeMs ?? 0) < MIN_TOTAL_MS) return false
+                                // Compter les jours avec activité ≥ MIN_DAILY_MS
+                                const history = u.history ?? {}
+                                const daysWithActivity = Object.entries(history)
+                                    .filter(([k, ms]) => !k.includes(':') && ms >= MIN_DAILY_MS)
+                                    .length
+                                return daysWithActivity >= MIN_DAYS
+                            })
                             .sort((a, b) => (b[1].totalTimeMs ?? 0) - (a[1].totalTimeMs ?? 0))
                             .slice(0, 8)
-                            .filter(([d]) => !SUGGESTED_SITES.some(s => s.domain === d))
-                        if (!frequent.length) return null
+
+                        if (!topSites.length) return null
                         return (
-                            <Section title="Sites que tu visites le plus">
+                            <Section title={t('topSites')}
+                                hint={t('topSitesHint')}>
                                 <div className="grid grid-cols-2 gap-1.5">
-                                    {frequent.map(([domain]) => (
-                                        <button key={domain} type="button"
-                                            onClick={() => sites.includes(domain) ? setSites(p => p.filter(s => s !== domain)) : addSite(domain)}
-                                            className={`flex items-center gap-2 px-2.5 py-2 rounded-lg border transition-all ${sites.includes(domain)
-                                                ? 'border-white bg-white/10'
-                                                : 'border-zinc-800 bg-zinc-900/50 hover:border-zinc-600'
-                                                }`}>
-                                            <img src={`https://www.google.com/s2/favicons?domain=${domain}&sz=32`}
-                                                className="w-4 h-4 shrink-0 opacity-80" alt="" />
-                                            <span className="text-[13px] text-zinc-300 truncate flex-1">{domain}</span>
-                                            {sites.includes(domain) && (
-                                                <Icon icon="solar:check-circle-bold" width="11" className="text-white shrink-0" />
-                                            )}
-                                        </button>
-                                    ))}
+                                    {topSites.map(([domain, usage]) => {
+                                        const totalH = Math.floor((usage.totalTimeMs ?? 0) / 3600000)
+                                        const totalM = Math.floor(((usage.totalTimeMs ?? 0) % 3600000) / 60000)
+                                        const timeLabel = totalH > 0 ? `${totalH}h ${totalM}m` : `${totalM}m`
+                                        return (
+                                            <button key={domain} type="button"
+                                                onClick={() => sites.includes(domain) ? setSites(p => p.filter(s => s !== domain)) : addSite(domain)}
+                                                className={`flex items-center gap-2 px-2.5 py-2 rounded-lg border transition-all ${sites.includes(domain)
+                                                    ? 'border-white bg-white/10'
+                                                    : 'border-zinc-800 bg-zinc-900/50 hover:border-zinc-600'
+                                                    }`}>
+                                                <img src={`https://www.google.com/s2/favicons?domain=${domain}&sz=32`}
+                                                    className="w-4 h-4 shrink-0 opacity-80" alt="" />
+                                                <span className="text-[13px] text-zinc-300 truncate flex-1">{domain}</span>
+                                                {sites.includes(domain)
+                                                    ? <Icon icon="solar:check-circle-bold" width="11" className="text-white shrink-0" />
+                                                    : <span className="text-[10px] text-zinc-600 shrink-0">{timeLabel}</span>
+                                                }
+                                            </button>
+                                        )
+                                    })}
                                 </div>
                             </Section>
                         )
@@ -553,7 +578,7 @@ const TimerProfileCreate = () => {
                                 className="flex-1 disabled:cursor-not-allowed bg-black border border-zinc-700 text-white text-[13px] rounded-lg px-3 py-2 outline-none focus:border-zinc-500 transition-colors placeholder:text-zinc-400" />
                             <button type="button" onClick={addSiteFromInput} disabled={sites.length >= maxSites}
                                 className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 text-white text-[13px] rounded-lg border border-zinc-700 transition-colors">
-                                Ajouter
+                                {tc('add')}
                             </button>
                         </div>
                         {/* Sites sélectionnés */}
@@ -571,7 +596,7 @@ const TimerProfileCreate = () => {
                             </div>
                         )}
                         {sites.length === 0 && (
-                            <p className="text-[13px] text-zinc-400 italic pt-1">Aucun site ajouté</p>
+                            <p className="text-[13px] text-zinc-400 italic pt-1">{t('noSite')}</p>
                         )}
                     </Section>
 
@@ -579,12 +604,10 @@ const TimerProfileCreate = () => {
 
                     <div className="flex justify-end gap-3 pt-1">
                         <button type="button" onClick={() => setStep(1)}
-                            className="px-4 py-2 text-[13px] font-medium text-zinc-400 hover:text-white transition-colors">
-                            Retour
-                        </button>
+                            className="px-4 py-2 text-[13px] font-medium text-zinc-400 hover:text-white transition-colors">{tc('back')}</button>
                         <button type="submit"
                             className="px-5 py-2 bg-white hover:bg-zinc-200 text-black text-[13px] font-semibold rounded-lg transition-colors">
-                            Créer le profil
+                            {t('create')}
                         </button>
                     </div>
                 </Form>
@@ -597,11 +620,10 @@ const TimerProfileCreate = () => {
                             <Icon icon="solar:check-circle-bold" className="text-emerald-400" width="24" />
                         </AlertDialogMedia>
                         <AlertDialogTitle className="text-white text-sm font-semibold">
-                            Profil créé avec succès !
+                            {t('created')}
                         </AlertDialogTitle>
                         <AlertDialogDescription className="text-zinc-400 text-xs leading-relaxed">
-                            Veux-tu activer ce profil maintenant ? Les sites seront surveillés dès l'activation.
-                            Tu pourras toujours l'activer plus tard depuis la liste des profils.
+                            {t('createdDesc')}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="flex gap-2 mt-2">
@@ -611,7 +633,7 @@ const TimerProfileCreate = () => {
                             onClick={() => navigate('/profiles')}
                             className="flex-1 py-2.5 text-xs font-medium text-zinc-400 hover:text-white border border-zinc-700 hover:border-zinc-500 rounded-lg transition-colors"
                         >
-                            Plus tard
+                            {t('laterBtn')}
                         </button>
                         {/* Activer maintenant → TOGGLE_PROFILE puis redirection */}
                         <button
@@ -625,7 +647,7 @@ const TimerProfileCreate = () => {
                             className="flex-1 py-2.5 text-xs font-semibold text-black bg-white hover:bg-zinc-200 rounded-lg transition-colors flex items-center justify-center gap-1.5"
                         >
                             <Icon icon="solar:play-bold" width="12" />
-                            Activer maintenant
+                            {t('activateNow')}
                         </button>
                     </AlertDialogFooter>
                 </AlertDialogContent>

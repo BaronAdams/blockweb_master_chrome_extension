@@ -1,4 +1,5 @@
 import React from 'react'
+import { useT } from '@/lib/i18n'
 import { Icon } from "@iconify/react";
 import logo from '@/assets/blockweb_master_icon.svg'
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -6,6 +7,8 @@ import { useStateContext } from '@/context/GlobalStateContext';
 
 
 const Sidebar: React.FC = () => {
+    const t  = useT('sidebar')
+    const tc = useT('common')
     const navigate = useNavigate();
     const location = useLocation();
     const { state, avatarUrl } = useStateContext()
@@ -30,23 +33,23 @@ const Sidebar: React.FC = () => {
                 <nav className="p-4 space-y-1">
                     <button onClick={() => navigate('/')} id="nav-analytics" className={`tab-btn ${location.pathname == '/' && 'active'} w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-zinc-400 rounded-lg hover:bg-zinc-900 hover:text-zinc-200 transition-all`}>
                         <Icon icon="solar:chart-square-linear" width="18" className={location.pathname == '/' ? 'text-white' : ''} />
-                        Vue d'ensemble
+                        {t('analytics')}
                     </button>
                     <button onClick={() => navigate('/block-lists')} id="nav-lists" className={`tab-btn ${location.pathname == '/block-lists' && 'active'} w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-zinc-400 rounded-lg hover:bg-zinc-900 hover:text-zinc-200 transition-all`}>
                         <Icon icon="solar:list-check-linear" width="18" className={location.pathname == '/block-lists' ? 'text-white' : ''} />
-                        Listes de Contrôle
+                        {t('blockLists')}
                     </button>
                     <button onClick={() => navigate('/profiles')} id="nav-profiles" className={`tab-btn ${location.pathname.includes('profile') && 'active'} w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-zinc-400 rounded-lg hover:bg-zinc-900 hover:text-zinc-200 transition-all`}>
                         <Icon icon="solar:hourglass-line-linear" width="18" className={location.pathname.includes('profile') ? 'text-white' : ''} />
-                        Profils Limiteurs
+                        {t('profiles')}
                     </button>
                     <button onClick={() => navigate('/pricing')} id="nav-pricing" className={`tab-btn ${location.pathname == '/pricing' && 'active'} w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-zinc-400 rounded-lg hover:bg-zinc-900 hover:text-zinc-200 transition-all`}>
                         <Icon icon="solar:tag-price-linear" width="18" className={location.pathname == '/pricing' ? 'text-white' : ''} />
-                        Abonnements
+                        {t('pricing')}
                     </button>
                     <button onClick={() => navigate('/strict-mode-settings')} id="nav-strict-mode-settings" className={`tab-btn ${location.pathname == '/strict-mode-settings' && 'active'} w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-zinc-400 rounded-lg hover:bg-zinc-900 hover:text-zinc-200 transition-all`}>
                         <Icon icon="solar:settings-linear" width="18" className={location.pathname == '/strict-mode-settings' ? 'text-white' : ''} />
-                        Configuration
+                        {t('strictMode')}
                     </button>
                 </nav>
             </div>
@@ -58,12 +61,12 @@ const Sidebar: React.FC = () => {
                     <button onClick={handlePlanClick} id="sidebar-plan-card" className="group w-full p-3 rounded-xl bg-gradient-to-br from-zinc-900 to-black border border-zinc-800 hover:border-amber-500/50 transition-all text-left relative overflow-hidden">
                         <div className="absolute inset-0 bg-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                         <div className="flex items-center justify-between mb-1 relative z-10">
-                            <span className="text-xs font-medium text-white">Plan Actuel</span>
+                            <span className="text-xs font-medium text-white">{t('currentPlan')}</span>
                             <span id="user-badge" className={state?.isPremium ? "text-[10px] bg-amber-500 text-black font-bold px-1.5 py-0.5 rounded" : "text-[10px] bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-400 border border-zinc-700"}>
-                                {state?.isPremium ? 'PRO' : 'Free'}
+                                {state?.isPremium ? tc('pro') : tc('free')}
                             </span>
                         </div>
-                        <p id="plan-cta" className="text-[10px] text-zinc-500 relative z-10">{state?.isPremium ? 'Gérer' : 'Upgrade'}</p>
+                        <p id="plan-cta" className="text-[10px] text-zinc-500 relative z-10">{state?.isPremium ? tc('manage') : tc('upgrade')}</p>
                     </button>
                 </div>
 
@@ -81,7 +84,7 @@ const Sidebar: React.FC = () => {
                             </div>
                             <div className="text-left flex-1 min-w-0">
                                 <p id="sidebar-username" className="text-xs font-medium text-white truncate">{state?.auth?.userName}</p>
-                                <p className="text-[10px] text-zinc-500 truncate">Gérer le compte</p>
+                                <p className="text-[10px] text-zinc-500 truncate">{t('manageAccount')}</p>
                             </div>
                             <Icon icon="solar:settings-linear" className="text-zinc-600 group-hover:text-zinc-400" />
                         </button>

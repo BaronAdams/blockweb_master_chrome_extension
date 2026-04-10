@@ -184,6 +184,7 @@ chrome.runtime.onInstalled.addListener(async () => {
         siteUsage: {},
         usageHistory: {},
         detectedAdultDomains: [],
+        customProductivitySites: [],
     }
 
     const existing = await chrome.storage.local.get('blockweb_master_state')
@@ -298,13 +299,31 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
            ce qui laisse l'utilisateur naviguer librement tant qu'il ne bouge pas.
         ──────────────────────────────────────────────────────────────────────── */
         case 'tracking-safety-flush': {
-            // 1. Flush le temps accumulé depuis le dernier flush (30s)
+            // 1. Flush le temps accumulé depuis le dernier flush
             const stopRes = await stopTracking(activeDomain, activeStartTime)
-            activeDomain = stopRes.activeDomain    // null
-            activeStartTime = stopRes.activeStartTime // null
+            activeDomain = stopRes.activeDomain
+            activeStartTime = stopRes.activeStartTime
 
+            // Vérifier que la fenêtre Chrome est réellement visible et active.
+            // lastFocusedWindow peut être une fenêtre MINIMISÉE — dans ce cas
+            // on ne doit pas relancer le tracking.
             const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true })
             if (!tab?.id || !tab.url) break
+
+            // Vérifier l'état de la fenêtre : ne pas tracker si minimisée
+            let windowIsVisible = false
+            try {
+                const win = await chrome.windows.get(tab.windowId)
+                windowIsVisible = win.state !== 'minimized' && win.focused === true
+            } catch {
+                windowIsVisible = false
+            }
+
+            if (!windowIsVisible) {
+                // Fenêtre minimisée ou sans focus → pas de tracking
+                activeTabId = null
+                break
+            }
 
             const freshState = await getState()
             const domain = getDomain(tab.url)
@@ -313,11 +332,6 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
                 const normalizedDomain = normalizeDomain(domain)
                 const now = Date.now()
 
-                // Après stopTracking, le temps a été flushé dans siteUsage.
-                // isProfileLimitReached lit getProfileTotalTime qui appelle
-                // getLiveTodayTime — maintenant that getLiveTodayTime inclut
-                // toujours lastStart, mais lastStart vient d'être mis à null
-                // par stopTracking. On relit le state frais (post-flush).
                 for (const profile of freshState.activeProfiles) {
                     if (!profile.isActive) continue
                     if (!matchingProfileSite(normalizedDomain, profile.sites)) continue
@@ -336,8 +350,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
                 }
             }
 
-            // 2. Relancer le tracking — startTracking retourne le même timestamp
-            //    que celui écrit dans lastStart (un seul Date.now())
+            // 2. Relancer le tracking seulement si fenêtre visible + active
             if (tab.url && isTrackableUrl(tab.url)) {
                 const res = await startTracking(tab.id, tab.url)
                 activeTabId = res.activeTabId ?? null
@@ -668,6 +681,28 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 return
             }
 
+            /* ── Sites productivité personnalisés ── */
+            case 'ADD_PRODUCTIVITY_SITE': {
+                const domain = (request.domain as string)?.toLowerCase().replace(/^www\./, '').trim()
+                if (!domain) { sendResponse({ success: false }); return }
+                if (!state.customProductivitySites) state.customProductivitySites = []
+                if (!state.customProductivitySites.includes(domain)) {
+                    state.customProductivitySites.push(domain)
+                    await setState(state)
+                }
+                sendResponse({ success: true })
+                return
+            }
+            case 'REMOVE_PRODUCTIVITY_SITE': {
+                const domain = (request.domain as string)?.toLowerCase().replace(/^www\./, '').trim()
+                if (!domain) { sendResponse({ success: false }); return }
+                if (!state.customProductivitySites) state.customProductivitySites = []
+                state.customProductivitySites = state.customProductivitySites.filter(d => d !== domain)
+                await setState(state)
+                sendResponse({ success: true })
+                return
+            }
+
             /* ── State / Adultes ── */
             case 'GET_STATE': {
                 sendResponse(state)
@@ -875,8 +910,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             }
 
             case 'RESET_PASSWORD': {
+                const RESET_PASSWORD_URL = import.meta.env.RESET_PASSWORD_URL as string
                 const { error } = await supabase.auth.resetPasswordForEmail(
-                    request.email as string
+                    request.email as string,
+                    { redirectTo: RESET_PASSWORD_URL }
                 )
                 if (error) {
                     sendResponse({ error: error.message })
@@ -888,9 +925,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
             case 'RESEND_CONFIRMATION': {
                 // Renvoie l'email de confirmation à un utilisateur qui ne l'a pas reçu
+                const CONFIRM_EMAIL_URL = import.meta.env.CONFIRM_EMAIL_URL as string
                 const { error } = await supabase.auth.resend({
                     type: 'signup',
                     email: request.email as string,
+                    options: {
+                        emailRedirectTo: CONFIRM_EMAIL_URL
+                    },
                 })
                 sendResponse({ error: error?.message ?? null })
                 return
@@ -1110,10 +1151,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 return
             }
             case 'SIGN_UP': {
+                const CONFIRM_EMAIL_URL = import.meta.env.CONFIRM_EMAIL_URL as string
                 const { data, error } = await supabase.auth.signUp({
                     email: request.email as string,
                     password: request.password as string,
-                    options: { data: { username: request.username } },
+                    options: {
+                        data: { username: request.username },
+                        emailRedirectTo: CONFIRM_EMAIL_URL
+                    },
                 })
 
                 if (error) {
@@ -1369,10 +1414,26 @@ chrome.idle.onStateChanged.addListener(async (idleState) => {
 
 chrome.windows.onFocusChanged.addListener(async (windowId) => {
     if (windowId === chrome.windows.WINDOW_ID_NONE) {
+        // Plus aucune fenêtre Chrome n'a le focus (ex: passage à une autre appli)
         const res = await stopTracking(activeDomain, activeStartTime)
         activeDomain = res.activeDomain
         activeStartTime = res.activeStartTime
         activeTabId = null
+        return
+    }
+
+    // Vérifier que la fenêtre qui vient de prendre le focus n'est pas minimisée
+    try {
+        const win = await chrome.windows.get(windowId)
+        if (win.state === 'minimized') {
+            // Fenêtre minimisée → stopper le tracking
+            const res = await stopTracking(activeDomain, activeStartTime)
+            activeDomain = res.activeDomain
+            activeStartTime = res.activeStartTime
+            activeTabId = null
+            return
+        }
+    } catch {
         return
     }
 

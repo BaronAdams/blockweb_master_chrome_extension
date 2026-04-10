@@ -4,13 +4,11 @@ import { Icon } from "@iconify/react";
 import { isValidUrl, sendToBackground } from '@/lib/utils';
 import { LIMITS } from '@/lib/constants';
 import { useStateContext } from '@/context/GlobalStateContext';
+import { useT } from '@/lib/i18n';
 import { toast } from "sonner"
 
-/* =========================================================
-   CONSTANTE
-========================================================= */
 const PREVIEW_COUNT = 5
-
+// Je suis quelqu'un qui aime construire et créer des solutions utiles à travers la technologie.
 /* =========================================================
    CollapsibleList — liste avec expansion animée
    ─────────────────────────────────────────────────────────
@@ -72,7 +70,7 @@ const CollapsibleList: React.FC<CollapsibleListProps> = ({ children }) => {
                         </span>
                     )}
                     <span className="text-[10px] text-zinc-500 group-hover:text-zinc-300 transition-colors">
-                        {expanded ? 'Réduire' : `Voir ${extra.length} de plus`}
+                        {expanded ? navigator.language?.startsWith('fr') ? 'Réduire' : 'Show less' : navigator.language?.startsWith('fr') ? `Voir ${extra.length} de plus` : `See ${extra.length} more`}
                     </span>
                     <Icon
                         icon="solar:alt-arrow-down-linear"
@@ -89,6 +87,8 @@ const CollapsibleList: React.FC<CollapsibleListProps> = ({ children }) => {
    COMPOSANT PRINCIPAL
 ========================================================= */
 const BlockLists: React.FC = () => {
+    const t  = useT('blockLists')
+    const tc = useT('common')
     const navigate = useNavigate()
     const { state } = useStateContext()
 
@@ -124,11 +124,11 @@ const BlockLists: React.FC = () => {
     const saveCustomUrl = useCallback(async () => {
         const val = customRef.current?.value ?? ''
         if (!isValidUrl(val)) {
-            toast.error("L'URL entrée n'est pas valide.")
+            toast.error(navigator.language?.startsWith('fr') ? "L'URL entrée n'est pas valide." : 'The entered URL is not valid.')
             return
         }
         const res = await sendToBackground({ type: 'SET_CUSTOM_URL', customRedirectUrl: val })
-        if (res.success) toast.success('URL de redirection mise à jour.')
+        if (res.success) toast.success(navigator.language?.startsWith('fr') ? 'URL de redirection mise à jour.' : 'Redirect URL updated.')
         else             toast.error('Une erreur est survenue.')
     }, [])
 
@@ -241,7 +241,7 @@ const BlockLists: React.FC = () => {
                 {frozen > 0 && (
                     <span className="text-sm text-amber-400/70 font-semibold flex items-center gap-1.5">
                         <Icon icon="solar:lock-keyhole-linear" width="14" />
-                        {frozen} gelé{frozen > 1 ? 's' : ''}
+                        {frozen} {navigator.language?.startsWith('fr') ? 'gelé' + (frozen > 1 ? 's' : '') : 'frozen'}
                     </span>
                 )}
                 <span className={`text-base font-bold px-2.5 py-0.5 rounded-md ${
@@ -309,10 +309,10 @@ const BlockLists: React.FC = () => {
                         </div>
                         <div>
                             <h3 className="text-sm font-medium text-white flex items-center gap-2">
-                                Contenu pour Adultes
+                                {t('adultBlocking')}
                                 <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500 text-black font-bold">PRO</span>
                             </h3>
-                            <p className="text-xs text-zinc-500 mt-0.5">Bloquer automatiquement les sites classifiés +18.</p>
+                            <p className="text-xs text-zinc-500 mt-0.5">{t('adultDesc')}</p>
                         </div>
                     </div>
                     <div className="relative flex items-center">
@@ -337,7 +337,7 @@ const BlockLists: React.FC = () => {
                 <div className="flex items-center justify-between">
                     <h3 className="text-sm font-medium text-white flex items-center gap-2">
                         <Icon icon="solar:forbidden-circle-linear" className="text-rose-500" width="16" />
-                        Domaines Bloqués
+                        {t('blockedDomains')}
                     </h3>
                     <LimitBadge count={domains.length} max={domainLimit} frozen={frozenDomains.length} />
                 </div>
@@ -346,12 +346,10 @@ const BlockLists: React.FC = () => {
                     <div className="flex items-center gap-2.5 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
                         <Icon icon="solar:info-circle-linear" className="text-amber-500 shrink-0" width="15" />
                         <p className="text-xs text-amber-300 flex-1">
-                            Limite atteinte ({LIMITS.FREE.domains}/{LIMITS.FREE.domains}).
+                            {t('limitReached')} ({LIMITS.FREE.domains}/{LIMITS.FREE.domains}).
                         </p>
                         <button onClick={() => navigate('/pricing')}
-                            className="text-[10px] font-bold text-black bg-amber-500 hover:bg-amber-400 px-2 py-1 rounded transition-colors shrink-0">
-                            Upgrader
-                        </button>
+                            className="text-[10px] font-bold text-black bg-amber-500 hover:bg-amber-400 px-2 py-1 rounded transition-colors shrink-0">{tc('upgrade')}</button>
                     </div>
                 )}
 
@@ -359,12 +357,12 @@ const BlockLists: React.FC = () => {
                 // @ts-ignore
                     inputRef={domainRef}
                     onAdd={addDomain}
-                    placeholder={domainFull ? 'Limite atteinte' : 'ex: facebook.com'}
+                    placeholder={domainFull ? t('limitReached') : t('domainPlaceholder')}
                     disabled={domainFull}
                 />
 
                 {domains.length === 0 && frozenDomains.length === 0 ? (
-                    <ul><EmptyState icon="mynaui:globe" label="Aucun domaine bloqué" /></ul>
+                    <ul><EmptyState icon="mynaui:globe" label={t('noDomain')} /></ul>
                 ) : (
                     <ul className="space-y-0">
                         <CollapsibleList total={domains.length + frozenDomains.length}>
@@ -379,12 +377,10 @@ const BlockLists: React.FC = () => {
                     <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/8 border border-amber-500/20 rounded-lg">
                         <Icon icon="solar:info-circle-linear" className="text-amber-400 shrink-0" width="13" />
                         <p className="text-xs text-amber-300/80 flex-1">
-                            {frozenDomains.length} domaine{frozenDomains.length > 1 ? 's' : ''} gelé{frozenDomains.length > 1 ? 's' : ''} — passez à Premium pour les réactiver.
+                            {frozenDomains.length} domaine{frozenDomains.length > 1 ? 's' : ''} {navigator.language?.startsWith('fr') ? 'gelé' + (frozenDomains.length > 1 ? 's' : '') + ' — passez à Premium pour les réactiver.' : 'frozen — upgrade to Premium to reactivate.'}
                         </p>
                         <button onClick={() => navigate('/pricing')}
-                            className="text-[10px] font-bold text-black bg-amber-500 hover:bg-amber-400 px-2 py-1 rounded transition-colors shrink-0">
-                            Upgrader
-                        </button>
+                            className="text-[10px] font-bold text-black bg-amber-500 hover:bg-amber-400 px-2 py-1 rounded transition-colors shrink-0">{tc('upgrade')}</button>
                     </div>
                 )}
             </section>
@@ -394,7 +390,7 @@ const BlockLists: React.FC = () => {
                 <div className="flex items-center justify-between">
                     <h3 className="text-sm font-medium text-white flex items-center gap-2">
                         <Icon icon="solar:text-square-linear" className="text-orange-500" width="16" />
-                        Mots-Clés Bloqués
+                        {t('blockedKeywords')}
                     </h3>
                     <LimitBadge count={keywords.length} max={keywordLimit} frozen={frozenKeywords.length} />
                 </div>
@@ -403,12 +399,10 @@ const BlockLists: React.FC = () => {
                     <div className="flex items-center gap-2.5 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
                         <Icon icon="solar:info-circle-linear" className="text-amber-500 shrink-0" width="15" />
                         <p className="text-xs text-amber-300 flex-1">
-                            Limite atteinte ({LIMITS.FREE.keywords}/{LIMITS.FREE.keywords}).
+                            {t('limitReached')} ({LIMITS.FREE.keywords}/{LIMITS.FREE.keywords}).
                         </p>
                         <button onClick={() => navigate('/pricing')}
-                            className="text-[10px] font-bold text-black bg-amber-500 hover:bg-amber-400 px-2 py-1 rounded transition-colors shrink-0">
-                            Upgrader
-                        </button>
+                            className="text-[10px] font-bold text-black bg-amber-500 hover:bg-amber-400 px-2 py-1 rounded transition-colors shrink-0">{tc('upgrade')}</button>
                     </div>
                 )}
 
@@ -416,12 +410,12 @@ const BlockLists: React.FC = () => {
                 // @ts-ignore
                     inputRef={keywordRef}
                     onAdd={addKeyword}
-                    placeholder={keywordFull ? 'Limite atteinte' : 'ex: distractions'}
+                    placeholder={keywordFull ? t('limitReached') : t('keywordPlaceholder')}
                     disabled={keywordFull}
                 />
 
                 {keywords.length === 0 && frozenKeywords.length === 0 ? (
-                    <ul><EmptyState icon="tabler:hash" label="Aucun mot-clé bloqué" /></ul>
+                    <ul><EmptyState icon="tabler:hash" label={t('noKeyword')} /></ul>
                 ) : (
                     <ul className="space-y-0">
                         <CollapsibleList total={keywords.length + frozenKeywords.length}>
@@ -436,12 +430,10 @@ const BlockLists: React.FC = () => {
                     <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/8 border border-amber-500/20 rounded-lg">
                         <Icon icon="solar:info-circle-linear" className="text-amber-400 shrink-0" width="13" />
                         <p className="text-xs text-amber-300/80 flex-1">
-                            {frozenKeywords.length} mot{frozenKeywords.length > 1 ? 's' : ''}-clé{frozenKeywords.length > 1 ? 's' : ''} gelé{frozenKeywords.length > 1 ? 's' : ''} — passez à Premium pour les réactiver.
+                            {frozenKeywords.length} mot{frozenKeywords.length > 1 ? 's' : ''}-clé{frozenKeywords.length > 1 ? 's' : ''} {navigator.language?.startsWith('fr') ? 'gelé' + (frozenKeywords.length > 1 ? 's' : '') + ' — passez à Premium pour les réactiver.' : 'frozen — upgrade to Premium to reactivate.'}
                         </p>
                         <button onClick={() => navigate('/pricing')}
-                            className="text-[10px] font-bold text-black bg-amber-500 hover:bg-amber-400 px-2 py-1 rounded transition-colors shrink-0">
-                            Upgrader
-                        </button>
+                            className="text-[10px] font-bold text-black bg-amber-500 hover:bg-amber-400 px-2 py-1 rounded transition-colors shrink-0">{tc('upgrade')}</button>
                     </div>
                 )}
             </section>
@@ -450,7 +442,7 @@ const BlockLists: React.FC = () => {
             <section className="space-y-3 relative">
                 <h3 className="text-sm font-medium text-white flex items-center gap-2">
                     <Icon icon="solar:link-circle-linear" className="text-blue-500" width="16" />
-                    URL de Redirection
+                    {t('customRedirect')}
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500 text-black font-bold">PRO</span>
                     {!isPremium && <Icon icon="solar:lock-keyhole-linear" className="text-amber-500 ml-auto" width="14" />}
                 </h3>
@@ -461,23 +453,19 @@ const BlockLists: React.FC = () => {
                             ref={customRef}
                             type="text"
                             defaultValue={state?.customRedirectUrl ?? ''}
-                            placeholder="https://google.com (par défaut)"
+                            placeholder={t('redirectPlaceholder')}
                             className="flex-1 bg-zinc-900 border border-zinc-800 text-white text-xs rounded-lg px-3 py-2.5 outline-none focus:border-blue-500/50 transition-colors placeholder:text-zinc-600"
                         />
                         <button onClick={saveCustomUrl}
-                            className="px-4 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-medium rounded-lg border border-zinc-700 transition-colors">
-                            Enregistrer
-                        </button>
+                            className="px-4 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-medium rounded-lg border border-zinc-700 transition-colors">{tc('save')}</button>
                     </div>
-                    <p className="text-[10px] text-zinc-600 mt-1.5">Les pages bloquées redirigeront vers cette adresse.</p>
+                    <p className="text-[10px] text-zinc-600 mt-1.5">{t('redirectDesc')}</p>
                 </div>
 
                 {!isPremium && (
                     <div className="absolute inset-0 top-8 z-10 flex items-center justify-center">
                         <button onClick={checkPremium}
-                            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-black text-[10px] font-bold rounded-lg shadow-lg shadow-amber-500/20 transition-colors">
-                            Débloquer
-                        </button>
+                            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-black text-[10px] font-bold rounded-lg shadow-lg shadow-amber-500/20 transition-colors">{tc('upgrade')}</button>
                     </div>
                 )}
             </section>
@@ -486,7 +474,7 @@ const BlockLists: React.FC = () => {
             <section className="space-y-3 relative">
                 <h3 className="text-sm font-medium text-white flex items-center gap-2">
                     <Icon icon="solar:check-circle-linear" className="text-emerald-500" width="16" />
-                    Whitelist
+                    {t('whitelist')}
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500 text-black font-bold">PRO</span>
                     {!isPremium && <Icon icon="solar:lock-keyhole-linear" className="text-amber-500 ml-auto" width="14" />}
                 </h3>
@@ -496,13 +484,13 @@ const BlockLists: React.FC = () => {
                         // @ts-ignore   
                         inputRef={whiteRef}
                         onAdd={addWhite}
-                        placeholder={isStrict ? 'Ajout bloqué en mode strict' : 'wikipedia.org'}
+                        placeholder={isStrict ? t('strictBlocked') : t('whitePlaceholder')}
                         disabled={whiteAddDisabled}
                     />
 
                     {isPremium ? (
                         whitelist.length === 0 ? (
-                            <ul><EmptyState icon="mynaui:globe" label="Aucun site en liste blanche" /></ul>
+                            <ul><EmptyState icon="mynaui:globe" label={t('noWhite')} /></ul>
                         ) : (
                             <ul className="space-y-0">
                                 <CollapsibleList total={whitelist.length}>
@@ -522,9 +510,7 @@ const BlockLists: React.FC = () => {
                 {!isPremium && (
                     <div className="absolute inset-0 top-8 z-10 flex items-center justify-center">
                         <button onClick={checkPremium}
-                            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-black text-[10px] font-bold rounded-lg shadow-lg shadow-amber-500/20 transition-colors">
-                            Débloquer
-                        </button>
+                            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-black text-[10px] font-bold rounded-lg shadow-lg shadow-amber-500/20 transition-colors">{tc('upgrade')}</button>
                     </div>
                 )}
             </section>

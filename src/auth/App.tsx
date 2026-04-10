@@ -1,8 +1,10 @@
 import { Icon } from '@iconify/react'
+import { ArrowLeft, CheckCircle, CircleAlert, CircleUser, Eye, EyeOff, LoaderCircle, Lock, Mail, RefreshCw } from 'lucide-react'
 import { useRef, useState } from 'react'
 import logo from '@/assets/blockweb_master_icon.svg'
 import "@fontsource/inter/400.css"
 import './App.css'
+import { useT, getT } from '@/lib/i18n'
 
 /* =========================================================
    TYPES
@@ -10,24 +12,28 @@ import './App.css'
 type Mode   = 'login' | 'register' | 'forgot'
 type Status = 'idle' | 'loading' | 'error' | 'success'
 
+// twh (translator without hook)
+const twh = getT("auth")
+const twhc = getT("common")
+
 /* =========================================================
    MESSAGES D'ERREUR CONTEXTUELS
    Centralisés ici pour être cohérents et maintenables
 ========================================================= */
 const LOGIN_ERRORS: Record<string, string> = {
-    'Invalid login credentials':          'Adresse email ou mot de passe incorrect.',
-    'Email not confirmed':                 'Compte non activé.',   // géré via notConfirmedEmail
-    'Too many requests':                   'Trop de tentatives. Réessaie dans quelques minutes.',
-    'User not found':                      'Aucun compte trouvé avec cette adresse email.',
+    'Invalid login credentials':           twh("invalidCredentials"),
+    'Email not confirmed':                 twh("emailNotConfirmed"),   // géré via notConfirmedEmail
+    'Too many requests':                   twh("loginManyRequests"),
+    'User not found':                      twh("userNotfound"),
 }
 
 const REGISTER_ERRORS: Record<string, string> = {
-    'User already registered':             'Un compte existe déjà avec cette adresse email. Connecte-toi ou utilise "Mot de passe oublié".',
-    'already registered':                  'Un compte existe déjà avec cette adresse email. Connecte-toi ou utilise "Mot de passe oublié".',
-    'already been registered':             'Un compte existe déjà avec cette adresse email. Connecte-toi ou utilise "Mot de passe oublié".',
-    'Password should be at least 6':       'Le mot de passe doit contenir au moins 6 caractères.',
-    'Unable to validate email address':    'Adresse email invalide.',
-    'Signup is disabled':                  'Les inscriptions sont temporairement désactivées.',
+    'User already registered':             twh("userAlreadyRegistered"),
+    'already registered':                  twh("userAlreadyRegistered"),
+    'already been registered':             twh("userAlreadyRegistered"),
+    'Password should be at least 6':       twh("passwordLengthRule"),
+    'Unable to validate email address':    twh("invalidEmail"),
+    'Signup is disabled':                  twh("signupDisabled"),
 }
 
 function resolveError(raw: string, map: Record<string, string>): string {
@@ -35,7 +41,7 @@ function resolveError(raw: string, map: Record<string, string>): string {
         if (raw.toLowerCase().includes(key.toLowerCase())) return msg
     }
     // Fallback générique
-    return 'Une erreur est survenue. Veuillez réessayer.'
+    return twhc("errorWithReset")
 }
 
 /* =========================================================
@@ -45,7 +51,7 @@ async function sendToBackground(
     msg: Record<string, unknown>
 ): Promise<{ error: string | null; needsConfirmation?: boolean; notConfirmed?: boolean }> {
     return new Promise((resolve) =>
-        chrome.runtime.sendMessage(msg, (r) => resolve(r ?? { error: 'Pas de réponse du background.' }))
+        chrome.runtime.sendMessage(msg, (r) => resolve(r ?? { error: twhc("backgroundNotReply") }))
     )
 }
 
@@ -188,7 +194,7 @@ export default function App() {
             const registeredEmail = regEmail.current?.value ?? ''
             setLoginEmailValue(registeredEmail)
             if (loginPassword.current) loginPassword.current.value = ''
-            setInfo('Compte créé ! Un email de confirmation a été envoyé à ton adresse. Clique le lien puis connecte-toi.')
+            setInfo(t("accountCreated"))
             setStatus('idle')
             setMode('login')   // direct — préserve infoMsg
             return
@@ -221,12 +227,12 @@ export default function App() {
         })
 
         if (result.error) {
-            setError('Impossible d\'envoyer le lien. Vérifie l\'adresse email et réessaie.')
+            setError(t("sendingVerificationEmailError"))
             setStatus('error')
             return
         }
         setStatus('success')
-        setInfo('Un lien de réinitialisation a été envoyé à ton adresse email.')
+        setInfo(t("sendingResetPwdEmailSuccess"))
     }
 
     const isLoading = status === 'loading'
@@ -235,6 +241,7 @@ export default function App() {
     const showNotConfirmed = !!notConfirmedEmail
     const showError        = !!errorMsg && !showNotConfirmed
     const showInfo         = !!infoMsg  && !showNotConfirmed
+    const t = useT('auth')
 
     return (
         <main className="h-screen w-screen overflow-hidden antialiased selection:bg-amber-500/30 selection:text-amber-200 bg-black">
@@ -262,10 +269,7 @@ export default function App() {
                             Blockweb Master
                         </button>
                         <p className="text-xs text-zinc-500">
-                            {mode === 'forgot'
-                                ? 'Réinitialisation du mot de passe'
-                                : 'Reprenez le contrôle de votre temps.'
-                            }
+                            {mode === 'forgot' ? t('resetTagline') : t('tagline') }
                         </p>
                     </div>
 
@@ -283,13 +287,13 @@ export default function App() {
                                     onClick={() => switchMode('login')}
                                     className={`relative z-10 text-xs font-medium py-2 rounded-md transition-colors duration-200 ${mode === 'login' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
                                 >
-                                    Connexion
+                                    {t('login')}
                                 </button>
                                 <button
                                     onClick={() => switchMode('register')}
                                     className={`relative z-10 text-xs font-medium py-2 rounded-md transition-colors duration-200 ${mode === 'register' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
                                 >
-                                    Inscription
+                                    {t('register')}
                                 </button>
                             </div>
                         )}
@@ -304,9 +308,9 @@ export default function App() {
                         }}>
                             <div className="px-3 py-2.5 bg-amber-500/10 border border-amber-500/20 rounded-lg space-y-2">
                                 <div className="flex items-start gap-2">
-                                    <Icon icon="solar:letter-unread-linear" className="text-amber-400 shrink-0 mt-0.5" width="14" />
+                                    <Mail className="text-amber-400 shrink-0 mt-0.5" width="14" />
                                     <p className="text-[11px] text-amber-300 leading-relaxed">
-                                        Ton compte n'est pas encore activé. Vérifie ta boîte mail et clique le lien d'activation envoyé lors de ton inscription.
+                                        {t('notActivated')}
                                     </p>
                                 </div>
                                 <button
@@ -316,10 +320,10 @@ export default function App() {
                                     className="w-full py-1.5 rounded-md border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 text-[10px] font-medium transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
                                 >
                                     {resendLoading
-                                        ? <><Icon icon="svg-spinners:ring-resize" width="11" /> Envoi…</>
+                                        ? <><LoaderCircle className="animate-spin" width="11" /> {t('resending')}</>
                                         : resendDone
-                                            ? <><Icon icon="solar:check-circle-linear" width="11" /> Email renvoyé !</>
-                                            : <><Icon icon="solar:restart-linear" width="11" /> Renvoyer l'email d'activation</>
+                                            ? <><CheckCircle width="11" />{t('emailResent')}</>
+                                            : <><RefreshCw width="11" />{t('resendEmail')}</>
                                     }
                                 </button>
                             </div>
@@ -334,7 +338,7 @@ export default function App() {
                             marginBottom: showError ? '16px' : '0px',
                         }}>
                             <div className="flex items-center gap-2 px-3 py-2.5 bg-rose-500/10 border border-rose-500/20 rounded-lg">
-                                <Icon icon="solar:danger-circle-linear" className="text-rose-400 shrink-0" width="14" />
+                                <CircleAlert className="text-rose-400 shrink-0" width="14" />
                                 <p className="text-[11px] text-rose-300 leading-relaxed">{errorMsg}</p>
                             </div>
                         </div>
@@ -348,7 +352,7 @@ export default function App() {
                             marginBottom: showInfo ? '16px' : '0px',
                         }}>
                             <div className="flex items-start gap-2 px-3 py-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
-                                <Icon icon="solar:check-circle-linear" className="text-emerald-400 shrink-0 mt-0.5" width="14" />
+                                <CheckCircle className="text-emerald-400 shrink-0 mt-0.5" width="14" />
                                 <p className="text-[11px] text-emerald-300 leading-relaxed">{infoMsg}</p>
                             </div>
                         </div>
@@ -359,16 +363,16 @@ export default function App() {
                         {mode === 'forgot' && (
                             <form onSubmit={handleForgot} className="space-y-4">
                                 <p className="text-[11px] text-zinc-400 leading-relaxed">
-                                    Entre ton adresse email. Si un compte existe, tu recevras un lien pour définir ton mot de passe.
+                                    {t('resetDesc')}
                                 </p>
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">Email</label>
+                                    <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">{t('email')}</label>
                                     <div className="relative group">
-                                        <Icon icon="solar:letter-linear" className="absolute left-3 top-2.5 text-zinc-500 transition-colors group-focus-within:text-white" />
+                                        <Mail className="absolute left-3 top-2.5 text-zinc-500 transition-colors group-focus-within:text-white" />
                                         <input
                                             ref={forgotEmail}
                                             type="email"
-                                            placeholder="exemple@email.com"
+                                            placeholder={t("emailPlaceholder")}
                                             autoFocus
                                             className="w-full bg-zinc-900/50 border border-zinc-800 text-white text-xs rounded-lg pl-9 pr-3 py-2.5 outline-none focus:border-white/20 focus:bg-zinc-900 transition-all placeholder:text-zinc-600"
                                             required
@@ -381,8 +385,8 @@ export default function App() {
                                     className="w-full py-2.5 bg-white hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed text-black text-xs font-bold rounded-lg transition-colors shadow-[0_0_20px_rgba(255,255,255,0.1)] mt-2 flex items-center justify-center gap-2"
                                 >
                                     {isLoading
-                                        ? <><Icon icon="svg-spinners:ring-resize" width="14" /> Envoi…</>
-                                        : 'Envoyer le lien'
+                                        ? <><LoaderCircle className="animate-spin" width="14" /> {t('sending')}</>
+                                        : t('sendResetLink')
                                     }
                                 </button>
                                 <button
@@ -390,8 +394,8 @@ export default function App() {
                                     onClick={() => switchMode('login')}
                                     className="w-full py-2 text-zinc-500 hover:text-zinc-300 text-xs transition-colors flex items-center justify-center gap-1.5"
                                 >
-                                    <Icon icon="solar:arrow-left-linear" width="12" />
-                                    Retour à la connexion
+                                    <ArrowLeft width="12" />
+                                    {t('backToLogin')}
                                 </button>
                             </form>
                         )}
@@ -412,12 +416,12 @@ export default function App() {
                                             <div className="space-y-1.5">
                                                 <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">Email</label>
                                                 <div className="relative group">
-                                                    <Icon icon="solar:letter-linear" className="absolute left-3 top-2.5 text-zinc-500 transition-colors group-focus-within:text-white" />
+                                                    <Mail className="absolute left-3 top-2.5 text-zinc-500 transition-colors group-focus-within:text-white" />
                                                     <input
                                                         type="email"
                                                         value={loginEmailValue}
                                                         onChange={e => setLoginEmailValue(e.target.value)}
-                                                        placeholder="exemple@email.com"
+                                                        placeholder={t('emailPlaceholder')}
                                                         tabIndex={mode === 'login' ? 0 : -1}
                                                         className="w-full bg-zinc-900/50 border border-zinc-800 text-white text-xs rounded-lg pl-9 pr-3 py-2.5 outline-none focus:border-white/20 focus:bg-zinc-900 transition-all placeholder:text-zinc-600"
                                                         required
@@ -426,17 +430,17 @@ export default function App() {
                                             </div>
                                             <div className="space-y-1.5">
                                                 <div className="flex justify-between items-center">
-                                                    <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">Mot de passe</label>
+                                                    <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">{t('password')}</label>
                                                     <button
                                                         type="button"
                                                         onClick={() => switchMode('forgot')}
                                                         className="text-[10px] text-zinc-500 hover:text-zinc-300 transition-colors"
                                                     >
-                                                        Oublié ?
+                                                        {t('forgotPassword')}
                                                     </button>
                                                 </div>
                                                 <div className="relative group">
-                                                    <Icon icon="solar:lock-password-linear" className="absolute left-3 top-2.5 text-zinc-500 transition-colors group-focus-within:text-white" />
+                                                    <Lock className="absolute left-3 top-2.5 text-zinc-500 transition-colors group-focus-within:text-white" />
                                                     <input
                                                         ref={loginPassword}
                                                         type={showLoginPwd ? 'text' : 'password'}
@@ -451,7 +455,7 @@ export default function App() {
                                                         onClick={() => setShowLoginPwd(v => !v)}
                                                         className="absolute right-2.5 top-2 p-0.5 text-zinc-600 hover:text-zinc-300 transition-colors"
                                                     >
-                                                        <Icon icon={showLoginPwd ? 'solar:eye-closed-linear' : 'solar:eye-linear'} width="15" />
+                                                        {showLoginPwd ? <EyeOff width="15" /> : <Eye width="15" /> }
                                                     </button>
                                                 </div>
                                             </div>
@@ -461,8 +465,8 @@ export default function App() {
                                                 className="w-full py-2.5 bg-white hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed text-black text-xs font-bold rounded-lg transition-colors shadow-[0_0_20px_rgba(255,255,255,0.1)] mt-2 flex items-center justify-center gap-2"
                                             >
                                                 {isLoading && mode === 'login'
-                                                    ? <><Icon icon="svg-spinners:ring-resize" width="14" /> Connexion…</>
-                                                    : 'Se connecter'
+                                                    ? <><LoaderCircle className='animate-spin' width="14" /> {t('signingIn')}</>
+                                                    : t('signIn')
                                                 }
                                             </button>
                                         </form>
@@ -472,13 +476,13 @@ export default function App() {
                                     <div className="w-1/2 shrink-0 pl-3">
                                         <form onSubmit={handleRegister} className="space-y-4">
                                             <div className="space-y-1.5">
-                                                <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">Nom d'utilisateur</label>
+                                                <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">{t('username')}</label>
                                                 <div className="relative group">
-                                                    <Icon icon="solar:user-circle-linear" className="absolute left-3 top-2.5 text-zinc-500 transition-colors group-focus-within:text-white" />
+                                                    <CircleUser className="absolute left-3 top-2.5 text-zinc-500 transition-colors group-focus-within:text-white" />
                                                     <input
                                                         ref={regUsername}
                                                         type="text"
-                                                        placeholder="Alexandre"
+                                                        placeholder={t('usernamePlaceholder')}
                                                         tabIndex={mode === 'register' ? 0 : -1}
                                                         className="w-full bg-zinc-900/50 border border-zinc-800 text-white text-xs rounded-lg pl-9 pr-3 py-2.5 outline-none focus:border-white/20 focus:bg-zinc-900 transition-all placeholder:text-zinc-600"
                                                         required
@@ -486,13 +490,13 @@ export default function App() {
                                                 </div>
                                             </div>
                                             <div className="space-y-1.5">
-                                                <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">Email</label>
+                                                <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">{t('email')}</label>
                                                 <div className="relative group">
-                                                    <Icon icon="solar:letter-linear" className="absolute left-3 top-2.5 text-zinc-500 transition-colors group-focus-within:text-white" />
+                                                    <Mail className="absolute left-3 top-2.5 text-zinc-500 transition-colors group-focus-within:text-white" />
                                                     <input
                                                         ref={regEmail}
                                                         type="email"
-                                                        placeholder="exemple@email.com"
+                                                        placeholder={t("emailPlaceholder")}
                                                         tabIndex={mode === 'register' ? 0 : -1}
                                                         className="w-full bg-zinc-900/50 border border-zinc-800 text-white text-xs rounded-lg pl-9 pr-3 py-2.5 outline-none focus:border-white/20 focus:bg-zinc-900 transition-all placeholder:text-zinc-600"
                                                         required
@@ -500,13 +504,13 @@ export default function App() {
                                                 </div>
                                             </div>
                                             <div className="space-y-1.5">
-                                                <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">Mot de passe</label>
+                                                <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">{t('password')}</label>
                                                 <div className="relative group">
-                                                    <Icon icon="solar:lock-password-linear" className="absolute left-3 top-2.5 text-zinc-500 transition-colors group-focus-within:text-white" />
+                                                    <Lock className="absolute left-3 top-2.5 text-zinc-500 transition-colors group-focus-within:text-white" />
                                                     <input
                                                         ref={regPassword}
                                                         type={showRegPwd ? 'text' : 'password'}
-                                                        placeholder="Créer un mot de passe"
+                                                        placeholder={t('createPassword')}
                                                         tabIndex={mode === 'register' ? 0 : -1}
                                                         className="w-full bg-zinc-900/50 border border-zinc-800 text-white text-xs rounded-lg pl-9 pr-9 py-2.5 outline-none focus:border-white/20 focus:bg-zinc-900 transition-all placeholder:text-zinc-600"
                                                         required
@@ -517,7 +521,7 @@ export default function App() {
                                                         onClick={() => setShowRegPwd(v => !v)}
                                                         className="absolute right-2.5 top-2 p-0.5 text-zinc-600 hover:text-zinc-300 transition-colors"
                                                     >
-                                                        <Icon icon={showRegPwd ? 'solar:eye-closed-linear' : 'solar:eye-linear'} width="15" />
+                                                        {showRegPwd ? <EyeOff width="15" /> : <Eye width="15" />}
                                                     </button>
                                                 </div>
                                             </div>
@@ -527,8 +531,8 @@ export default function App() {
                                                 className="w-full py-2.5 bg-white hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed text-black text-xs font-bold rounded-lg transition-colors shadow-[0_0_20px_rgba(255,255,255,0.1)] mt-2 flex items-center justify-center gap-2"
                                             >
                                                 {isLoading && mode === 'register'
-                                                    ? <><Icon icon="svg-spinners:ring-resize" width="14" /> Création…</>
-                                                    : 'Créer un compte'
+                                                    ? <><LoaderCircle className='animate-spin' width="14" /> {t('creating')}</>
+                                                    : t('createAccount')
                                                 }
                                             </button>
                                         </form>
@@ -546,7 +550,7 @@ export default function App() {
                                         <div className="w-full border-t border-zinc-800" />
                                     </div>
                                     <div className="relative flex justify-center text-[10px] uppercase">
-                                        <span className="bg-zinc-950 px-2 text-zinc-500">Ou continuer avec</span>
+                                        <span className="bg-zinc-950 px-2 text-zinc-500">{t('orContinueWith')}</span>
                                     </div>
                                 </div>
                                 <button
@@ -556,8 +560,8 @@ export default function App() {
                                     className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed border border-zinc-800 text-zinc-300 text-xs transition-colors"
                                 >
                                     {googleLoading
-                                        ? <><Icon icon="svg-spinners:ring-resize" width="14" /> Connexion Google…</>
-                                        : <><Icon icon="devicon:google" width="14" /> Continuer avec Google</>
+                                        ? <><LoaderCircle className='animate-spin' width="14" /> {t('googleLoading')}</>
+                                        : <><Icon icon="devicon:google" width="14" /> {t('continueGoogle')}</>
                                     }
                                 </button>
                             </>
@@ -567,10 +571,10 @@ export default function App() {
 
                     {/* ── Footer ── */}
                     <p className="text-center text-[10px] text-zinc-600 mt-6">
-                        En continuant, vous acceptez nos{' '}
-                        <a href="#" className="text-zinc-400 hover:underline">Conditions</a>
-                        {' '}et notre{' '}
-                        <a href="#" className="text-zinc-400 hover:underline">Politique de confidentialité</a>.
+                        {t('termsText')}{' '}
+                        <a href="#" className="text-zinc-400 hover:underline">{t('terms')}</a>
+                        {' '}{t('andText')}{' '}
+                        <a href="#" className="text-zinc-400 hover:underline">{t('privacy')}</a>.
                     </p>
                 </div>
             </div>

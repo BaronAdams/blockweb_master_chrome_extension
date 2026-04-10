@@ -1,7 +1,12 @@
 import { useStateContext } from '@/context/GlobalStateContext'
+import { useT, getT } from '@/lib/i18n'
 import { Icon } from '@iconify/react'
 import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
+
+// twh (translator without hook)
+// twhc (common translator without hook)
+const twhc = getT("common")
 
 /* =========================================================
    TYPES
@@ -22,15 +27,15 @@ async function sendToBackground<T = { success?: boolean; error?: string }>(
     msg: Record<string, unknown>
 ): Promise<T> {
     return new Promise((resolve) =>
-        chrome.runtime.sendMessage(msg, (r) => resolve(r ?? { error: 'Pas de réponse.' }))
+        chrome.runtime.sendMessage(msg, (r) => resolve(r ?? { error: twhc("backgroundNotReply") }))
     )
 }
 
 const PLAN_LABEL: Record<string, string> = {
-    FREE:     'Gratuit',
-    MONTHLY:  'Mensuel',
-    YEARLY:   'Annuel',
-    LIFETIME: 'À Vie',
+    FREE:     twhc('free'),
+    MONTHLY:  twhc('monthly'),
+    YEARLY:   twhc('yearly'),
+    LIFETIME: twhc('lifetime'),
 }
 
 const PLAN_COLOR: Record<string, string> = {
@@ -64,6 +69,8 @@ const AVATARS = ['Felix', 'Aneka', 'Bob', 'Jack', 'Molly', 'Sarah'].map(
    COMPOSANT
 ========================================================= */
 const Account = () => {
+    const t  = useT('account')
+    const tc = useT('common')
     const location             = useLocation()
     const { state, avatarUrl } = useStateContext()   // ← source unique de vérité
 
@@ -160,17 +167,17 @@ const Account = () => {
     const handleChangePassword = async () => {
         setPwdError(null)
         if (!currentPwd || !newPwd || !confirmPwd) {
-            setPwdError('Remplis tous les champs.')
+            setPwdError(t('fillInputs'))
             setPwdStatus('error')
             return
         }
         if (newPwd !== confirmPwd) {
-            setPwdError('Les nouveaux mots de passe ne correspondent pas.')
+            setPwdError(t('newPwdsDontMatch'))
             setPwdStatus('error')
             return
         }
         if (newPwd.length < 6) {
-            setPwdError('Le mot de passe doit contenir au moins 6 caractères.')
+            setPwdError(t('pwdLengthRule'))
             setPwdStatus('error')
             return
         }
@@ -194,7 +201,7 @@ const Account = () => {
     ── */
     const handleLogout = async () => {
         if (!logoutPassword.trim()) {
-            setLogoutError('Entre ton mot de passe pour confirmer.')
+            setLogoutError(t('enterPwd'))
             return
         }
         setLogoutLoading(true)
@@ -204,7 +211,7 @@ const Account = () => {
             type: 'VERIFY_PASSWORD', password: logoutPassword,
         })
         if (res.error) {
-            setLogoutError('Mot de passe incorrect.')
+            setLogoutError(t('incorrectPwd'))
             setLogoutLoading(false)
             return
         }
@@ -215,7 +222,7 @@ const Account = () => {
     /* ── Suppression définitive avec vérification du mot de passe ── */
     const handleDeleteAccount = async () => {
         if (!deletePassword.trim()) {
-            setDeleteError('Entre ton mot de passe pour confirmer.')
+            setDeleteError(t('enterPwd'))
             return
         }
         setDeleteLoading(true)
@@ -251,16 +258,16 @@ const Account = () => {
                     </span>
                 </div>
                 <h2 className="text-base font-semibold text-white mt-3">
-                    {state?.auth?.userName ?? 'Utilisateur'}
+                    {state?.auth?.userName ?? t('user')}
                 </h2>
                 <p className="text-xs text-zinc-500 mt-0.5">{state?.auth?.email ?? '—'}</p>
                 {state?.isPremium && state.subscription?.expiresAt && plan !== 'LIFETIME' && (
                     <p className="text-[10px] text-zinc-600 mt-1">
-                        Expire le <span className="text-zinc-400">{formatExpiry(state.subscription.expiresAt)}</span>
+                        {t('expiresAt')} <span className="text-zinc-400">{formatExpiry(state.subscription.expiresAt)}</span>
                     </p>
                 )}
                 {plan === 'LIFETIME' && (
-                    <p className="text-[10px] text-emerald-600 mt-1">✦ Accès à vie</p>
+                    <p className="text-[10px] text-emerald-600 mt-1">{t('lifetimeAccess')}</p>
                 )}
             </div>
 
@@ -268,7 +275,7 @@ const Account = () => {
 
                 {/* ── Avatar ── */}
                 <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-3">
-                    <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">Avatar</p>
+                    <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">{t('avatar')}</p>
                     <div className="grid grid-cols-6 gap-2">
                         {AVATARS.map(url => (
                             <button
@@ -288,14 +295,14 @@ const Account = () => {
 
                 {/* ── Nom d'utilisateur ── */}
                 <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-3">
-                    <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">Nom d'utilisateur</p>
+                    <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">{t('username')}</p>
                     <div className="flex gap-2">
                         <input
                             type="text"
                             value={newUsername}
                             onChange={e => setNewUsername(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && handleUpdateUsername()}
-                            placeholder="Ton nom d'utilisateur"
+                            placeholder={t('yourUsername')}
                             className="flex-1 bg-black border border-zinc-700 text-white text-xs rounded-lg px-3 py-2 outline-none focus:border-zinc-500 transition-colors placeholder:text-zinc-600"
                         />
                         <button
@@ -306,8 +313,8 @@ const Account = () => {
                             {userSaveStatus === 'loading'
                                 ? <Icon icon="svg-spinners:ring-resize" width="12" />
                                 : userSaveStatus === 'success'
-                                    ? <><Icon icon="solar:check-circle-linear" width="12" className="text-emerald-600" /> Sauvegardé</>
-                                    : 'Modifier'
+                                    ? <><Icon icon="solar:check-circle-linear" width="12" className="text-emerald-600" /> {tc('saved')}</>
+                                    : tc('edit')
                             }
                         </button>
                     </div>
@@ -326,7 +333,7 @@ const Account = () => {
                             onClick={() => { setShowPwdForm(v => !v); setPwdStatus('idle'); setPwdError(null) }}
                             className="text-[10px] text-zinc-500 hover:text-zinc-300 transition-colors"
                         >
-                            {showPwdForm ? 'Annuler' : 'Modifier'}
+                            {showPwdForm ? tc('cancel') : tc('edit')}
                         </button>
                     </div>
 
@@ -340,7 +347,7 @@ const Account = () => {
                                     type="password"
                                     value={currentPwd}
                                     onChange={e => setCurrentPwd(e.target.value)}
-                                    placeholder="Mot de passe actuel"
+                                    placeholder={t('currentPwd')}
                                     className="w-full bg-black border border-zinc-700 text-white text-xs rounded-lg pl-9 pr-3 py-2 outline-none focus:border-zinc-500 transition-colors placeholder:text-zinc-600"
                                 />
                             </div>
@@ -350,7 +357,7 @@ const Account = () => {
                                     type="password"
                                     value={newPwd}
                                     onChange={e => setNewPwd(e.target.value)}
-                                    placeholder="Nouveau mot de passe"
+                                    placeholder={t('newPwd')}
                                     className="w-full bg-black border border-zinc-700 text-white text-xs rounded-lg pl-9 pr-3 py-2 outline-none focus:border-zinc-500 transition-colors placeholder:text-zinc-600"
                                 />
                             </div>
@@ -361,7 +368,7 @@ const Account = () => {
                                     value={confirmPwd}
                                     onChange={e => setConfirmPwd(e.target.value)}
                                     onKeyDown={e => e.key === 'Enter' && handleChangePassword()}
-                                    placeholder="Confirmer le nouveau mot de passe"
+                                    placeholder={t('confirmNewPwd')}
                                     className="w-full bg-black border border-zinc-700 text-white text-xs rounded-lg pl-9 pr-3 py-2 outline-none focus:border-zinc-500 transition-colors placeholder:text-zinc-600"
                                 />
                             </div>
@@ -376,10 +383,10 @@ const Account = () => {
                                 className="w-full py-2 bg-white hover:bg-zinc-200 disabled:opacity-40 text-black text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5 mt-1"
                             >
                                 {pwdStatus === 'loading'
-                                    ? <><Icon icon="svg-spinners:ring-resize" width="12" /> Mise à jour…</>
+                                    ? <><Icon icon="svg-spinners:ring-resize" width="12" /> {t('updating')}</>
                                     : pwdStatus === 'success'
-                                        ? <><Icon icon="solar:check-circle-linear" width="12" className="text-emerald-600" /> Mot de passe mis à jour</>
-                                        : 'Mettre à jour le mot de passe'
+                                        ? <><Icon icon="solar:check-circle-linear" width="12" className="text-emerald-600" /> {t('passwordSuccess')}</>
+                                        : t('updatePwd')
                                 }
                             </button>
                         </div>
@@ -396,7 +403,7 @@ const Account = () => {
                             className="w-full py-2.5 rounded-lg border border-zinc-700 text-zinc-300 hover:text-white hover:bg-zinc-800 text-xs font-medium transition-colors flex items-center justify-center gap-2"
                         >
                             <Icon icon="solar:logout-linear" width="14" />
-                            Se déconnecter
+                            {t('signOut')}
                         </button>
                     )}
 
@@ -405,7 +412,7 @@ const Account = () => {
                             <div className="flex items-start gap-2">
                                 <Icon icon="solar:danger-triangle-linear" className="text-amber-400 shrink-0 mt-0.5" width="14" />
                                 <p className="text-xs text-amber-300/80">
-                                    Confirmer la déconnexion ? Ton mot de passe est requis pour protéger le compte.
+                                    {t('confirmSignOut')}
                                 </p>
                             </div>
                             <div className="flex gap-2">
@@ -413,13 +420,13 @@ const Account = () => {
                                     onClick={() => { setLogoutStep('idle'); setLogoutError(null) }}
                                     className="flex-1 py-2 text-xs text-zinc-400 hover:text-white border border-zinc-700 rounded-lg transition-colors"
                                 >
-                                    Annuler
+                                    {tc('cancel')}
                                 </button>
                                 <button
                                     onClick={() => setLogoutStep('password')}
                                     className="flex-1 py-2 text-xs font-medium text-white bg-zinc-700 hover:bg-zinc-600 rounded-lg border border-zinc-600 transition-colors"
                                 >
-                                    Continuer
+                                    {tc('continue')}
                                 </button>
                             </div>
                         </div>
@@ -432,7 +439,7 @@ const Account = () => {
                                 value={logoutPassword}
                                 onChange={e => { setLogoutPassword(e.target.value); setLogoutError(null) }}
                                 onKeyDown={e => e.key === 'Enter' && handleLogout()}
-                                placeholder="Ton mot de passe"
+                                placeholder={t('yourPwd')}
                                 autoFocus
                                 className="w-full bg-black border border-zinc-700 text-white text-xs rounded-lg px-3 py-2.5 outline-none focus:border-zinc-500 transition-colors placeholder:text-zinc-600"
                             />
@@ -447,7 +454,7 @@ const Account = () => {
                                     onClick={() => { setLogoutStep('idle'); setLogoutPassword(''); setLogoutError(null) }}
                                     className="flex-1 py-2 text-xs text-zinc-400 hover:text-white border border-zinc-700 rounded-lg transition-colors"
                                 >
-                                    Annuler
+                                    {tc('cancel')}
                                 </button>
                                 <button
                                     onClick={handleLogout}
@@ -458,7 +465,7 @@ const Account = () => {
                                         ? <Icon icon="svg-spinners:ring-resize" width="12" />
                                         : <Icon icon="solar:logout-linear" width="12" />
                                     }
-                                    Déconnecter
+                                    {t('logOut')}
                                 </button>
                             </div>
                         </div>
@@ -471,7 +478,7 @@ const Account = () => {
                             className="w-full py-2.5 rounded-lg border border-rose-900/30 text-rose-500 hover:bg-rose-950/30 text-xs font-medium transition-colors flex items-center justify-center gap-2"
                         >
                             <Icon icon="solar:trash-bin-trash-linear" width="14" />
-                            Supprimer mon compte
+                            {t('deleteMyAccount')}
                         </button>
                     )}
 
@@ -481,17 +488,15 @@ const Account = () => {
                             <div className="flex items-start gap-2">
                                 <Icon icon="solar:danger-triangle-linear" className="text-rose-400 shrink-0 mt-0.5" width="16" />
                                 <div className="space-y-1.5">
-                                    <p className="text-[11px] font-semibold text-rose-300">Suppression définitive du compte</p>
-                                    <p className="text-[10px] text-rose-400/80 leading-relaxed">
-                                        Cette action est <strong className="text-rose-300">irréversible</strong>. Les éléments suivants seront définitivement supprimés :
-                                    </p>
+                                    <p className="text-[11px] font-semibold text-rose-300">{t('permanentDeletion')}</p>
+                                    <p className="text-[10px] text-rose-400/80 leading-relaxed" dangerouslySetInnerHTML={{ __html: t('deleteDesc')  }} />
                                     <ul className="text-[10px] text-rose-400/70 space-y-0.5">
-                                        <li>• Tes identifiants (email, mot de passe)</li>
-                                        <li>• Ton abonnement et son historique</li>
-                                        <li>• Toutes tes données de compte</li>
+                                        <li>{t('yourIds')}</li>
+                                        <li>{t('yourSubandHist')}</li>
+                                        <li>{t('yourData')}</li>
                                     </ul>
                                     <p className="text-[10px] text-zinc-600 mt-1">
-                                        Tes règles de blocage locales resteront sur cet appareil.
+                                        {t('blockRulesDesc')}
                                     </p>
                                 </div>
                             </div>
@@ -500,13 +505,13 @@ const Account = () => {
                                     onClick={() => setDeleteStep('idle')}
                                     className="flex-1 py-2 rounded-lg border border-zinc-700 text-zinc-400 hover:text-white text-xs transition-colors"
                                 >
-                                    Annuler
+                                    {tc('cancel')}
                                 </button>
                                 <button
                                     onClick={() => setDeleteStep('password')}
                                     className="flex-1 py-2 rounded-lg bg-rose-900/50 hover:bg-rose-800/60 border border-rose-700/50 text-rose-300 text-xs font-medium transition-colors"
                                 >
-                                    Continuer →
+                                    {tc('continue')}
                                 </button>
                             </div>
                         </div>
@@ -515,9 +520,9 @@ const Account = () => {
                     {/* ── Suppression — étape 2 : saisie du mot de passe ── */}
                     {deleteStep === 'password' && (
                         <div className="rounded-xl border border-rose-800/40 bg-rose-950/20 p-4 space-y-3">
-                            <p className="text-[11px] text-rose-300 font-medium">Confirme ton identité</p>
+                            <p className="text-[11px] text-rose-300 font-medium">{t('confirmId')}</p>
                             <p className="text-[10px] text-rose-400/70">
-                                Entre ton mot de passe pour finaliser la suppression définitive.
+                                {t('enterPwdForDeletion')}
                             </p>
                             <div className="relative group">
                                 <Icon icon="solar:lock-password-linear" className="absolute left-3 top-2.5 text-zinc-500 group-focus-within:text-rose-400 transition-colors" width="13" />
@@ -526,7 +531,7 @@ const Account = () => {
                                     value={deletePassword}
                                     onChange={e => { setDeletePassword(e.target.value); setDeleteError(null) }}
                                     onKeyDown={e => e.key === 'Enter' && handleDeleteAccount()}
-                                    placeholder="Ton mot de passe"
+                                    placeholder={t('yourPwd')}
                                     autoFocus
                                     className="w-full bg-black border border-rose-900/40 focus:border-rose-700/60 text-white text-xs rounded-lg pl-9 pr-3 py-2 outline-none transition-colors placeholder:text-zinc-600"
                                 />
@@ -541,7 +546,7 @@ const Account = () => {
                                     onClick={() => { setDeleteStep('idle'); setDeletePassword(''); setDeleteError(null) }}
                                     className="flex-1 py-2 rounded-lg border border-zinc-700 text-zinc-400 hover:text-white text-xs transition-colors"
                                 >
-                                    Annuler
+                                    {tc('cancel')}
                                 </button>
                                 <button
                                     onClick={handleDeleteAccount}
@@ -550,7 +555,7 @@ const Account = () => {
                                 >
                                     {deleteLoading
                                         ? <Icon icon="svg-spinners:ring-resize" width="12" />
-                                        : 'Supprimer définitivement'
+                                        : t('permanentDelete')
                                     }
                                 </button>
                             </div>
@@ -563,26 +568,26 @@ const Account = () => {
             <div className="border-t border-white/5 mt-8 pt-8">
                 <h3 className="text-sm font-medium text-white mb-4 flex items-center gap-2">
                     <Icon icon="solar:bill-list-linear" className="text-zinc-500" />
-                    Historique des Abonnements
+                    {t('subHistory')}
                 </h3>
                 <div className="rounded-xl border border-zinc-800 overflow-hidden">
                     {historyLoading ? (
                         <div className="flex items-center justify-center py-8 gap-2 text-zinc-500 text-xs">
-                            <Icon icon="svg-spinners:ring-resize" width="14" /> Chargement…
+                            <Icon icon="svg-spinners:ring-resize" width="14" /> {tc('loading')}
                         </div>
                     ) : history.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-8 gap-2">
                             <Icon icon="solar:bill-list-linear" className="text-zinc-700 text-2xl" />
-                            <p className="text-xs text-zinc-600">Aucun abonnement enregistré</p>
+                            <p className="text-xs text-zinc-600">{t('noSubSaved')}</p>
                         </div>
                     ) : (
                         <table className="w-full text-left border-collapse">
                             <thead className="bg-zinc-900 text-[10px] text-zinc-500 uppercase tracking-wider">
                                 <tr>
-                                    <th className="px-4 py-3 font-medium">Plan</th>
-                                    <th className="px-4 py-3 font-medium">Statut</th>
-                                    <th className="px-4 py-3 font-medium">Expiration</th>
-                                    <th className="px-4 py-3 font-medium text-right">Mise à jour</th>
+                                    <th className="px-4 py-3 font-medium">{t('plan')}</th>
+                                    <th className="px-4 py-3 font-medium">{t('status')}</th>
+                                    <th className="px-4 py-3 font-medium">{t('expiration')}</th>
+                                    <th className="px-4 py-3 font-medium text-right">{t('update')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-800/60 bg-black text-xs text-zinc-400">
@@ -595,7 +600,7 @@ const Account = () => {
                                         </td>
                                         <td className="px-4 py-3">
                                             <span className={`text-[10px] ${row.is_valid ? 'text-emerald-400' : 'text-zinc-500'}`}>
-                                                {row.is_valid ? '● Actif' : '○ Expiré'}
+                                                {row.is_valid ? `● ${t('active')}` : `○ ${t('expired')}`}
                                             </span>
                                         </td>
                                         <td className="px-4 py-3">

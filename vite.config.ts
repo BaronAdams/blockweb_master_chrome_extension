@@ -32,6 +32,10 @@ export default defineConfig(({ mode }) => {
       // launchWebAuthFlow a besoin du client_id dans le code runtime
       'import.meta.env.VITE_GOOGLE_CLIENT_ID':
         JSON.stringify(env.VITE_GOOGLE_CLIENT_ID ?? ''),
+      'import.meta.env.RESET_PASSWORD_URL':
+        JSON.stringify(env.RESET_PASSWORD_URL ?? ''),
+      'import.meta.env.CONFIRM_EMAIL_URL':
+        JSON.stringify(env.CONFIRM_EMAIL_URL ?? ''),
     },
 
     plugins: [

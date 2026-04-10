@@ -4,6 +4,7 @@ import { formatDuration, getProfileSiteTime, getProfileTotalTime } from '@/lib/u
 import { getProfileLimitMs, isIntervalActive, isProfileActiveToday, isInTimeRange } from '@/background/time'
 import { Icon } from '@iconify/react'
 import { useEffect, useState } from 'react'
+import { useT, getT } from '@/lib/i18n'
 import { useNavigate, useFetcher, useSubmit, useRouteLoaderData } from 'react-router-dom'
 import {
     AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -16,15 +17,22 @@ import {
    CONSTANTES
 ========================================================= */
 
-const DAY_LABELS: Record<WeekDay, string> = {
+const twh  = getT('profiles')
+// const twhc = getT('common')
+
+const DAY_LABELS_FR: Record<WeekDay, string> = {
     0: 'Dim', 1: 'Lun', 2: 'Mar', 3: 'Mer', 4: 'Jeu', 5: 'Ven', 6: 'Sam',
 }
+const DAY_LABELS_EN: Record<WeekDay, string> = {
+    0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat',
+}
+const DAY_LABELS = navigator.language?.startsWith('fr') ? DAY_LABELS_FR : DAY_LABELS_EN
 
 const TYPE_META: Record<string, { icon: string; label: string; color: string }> = {
-    daily: { icon: 'solar:sun-linear', label: 'Quotidien', color: 'text-amber-400' },
-    hourly: { icon: 'solar:clock-circle-linear', label: 'Horaire', color: 'text-blue-400' },
-    weekly: { icon: 'solar:calendar-linear', label: 'Hebdomadaire', color: 'text-violet-400' },
-    interval: { icon: 'solar:shield-minimalistic-linear', label: 'Programmé', color: 'text-rose-400' },
+    daily: { icon: 'solar:sun-linear', label: twh('dailyType'), color: 'text-amber-400' },
+    hourly: { icon: 'solar:clock-circle-linear', label: twh('hourlyType'), color: 'text-blue-400' },
+    weekly: { icon: 'solar:calendar-linear', label: twh('weeklyType'), color: 'text-violet-400' },
+    interval: { icon: 'solar:shield-minimalistic-linear', label: twh('intervalType'), color: 'text-rose-400' },
 }
 
 /* =========================================================
@@ -48,7 +56,7 @@ function getConfigSummary(profile: Profile): { detail: string; extra?: string } 
             const days = config.days?.length ? config.days.map(d => DAY_LABELS[d]).join(', ') : 'Tous les jours'
             const ranges = config.timeRanges?.length
                 ? config.timeRanges.map(r => `${r.start}–${r.end}`).join(', ')
-                : 'Toute la journée'
+                : navigator.language?.startsWith('fr') ? 'Toute la journée' : 'All day'
             return { detail: time, extra: `${days} · ${ranges}` }
         }
         case 'weekly': {
@@ -58,7 +66,7 @@ function getConfigSummary(profile: Profile): { detail: string; extra?: string } 
         }
         case 'interval': {
             const n = config.rules.length
-            return { detail: `${n} règle${n > 1 ? 's' : ''} programmée${n > 1 ? 's' : ''}` }
+            return { detail: navigator.language?.startsWith('fr') ? `${n} règle${n > 1 ? 's' : ''} programmée${n > 1 ? 's' : ''}` : `${n} scheduled rule${n > 1 ? 's' : ''}` }
         }
     }
 }
@@ -72,6 +80,8 @@ const TimerProfileDetail = () => {
     const fetcher = useFetcher()
     const submit = useSubmit()
     const { state } = useStateContext()
+    const t  = useT('profiles')
+    const tc = useT('common')
     const { currentProfile } = useRouteLoaderData('timer-profile') as { currentProfile: Profile | undefined }
 
     const [isEnabled, setIsEnabled] = useState(currentProfile?.isActive ?? false)
@@ -85,7 +95,7 @@ const TimerProfileDetail = () => {
     if (!currentProfile) {
         return (
             <div className="max-w-2xl mx-auto flex justify-center items-center py-16 text-zinc-500 text-sm">
-                Ce profil n'existe pas.
+                {t('noProfile')}
             </div>
         )
     }
@@ -125,7 +135,7 @@ const TimerProfileDetail = () => {
                                 {meta.label}
                             </span>
                         </div>
-                        <p className="text-xs text-zinc-500">Détails et statistiques</p>
+                        <p className="text-xs text-zinc-500">{navigator.language?.startsWith('fr') ? 'Détails et statistiques' : 'Details & statistics'}</p>
                     </div>
                 </div>
 
@@ -133,7 +143,7 @@ const TimerProfileDetail = () => {
                     {/* Toggle actif/inactif
                         En mode strict : activation autorisée, désactivation interdite */}
                     <div className="relative flex items-center"
-                        title={state?.strictModeUntil && isEnabled ? 'Impossible de désactiver en mode strict' : ''}>
+                        title={state?.strictModeUntil && isEnabled ? navigator.language?.startsWith('fr') ? 'Impossible de désactiver en mode strict' : 'Cannot deactivate in strict mode' : ''}>
                         <input type="checkbox" name="toggle-profile" id="toggle-profile"
                             checked={isEnabled}
                             disabled={!!(state?.strictModeUntil && isEnabled)}
@@ -166,16 +176,16 @@ const TimerProfileDetail = () => {
                                     <Icon icon="solar:trash-bin-trash-bold" width="20" />
                                 </AlertDialogMedia>
                                 <AlertDialogTitle className='text-white text-sm font-semibold tracking-tight'>
-                                    Supprimer le profil ?
+                                    {t('deleteProfile')}
                                 </AlertDialogTitle>
                                 <AlertDialogDescription>
                                     <p className="text-zinc-500 text-[13px] mb-6 leading-relaxed">
-                                        Voulez vous vraiment supprimer ce profil ? Cette action est irréversible.
+                                        {t('deleteDesc')}
                                     </p>
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                                <AlertDialogCancel className='text-xs'>Annuler</AlertDialogCancel>
+                                <AlertDialogCancel className='text-xs'>{tc('cancel')}</AlertDialogCancel>
                                 <AlertDialogAction
                                     onClick={() => submit({}, { method: 'post', action: 'delete' })}
                                     className="bg-rose-600 hover:bg-rose-500 text-white text-xs font-medium flex items-center justify-center gap-2">
@@ -230,8 +240,8 @@ const TimerProfileDetail = () => {
                     {/* Info hors scope */}
                     {isEnabled && !inScope && hasLimit && (
                         <p className="text-[10px] text-amber-600 mt-2">
-                            {!isProfileActiveToday(currentProfile) ? 'Suivi inactif aujourd\'hui (jour non configuré)'
-                                : cfg.type === 'hourly' ? 'Hors de la plage horaire configurée'
+                            {!isProfileActiveToday(currentProfile) ? navigator.language?.startsWith('fr') ? 'Suivi inactif aujourd\'hui (jour non configuré)' : 'Tracking inactive today (day not configured)'
+                                : cfg.type === 'hourly' ? (navigator.language?.startsWith('fr') ? 'Hors de la plage horaire configurée' : 'Outside the configured time range')
                                     : ''}
                         </p>
                     )}
@@ -247,7 +257,7 @@ const TimerProfileDetail = () => {
                         <span className="text-[10px] text-zinc-500 leading-relaxed">{summary.extra}</span>
                     )}
                     <span className="text-[10px] text-zinc-600 uppercase mt-1">
-                        {currentProfile.sites.length} site{currentProfile.sites.length > 1 ? 's' : ''} surveillé{currentProfile.sites.length > 1 ? 's' : ''}
+                        {currentProfile.sites.length} site{currentProfile.sites.length > 1 ? 's' : ''} {navigator.language?.startsWith('fr') ? 'surveillé' + (currentProfile.sites.length > 1 ? 's' : '') : 'monitored'}
                     </span>
                 </div>
             </div>
@@ -256,7 +266,7 @@ const TimerProfileDetail = () => {
             {cfg.type === 'interval' && (
                 <div className="border border-zinc-800 rounded-xl overflow-hidden">
                     <div className="bg-zinc-900/50 px-4 py-3 border-b border-zinc-800">
-                        <h3 className="text-xs font-medium text-white uppercase tracking-wide">Règles de blocage</h3>
+                        <h3 className="text-xs font-medium text-white uppercase tracking-wide">{t('blockRanges')}</h3>
                     </div>
                     <div className="divide-y divide-zinc-800">
                         {cfg.rules.map((rule, i) => {
@@ -272,7 +282,7 @@ const TimerProfileDetail = () => {
                                         <div className={`w-1.5 h-1.5 rounded-full ${ruleActive ? 'bg-green-400' : 'bg-zinc-600'}`} />
                                         <div>
                                             <p className="text-xs text-zinc-300">
-                                                {rule.allDay ? 'Toute la journée' : `${rule.startTime} – ${rule.endTime}`}
+                                                {rule.allDay ? (navigator.language?.startsWith('fr') ? 'Toute la journée' : 'All day') : `${rule.startTime} – ${rule.endTime}`}
                                             </p>
                                             <p className="text-[10px] text-zinc-600 mt-0.5">
                                                 {rule.days.map(d => DAY_LABELS[d as WeekDay]).join(', ')}
@@ -293,7 +303,7 @@ const TimerProfileDetail = () => {
             <div className="border border-zinc-800 rounded-xl overflow-hidden">
                 <div className="bg-zinc-900/50 px-4 py-3 border-b border-zinc-800">
                     <h3 className="text-xs font-medium text-white uppercase tracking-wide">
-                        Détail par site {cfg.type !== 'weekly' ? "(Aujourd'hui)" : "(Cette semaine)"}
+                        {navigator.language?.startsWith('fr') ? 'Détail par site' : 'Per-site detail'} {cfg.type !== 'weekly' ? (navigator.language?.startsWith('fr') ? "(Aujourd'hui)" : "(Today)") : (navigator.language?.startsWith('fr') ? "(Cette semaine)" : "(This week)")}
                     </h3>
                 </div>
                 <table className="w-full text-left border-collapse">

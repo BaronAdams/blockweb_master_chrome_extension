@@ -147,4 +147,10 @@ export type State = {
    * activé le blocage.
    */
   detectedAdultDomains: string[];
+  /**
+   * Domaines ajoutés manuellement par l'utilisateur à la catégorie Productivité.
+   * Seuls les sites non déjà classifiés (adult/distraction/entertainment) peuvent
+   * être ajoutés ici.
+   */
+  customProductivitySites: string[];
 };

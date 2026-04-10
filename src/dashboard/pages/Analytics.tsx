@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { Icon } from "@iconify/react";
-import { formatDuration, getLiveTodayTime, domainMatchesSite } from '@/lib/utils';
+import { formatDuration, getLiveTodayTime, domainMatchesSite, sendToBackground } from '@/lib/utils';
 import { SITE_CATEGORIES, CATEGORY_META, SiteCategory } from '@/lib/constants';
 import { PREDEFINED_ADULT_DOMAINS } from '@/lib/constants';
 import { useNavigate } from 'react-router-dom';
 import { useStateContext } from '@/context/GlobalStateContext';
+import { useT } from '@/lib/i18n';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid,
     Tooltip, ResponsiveContainer, Legend,
@@ -121,6 +122,8 @@ const LineTooltip = ({ active, payload, label }: any) => {
    COMPOSANT PRINCIPAL
 ========================================================= */
 const Analytics: React.FC = () => {
+    const t  = useT('analytics')
+    const tc = useT('common')
     const { state } = useStateContext()
     const [now, setNow] = useState(Date.now())
     const navigate = useNavigate()
@@ -154,25 +157,23 @@ const Analytics: React.FC = () => {
        après domainColor, le bundler lève "Cannot access 'x' before initialization".
     ── */
     const classifyDomain = (domain: string): SiteCategory => {
-        // Les catégories connues ont la PRIORITÉ ABSOLUE sur la détection adulte dynamique.
-        // Un domaine dans productivity/distraction/entertainment ne peut jamais être
-        // reclassifié comme adulte, même si detectedAdultDomains le contient.
-        // Cela évite les faux positifs (ex: github.com avec un repo contenant des variables adultes).
+        // Priorité 1 : catégories prédéfinies (adult/distraction/entertainment/productivity)
+        // → un domaine ici ne peut jamais être reclassifié par les listes dynamiques
         if (SITE_CATEGORIES.distraction.some(s => domainMatchesSite(domain, s)))   return 'distraction'
         if (SITE_CATEGORIES.entertainment.some(s => domainMatchesSite(domain, s))) return 'entertainment'
         if (SITE_CATEGORIES.productivity.some(s => domainMatchesSite(domain, s)))  return 'productivity'
 
-        // Adulte vérifié APRÈS les catégories connues — deux sources :
-        // 1. Liste prédéfinie PREDEFINED_ADULT_DOMAINS (haute fiabilité)
-        // 2. Domaines détectés dynamiquement (après filtrage SAFE_DOMAINS dans le content script)
+        // Priorité 2 : adulte (liste prédéfinie + détection dynamique)
         const adultList    = PREDEFINED_ADULT_DOMAINS as readonly string[]
         const detectedList = state?.detectedAdultDomains ?? []
-
         const isAdult =
             adultList.some((s: string) => domainMatchesSite(domain, s)) ||
             detectedList.some((s: string) => domainMatchesSite(domain, s))
-
         if (isAdult) return 'adult'
+
+        // Priorité 3 : sites ajoutés manuellement à la productivité par l'utilisateur
+        const customProd = state?.customProductivitySites ?? []
+        if (customProd.some((s: string) => domainMatchesSite(domain, s))) return 'productivity'
 
         return 'other'
     }
@@ -236,7 +237,7 @@ const Analytics: React.FC = () => {
                 for (const usage of Object.values(state?.siteUsage ?? {})) {
                     total += usage.history?.[`${day}:${pad2(h)}`] ?? 0
                 }
-                const label = day === today ? "Aujourd'hui" : shortDate(day)
+                const label = day === today ? tc('today') : shortDate(day)
                 point[label] = total
             }
             return point
@@ -328,7 +329,7 @@ const Analytics: React.FC = () => {
     }, [state?.usageHistory])
 
     // Label dynamique pour la légende/tooltip selon les jours réels
-    const avgLabel = daysOfHistoryAvailable > 0 ? `Moyenne ${daysOfHistoryAvailable}j` : 'Moyenne'
+    const avgLabel = daysOfHistoryAvailable > 0 ? t('avgLabel', daysOfHistoryAvailable) : t('avgLabelDefault')
 
     /* ── 7 jours ── */
     const lineData = useMemo(() =>
@@ -370,10 +371,10 @@ const Analytics: React.FC = () => {
             {/* ── Métriques ── */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                    { icon: 'solar:forbidden-circle-linear', label: 'Sites Bloqués',  value: state?.activeBlockedDomains.length ?? 0 },
-                    { icon: 'solar:text-square-linear',      label: 'Mots-Clés',      value: state?.activeBlockedKeywords.length ?? 0 },
-                    { icon: 'solar:hourglass-line-linear',   label: 'Profils Actifs', value: state?.activeProfiles.filter(p => p.isActive).length ?? 0 },
-                    { icon: 'solar:eye-linear',              label: selectedDay === today ? 'Visites (24h)' : `Visites ${shortDate(selectedDay)}`, value: sitesForDay.length },
+                    { icon: 'solar:forbidden-circle-linear', label: t('blockedSites'),  value: state?.activeBlockedDomains.length ?? 0 },
+                    { icon: 'solar:text-square-linear',      label: t('keywords'),      value: state?.activeBlockedKeywords.length ?? 0 },
+                    { icon: 'solar:hourglass-line-linear',   label: t('activeProfiles'), value: state?.activeProfiles.filter(p => p.isActive).length ?? 0 },
+                    { icon: 'solar:eye-linear',              label: selectedDay === today ? t('visits') : t('visitsDay', shortDate(selectedDay)), value: sitesForDay.length },
                 ].map(({ icon, label, value }) => (
                     <div key={label} className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 flex flex-col justify-between h-24">
                         <div className="flex items-center justify-between text-zinc-500">
@@ -389,7 +390,7 @@ const Analytics: React.FC = () => {
             <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800">
                     <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1">
-                        {selectedDay === today ? "Temps total aujourd'hui" : `Total ${shortDate(selectedDay)}`}
+                        {selectedDay === today ? t('todayTotal') : t('dayTotal', shortDate(selectedDay))}
                     </p>
                     <p className="text-2xl font-bold text-white">{formatDuration(totalToday)}</p>
                 </div>
@@ -411,8 +412,8 @@ const Analytics: React.FC = () => {
                             <h3 className="text-sm font-semibold text-white">Utilisation heure par heure</h3>
                             <p className="text-[10px] text-zinc-500 mt-0.5">
                                 {compareMode
-                                    ? 'Mode comparaison — temps total par heure · max 3 jours simultanés'
-                                    : 'Temps passé par site pour la journée sélectionnée'}
+                                    ? t('compareMode')
+                                    : t('hourlyDesc')}
                             </p>
                         </div>
                         <button
@@ -433,7 +434,7 @@ const Analytics: React.FC = () => {
                             }`}
                         >
                             <Icon icon="solar:graph-up-linear" width="12" />
-                            {compareMode ? 'Comparaison active' : 'Comparer des jours'}
+                            {compareMode ? t('compareActive') : t('compareDays')}
                         </button>
                     </div>
 
@@ -442,7 +443,7 @@ const Analytics: React.FC = () => {
                         {last14.map((day, i) => {
                             const isSelected = selectedDays.includes(day)
                             const colorIdx   = selectedDays.indexOf(day)
-                            const label      = i === 0 ? 'Auj.' : i === 1 ? 'Hier' : shortDate(day)
+                            const label      = i === 0 ? tc('today').slice(0,4) + '.' : i === 1 ? tc('yesterday').slice(0,4) + '.' : shortDate(day)
                             const hasData    = (state?.usageHistory?.[day] ?? 0) > 0 || day === today
                             return (
                                 <button key={day} onClick={() => toggleDay(day)}
@@ -467,7 +468,7 @@ const Analytics: React.FC = () => {
                         })}
                         {compareMode && (
                             <span className="text-[10px] text-zinc-600 self-center ml-1">
-                                ({selectedDays.length}/3 sélectionné{selectedDays.length > 1 ? 's' : ''})
+                                ({selectedDays.length}/3 {selectedDays.length > 1 ? t('selectedPlural') : t('selected')})
                             </span>
                         )}
                     </div>
@@ -479,10 +480,10 @@ const Analytics: React.FC = () => {
                         !hasActivity ? (
                             <div className="flex flex-col items-center justify-center py-12 gap-2 text-zinc-700">
                                 <Icon icon="solar:chart-2-linear" width="32" />
-                                <p className="text-xs">Aucune activité enregistrée ce jour-là.</p>
+                                <p className="text-xs">{t('noActivity')}</p>
                                 {selectedDays[0] !== today && (
                                     <p className="text-[10px] text-zinc-700">
-                                        L'historique horaire est disponible depuis la mise à jour.
+                                        {t('noActivityHint')}
                                     </p>
                                 )}
                             </div>
@@ -547,7 +548,7 @@ const Analytics: React.FC = () => {
                                         axisLine={false} tickLine={false} width={46} />
                                     <Tooltip content={<CompareTooltip />} />
                                     {selectedDays.map((day, i) => {
-                                        const name = day === today ? "Aujourd'hui" : shortDate(day)
+                                        const name = day === today ? tc('today') : shortDate(day)
                                         return (
                                             <Line key={day} type="monotone" dataKey={name}
                                                 stroke={DAY_COMPARE_COLORS[i]} strokeWidth={2}
@@ -561,7 +562,7 @@ const Analytics: React.FC = () => {
                                     <div key={day} className="flex items-center gap-1.5">
                                         <span className="w-6 h-0.5 rounded-full" style={{ background: DAY_COMPARE_COLORS[i] }} />
                                         <span className="text-[10px]" style={{ color: DAY_COMPARE_COLORS[i] }}>
-                                            {day === today ? "Aujourd'hui" : shortDate(day)}
+                                            {day === today ? tc('today') : shortDate(day)}
                                         </span>
                                     </div>
                                 ))}
@@ -581,7 +582,7 @@ const Analytics: React.FC = () => {
                     {/* ── Donut : répartition du temps aujourd'hui ── */}
                     <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-5">
                         <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1">
-                            Où va ton temps aujourd'hui ?
+                            {t('whereTime')}
                         </h3>
                         <p className="text-[10px] text-zinc-600 mb-4">
                             {selectedDay === today ? "Aujourd'hui" : shortDate(selectedDay)}
@@ -590,7 +591,7 @@ const Analytics: React.FC = () => {
 
                         {donutData.segments.length === 0 ? (
                             <div className="flex items-center justify-center py-10 text-zinc-700">
-                                <p className="text-xs">Aucune donnée aujourd'hui.</p>
+                                <p className="text-xs">{navigator.language?.startsWith('fr') ? 'Aucune donnée aujourd\'hui.' : 'No data today.'}</p>
                             </div>
                         ) : (
                             <>
@@ -700,8 +701,8 @@ const Analytics: React.FC = () => {
                                             <span className="text-[11px] shrink-0">🔞</span>
                                             <p className="text-[10px] leading-relaxed" style={{ color: '#fda4af' }}>
                                                 {donutData.adultBlocked
-                                                    ? <>Contenu adulte <strong style={{ color: '#fb7185' }}>{formatDuration(donutData.totals.adult)}</strong> — bloqué par l'extension avant chargement.</>
-                                                    : <><strong style={{ color: '#fb7185' }}>{formatDuration(donutData.totals.adult)}</strong> passé sur des sites à contenu adulte. Active le blocage pour les filtrer.</>
+                                                    ? <>{t('adultWarningBlocked', formatDuration(donutData.totals.adult))}</>
+                                                    : <>{t('adultWarningFree', formatDuration(donutData.totals.adult))}</>
                                                 }
                                             </p>
                                         </div>
@@ -712,8 +713,7 @@ const Analytics: React.FC = () => {
                                         <div className="flex items-start gap-2 p-2.5 bg-rose-500/8 border border-rose-500/15 rounded-lg">
                                             <span className="text-[11px] shrink-0">📱</span>
                                             <p className="text-[10px] text-rose-400/80 leading-relaxed">
-                                                <strong className="text-rose-300">{Math.round(donutData.totals.distraction / donutData.total * 100)}%</strong> de ton temps va aux réseaux sociaux.
-                                                Envisage de les bloquer ou de créer un profil limiteur.
+                                                <strong className="text-rose-300">{Math.round(donutData.totals.distraction / donutData.total * 100)}%</strong> {t('distractionWarning', Math.round(donutData.totals.distraction / donutData.total * 100))}
                                             </p>
                                         </div>
                                     )}
@@ -728,7 +728,7 @@ const Analytics: React.FC = () => {
                             Aujourd'hui vs ta moyenne
                         </h3>
                         <p className="text-[10px] text-zinc-600 mb-4">
-                            Barres grises = ta moyenne ({avgLabel}) sur tes jours réels. Ambre = aujourd'hui. Dépasse le gris → au-dessus de tes habitudes.
+                            Barres grises = ta moyenne ({avgLabel}) sur tes jours réels. Ambre = aujourd'hui. {t('todayVsAvgDesc')}
                         </p>
 
                         {daysOfHistoryAvailable === 0 ? (
@@ -739,8 +739,7 @@ const Analytics: React.FC = () => {
                                 <div>
                                     <p className="text-xs text-zinc-500 font-medium">Historique insuffisant</p>
                                     <p className="text-[10px] text-zinc-700 mt-1 max-w-[200px] leading-relaxed">
-                                        Ce graphe se construit au fil des jours. Reviens dans quelques jours
-                                        pour voir tes moyennes.
+                                        {t('insufficientDesc')}
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-1.5 mt-1">
@@ -750,7 +749,7 @@ const Analytics: React.FC = () => {
                                         }`} />
                                     ))}
                                     <span className="text-[9px] text-zinc-600 ml-1">
-                                        {daysOfHistoryAvailable}/6 jours trackés
+                                        {daysOfHistoryAvailable}/6 {t('daysTracked')}
                                     </span>
                                 </div>
                             </div>
@@ -761,7 +760,7 @@ const Analytics: React.FC = () => {
                                     <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/8 border border-amber-500/20 rounded-lg">
                                         <Icon icon="solar:info-circle-linear" className="text-amber-400 shrink-0" width="13" />
                                         <p className="text-[10px] text-amber-300/80">
-                                            Moyenne calculée sur {daysOfHistoryAvailable} jour{daysOfHistoryAvailable > 1 ? 's' : ''} — elle se stabilise à 6 jours.
+                                            {t('partialAvg', daysOfHistoryAvailable)}
                                         </p>
                                     </div>
                                 )}
@@ -889,7 +888,7 @@ const Analytics: React.FC = () => {
                             {last14.map((day, i) => {
                                 const hasData = (state?.usageHistory?.[day] ?? 0) > 0 || day === today
                                 const isActive = selectedDay === day
-                                const label = i === 0 ? 'Auj.' : i === 1 ? 'Hier' : shortDate(day)
+                                const label = i === 0 ? tc('today').slice(0, 4) + '.' : i === 1 ? tc('yesterday').slice(0, 4) + '.' : shortDate(day)
                                 return (
                                     <button key={day}
                                         onClick={() => { setSelectedDay(day); if (!compareMode) setSelectedDays([day]) }}
@@ -922,21 +921,30 @@ const Analytics: React.FC = () => {
                         <table className="w-full text-left border-collapse">
                             <thead className="bg-zinc-900 text-xs text-zinc-500 uppercase">
                                 <tr>
-                                    <th className="px-4 py-3 font-medium">Site Web</th>
-                                    <th className="px-4 py-3 font-medium">Catégorie</th>
-                                    <th className="px-4 py-3 font-medium text-right">Temps Passé</th>
+                                    <th className="px-4 py-3 font-medium">{t('siteColumn')}</th>
+                                    <th className="px-4 py-3 font-medium">{t('categoryColumn')}</th>
+                                    <th className="px-4 py-3 font-medium text-right">{t('timeColumn')}</th>
+                                    <th className="px-4 py-3 font-medium text-right">{t('actionColumn')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-800 bg-black text-xs">
                                 {sitesForDay.length === 0 ? (
                                     <tr>
-                                        <td colSpan={3} className="px-4 py-8 text-center text-zinc-600">
-                                            Aucune navigation ce jour-là
+                                        <td colSpan={4} className="px-4 py-8 text-center text-zinc-600">
+                                            {t('noNavigation')}
                                         </td>
                                     </tr>
                                 ) : sitesForDay.map(u => {
                                     const cat = classifyDomain(u.domain)
                                     const meta = CATEGORY_META[cat]
+                                    // Bouton visible seulement pour les sites "Autre"
+                                    // (non classifiés dans adult/distraction/entertainment/productivity)
+                                    // isCustomProd : site manuellement classé en productivité
+                                    // showProductBtn : visible si "Autre" OU déjà marqué custom productif
+                                    // (quand isCustomProd=true, cat devient 'productivity' → isOther=false,
+                                    //  mais on veut quand même le bouton pour pouvoir le retirer)
+                                    const isCustomProd  = (state?.customProductivitySites ?? []).includes(u.domain)
+                                    const showProductBtn = cat === 'other' || isCustomProd
                                     return (
                                         <tr key={u.domain} className="hover:bg-zinc-900/30">
                                             <td className="px-4 py-2 flex items-center gap-3">
@@ -952,6 +960,24 @@ const Analytics: React.FC = () => {
                                             </td>
                                             <td className="px-4 py-2 text-right text-zinc-400 font-mono">
                                                 {formatDuration(u.liveMs)}
+                                            </td>
+                                            <td className="px-4 py-2 text-right">
+                                                {showProductBtn && (
+                                                    <button
+                                                        title={isCustomProd ? t('removeProductive') : t('addProductive')}
+                                                        onClick={() => sendToBackground({
+                                                            type: isCustomProd ? 'REMOVE_PRODUCTIVITY_SITE' : 'ADD_PRODUCTIVITY_SITE',
+                                                            domain: u.domain,
+                                                        })}
+                                                        className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium border transition-all ${
+                                                            isCustomProd
+                                                                ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20'
+                                                                : 'border-zinc-700 bg-zinc-900 text-zinc-500 hover:border-emerald-500/40 hover:text-emerald-400'
+                                                        }`}>
+                                                        <span>💼</span>
+                                                        <span>{isCustomProd ? t('productive') : t('markProductive')}</span>
+                                                    </button>
+                                                )}
                                             </td>
                                         </tr>
                                     )
@@ -969,13 +995,13 @@ const Analytics: React.FC = () => {
                             <div className="w-14 h-14 rounded-2xl bg-zinc-800 flex items-center justify-center mb-4">
                                 <Icon icon="solar:shield-check-linear" className="text-zinc-400" width="28" />
                             </div>
-                            <h2 className="text-lg font-semibold text-white mb-2">Mode Strict</h2>
+                            <h2 className="text-lg font-semibold text-white mb-2">{t('strictModeTitle')}</h2>
                             <p className="text-xs text-zinc-500 mb-6 max-w-[200px]">
-                                Le mode strict empêche la modification des profils.
+                                {t('strictModeDesc')}
                             </p>
                             <button onClick={() => navigate('/strict-mode-settings')}
                                 className="px-5 py-2.5 bg-white hover:bg-zinc-200 text-black text-xs font-semibold rounded-lg transition-colors w-full max-w-[180px]">
-                                Configurer
+                                {tc('configure')}
                             </button>
                         </div>
                     </div>

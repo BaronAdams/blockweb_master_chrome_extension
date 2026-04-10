@@ -1,24 +1,41 @@
-import { Icon } from "@iconify/react";
+import { useEffect, useState } from "react";
+import { 
+  ArrowLeft, 
+  Calendar, 
+  CalendarCheck, 
+  CircleX, 
+  Clock, 
+  Globe, 
+  Hourglass, 
+  Lock, 
+  Settings, 
+  ShieldAlert, 
+  Sun, 
+  Text, 
+  Timer 
+} from "lucide-react";
+import { State } from "@/lib/types";
+import { getT, useT } from "@/lib/i18n";
+import logo from '@/assets/blockweb_master_icon.svg'
 import "@fontsource/inter/400.css";
 import './App.css'
-import { useEffect, useState } from "react";
-import { State } from "@/lib/types";
-import logo from '@/assets/blockweb_master_icon.svg'
+
+const twh = getT("blocked")
 
 /* =========================================================
    CITATIONS MOTIVATIONNELLES
 ========================================================= */
 const QUOTES = [
-  { text: "La discipline est de choisir entre ce que vous voulez maintenant et ce que vous voulez le plus.", author: "Abraham Lincoln" },
-  { text: "La concentration est la racine de toutes les capacités humaines supérieures.", author: "Bruce Lee" },
-  { text: "Ce n'est pas le temps qui manque, c'est la direction.", author: "Sénèque" },
-  { text: "Chaque distraction est une dette envers votre futur moi.", author: "" },
-  { text: "Le secret du succès est de commencer.", author: "Mark Twain" },
-  { text: "Une heure de concentration vaut plus que dix heures d'effort dispersé.", author: "" },
-  { text: "Vous devenez ce que vous faites de façon répétée.", author: "Aristote" },
-  { text: "La vraie liberté, c'est de contrôler ses propres actions.", author: "Épictète" },
-  { text: "Le manque de direction, et non le manque de temps, est le problème.", author: "Zig Ziglar" },
-  { text: "Faites un pas à la fois, mais faites-le maintenant.", author: "" },
+  { text: twh("quote_1_desc"), author: twh("quote_1_author") },
+  { text: twh("quote_2_desc"), author: twh("quote_2_author") },
+  { text: twh("quote_3_desc"), author: twh("quote_3_author") },
+  { text: twh("quote_4_desc"), author: twh("quote_4_author") },
+  { text: twh("quote_5_desc"), author: twh("quote_5_author") },
+  { text: twh("quote_6_desc"), author: twh("quote_6_author") },
+  { text: twh("quote_7_desc"), author: twh("quote_7_author") },
+  { text: twh("quote_8_desc"), author: twh("quote_8_author") },
+  { text: twh("quote_9_desc"), author: twh("quote_9_author") },
+  { text: twh("quote_10_desc"), author: twh("quote_10_author") },
 ];
 
 const randomQuote = () => QUOTES[Math.floor(Math.random() * QUOTES.length)];
@@ -29,7 +46,7 @@ const randomQuote = () => QUOTES[Math.floor(Math.random() * QUOTES.length)];
 type ProfileType = "daily" | "hourly" | "weekly" | "interval";
 
 const PROFILE_CONTENT: Record<ProfileType, {
-  icon: string;
+  icon: React.ReactNode;
   iconColor: string;
   glowColor: string;
   title: string;
@@ -38,40 +55,40 @@ const PROFILE_CONTENT: Record<ProfileType, {
   reason: string;
 }> = {
   daily: {
-    icon:        "solar:sun-bold",
+    icon:        <Sun className="text-amber-400" width={40} />,
     iconColor:   "text-amber-400",
     glowColor:   "bg-amber-500",
-    title:       "Limite Journalière Atteinte",
-    description: (name) => `Vous avez épuisé votre quota du jour pour le profil "${name}". Revenez demain, reposé et concentré.`,
-    badge:       "Temps épuisé",
-    reason:      "Limite journalière atteinte",
+    title:       twh('dailyTitle'),
+    description: (name) => twh('dailyDesc', name),
+    badge:       twh('dailyBadge'),
+    reason:      twh('dailyReason'),
   },
   hourly: {
-    icon:        "solar:clock-circle-bold",
+    icon:        <Clock className="text-blue-400" width={40} />,
     iconColor:   "text-blue-400",
     glowColor:   "bg-blue-500",
-    title:       "Pause Obligatoire",
-    description: (name) => `Vous avez atteint votre limite horaire pour le profil "${name}". Profitez-en pour vous étirer — l'accès se rouvrira à la prochaine heure.`,
-    badge:       "Temps épuisé",
-    reason:      "Limite horaire atteinte",
+    title:       twh('hourlyTitle'),
+    description: (name) => twh('hourlyDesc', name),
+    badge:       twh('hourlyBadge'),
+    reason:      twh('hourlyReason'),
   },
   weekly: {
-    icon:        "solar:calendar-mark-bold",
+    icon:        <CalendarCheck className="text-violet-400" width={40} />,
     iconColor:   "text-violet-400",
     glowColor:   "bg-violet-500",
-    title:       "Budget Hebdomadaire Épuisé",
-    description: (name) => `Vous avez consommé tout votre temps alloué cette semaine pour le profil "${name}". Le compteur se remet à zéro lundi à minuit.`,
-    badge:       "Temps épuisé",
-    reason:      "Limite hebdomadaire atteinte",
+    title:       twh('weeklyTitle'),
+    description: (name) => twh('weeklyDesc', name),
+    badge:       twh('weeklyBadge'),
+    reason:      twh('weeklyReason'),
   },
   interval: {
-    icon:        "solar:calendar-date-bold",
+    icon:        <Calendar className="text-rose-400" width={40} />,
     iconColor:   "text-rose-400",
     glowColor:   "bg-rose-500",
-    title:       "Blocage Programmé Actif",
-    description: (name) => `Le profil "${name}" bloque cet accès sur cette plage horaire. Restez concentré, la plage se terminera bientôt.`,
-    badge:       "Plage de blocage active",
-    reason:      "Blocage par intervalle programmé",
+    title:       twh('intervalTitle'),
+    description: (name) => twh('intervalDesc', name),
+    badge:       twh('intervalBadge'),
+    reason:      twh('intervalReason'),
   },
 };
 
@@ -93,6 +110,8 @@ interface BlockInfo {
 export default function App() {
   const [blockInfo, setBlockInfo] = useState<BlockInfo | null>(null);
   const [quote] = useState(randomQuote);
+
+  const t = useT('blocked')
 
   /* ── Lecture des paramètres URL + résolution du profil ── */
   useEffect(() => {
@@ -129,7 +148,7 @@ export default function App() {
         setBlockInfo({
           reason: "profile",
           value: profileId,
-          profileName: profile?.name ?? "Profil limiteur",
+          profileName: profile?.name ?? t('limiterProfile'),
           profileType: profile?.config.type
         });
       });
@@ -151,40 +170,40 @@ export default function App() {
     switch (blockInfo.reason) {
       case "adult":
         return {
-          icon: "solar:shield-warning-bold",
+          icon: <ShieldAlert className="text-rose-400" width={40} />,
           iconColor: "text-rose-400",
           glowColor: "bg-rose-500",
-          title: "Contenu Adulte Bloqué",
-          description: "Ce site a été identifié comme contenu adulte. Le filtre de protection est actif.",
-          badge: "Contenu restreint",
+          title: t('adultBlocked'),
+          description: t('adultDesc'),
+          badge: t('adultBadge'),
           detail: {
-            icon: "solar:forbidden-circle-linear",
-            label: "Site adulte bloqué",
+            icon: <CircleX width="18" />,
+            label: t('adultBlockedSite'),
             value: blockInfo.value,
             mono: true,
           },
-          reason: "Protection adulte activée",
+          reason: t('adultReason'),
         };
       case "keyword":
         return {
-          icon: "solar:lock-password-bold",
+          icon: <Lock className="text-rose-400" width={40} />,
           iconColor: "text-rose-400",
           glowColor: "bg-rose-500",
-          title: "Accès Restreint",
-          description: `Cette page contient le mot-clé bloqué "${blockInfo.value}".`,
-          badge: "Bloqué",
+          title: t('restrictedAccess'),
+          description: t('keywordDesc', blockInfo.value),
+          badge: t('keywordBadge'),
           detail: {
-            icon: "solar:text-field-linear",
-            label: "Mot-clé détecté",
+            icon: <Text width={18} />,
+            label: t('detectedKeyword'),
             value: blockInfo.value,
             mono: true,
           },
-          reason: "Mot-clé bloqué",
+          reason: t('keywordReason'),
         };
       case "profile": {
         const profileType = (blockInfo.profileType ?? "daily") as ProfileType;
         const pc = PROFILE_CONTENT[profileType] ?? PROFILE_CONTENT.daily;
-        const profileName = blockInfo.profileName ?? "Profil limiteur";
+        const profileName = blockInfo.profileName ?? t('limiterProfile');
         return {
           icon:        pc.icon,
           iconColor:   pc.iconColor,
@@ -193,8 +212,8 @@ export default function App() {
           description: pc.description(profileName),
           badge:       pc.badge,
           detail: {
-            icon:  "solar:stopwatch-linear",
-            label: "Profil actif",
+            icon:  <Timer width={18} />,
+            label: t('activeProfile'),
             value: profileName,
             mono:  false,
           },
@@ -204,19 +223,19 @@ export default function App() {
       case "url":
       default:
         return {
-          icon: "solar:lock-password-bold",
+          icon: <Lock className="text-rose-400" width={40} />,
           iconColor: "text-rose-400",
           glowColor: "bg-rose-500",
-          title: "Accès Restreint",
-          description: "Cette page a été bloquée pour vous aider à rester concentré sur vos objectifs.",
-          badge: "Bloqué",
+          title: t('restrictedAccess'),
+          description: t('focusDesc'),
+          badge: t('focusBadge'),
           detail: blockInfo.value ? {
-            icon: "bx:globe",
-            label: "Domaine ciblé",
+            icon: <Globe width={18} />,
+            label: t('targetDomain'),
             value: blockInfo.value,
             mono: true,
           } : null,
-          reason: "Mode Focus Actif",
+          reason: t('focusMode'),
         };
     }
   };
@@ -247,7 +266,7 @@ export default function App() {
           <div className="relative mb-10 flex items-center justify-center">
             <div className={`absolute w-32 h-32 ${content.glowColor} rounded-full blur-[80px] opacity-20 glow-pulse`} />
             <div className="relative w-24 h-24 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm flex items-center justify-center lock-float shadow-2xl shadow-rose-900/10">
-              <Icon icon={content.icon} width="40" className={content.iconColor} />
+              {content.icon}
             </div>
             <div className="absolute -right-4 top-0 bg-zinc-900 border border-zinc-800 py-1.5 px-3 rounded-full flex items-center gap-2 shadow-xl animate-[bounce_5s_infinite]">
               <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
@@ -267,7 +286,7 @@ export default function App() {
         {/* Carte détails */}
         <div className="w-full bg-zinc-900/50 border border-white/5 rounded-xl overflow-hidden backdrop-blur-md mb-10 text-left">
           <div className="border-b border-white/5 px-5 py-3 bg-white/[0.02]">
-            <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Détails de sécurité</span>
+            <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">{t('securityDetails')}</span>
           </div>
           <div className="p-5 space-y-4">
 
@@ -277,7 +296,7 @@ export default function App() {
                 <div className="flex items-start justify-between group">
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-zinc-800/50 text-zinc-400 border border-white/5 group-hover:border-zinc-700 transition-colors">
-                      <Icon icon={content.detail.icon} width="18" />
+                      {content.detail.icon}
                     </div>
                     <div>
                       <p className="text-xs text-zinc-500 mb-0.5">{content.detail.label}</p>
@@ -286,7 +305,7 @@ export default function App() {
                       </p>
                     </div>
                   </div>
-                  <Icon icon="solar:forbidden-circle-linear" className="text-rose-500/80 mt-2 shrink-0" width="18" />
+                  <CircleX className="text-rose-500/80 mt-2 shrink-0" width="18" />
                 </div>
                 <div className="w-full h-px bg-white/5" />
               </>
@@ -296,10 +315,10 @@ export default function App() {
             <div className="flex items-start justify-between group">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-zinc-800/50 text-zinc-400 border border-white/5 group-hover:border-zinc-700 transition-colors">
-                  <Icon icon="solar:hourglass-linear" width="18" />
+                  <Hourglass width="18" />
                 </div>
                 <div>
-                  <p className="text-xs text-zinc-500 mb-0.5">Raison du blocage</p>
+                  <p className="text-xs text-zinc-500 mb-0.5">{t('blockingReason')}</p>
                   <p className="text-sm text-zinc-200">{content?.reason}</p>
                 </div>
               </div>
@@ -314,15 +333,15 @@ export default function App() {
             onClick={() => history.back()}
             className="w-full sm:w-auto px-6 py-3 bg-white text-black text-sm font-medium rounded-lg hover:bg-zinc-200 transition-all duration-200 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
           >
-            <Icon icon="solar:arrow-left-linear" width="18" />
-            Retourner en arrière
+            <ArrowLeft width="18" />
+            {t('goBack')}
           </button>
           <button
             onClick={openDashboard}
             className="w-full sm:w-auto px-6 py-3 bg-transparent border border-zinc-800 text-zinc-400 text-sm font-medium rounded-lg hover:text-white hover:border-zinc-600 transition-all duration-200 flex items-center justify-center gap-2"
           >
-            <Icon icon="solar:settings-linear" width="18" />
-            Gérer les règles
+            <Settings width="18" />
+            {t('manageRules')}
           </button>
         </div>
 

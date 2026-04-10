@@ -3,17 +3,23 @@ import { Icon } from "@iconify/react";
 import ProfileCard from '../components/ProfileCard';
 import { Link } from 'react-router-dom';
 import { useStateContext } from '@/context/GlobalStateContext';
+import { useT, getT } from '@/lib/i18n';
 import { Profile } from '@/lib/types';
 
 /* ── Groupement par type ─────────────────────────────────────────────────── */
+const twh = getT('profiles')
+
 const TYPE_META: Record<string, { label: string; icon: string; desc: string }> = {
-    daily:    { label: "Quotidiens",       icon: "solar:sun-linear",                 desc: "Limite par jour"             },
-    hourly:   { label: "Horaires",         icon: "solar:clock-circle-linear",        desc: "Limite par heure glissante"  },
-    weekly:   { label: "Hebdomadaires",    icon: "solar:calendar-linear",            desc: "Limite par semaine"          },
-    interval: { label: "Par intervalle",   icon: "solar:shield-minimalistic-linear", desc: "Plages horaires définies"    },
+    daily:    { label: twh('daily'),       icon: "solar:sun-linear",                 desc: twh('dailyDesc')             },
+    hourly:   { label: twh('hourly'),         icon: "solar:clock-circle-linear",        desc: twh('hourlyDesc')  },
+    weekly:   { label: twh('weekly'),    icon: "solar:calendar-linear",            desc: twh('weeklyDesc')          },
+    interval: { label: twh('interval'),   icon: "solar:shield-minimalistic-linear", desc: twh('intervalDesc')    },
 };
 
 const TimerProfiles: React.FC = () => {
+    const t  = useT('profiles')
+    const tc = useT('common')
+
     const { state } = useStateContext();
     const [now, setNow] = useState(Date.now());
 
@@ -53,8 +59,8 @@ const TimerProfiles: React.FC = () => {
                     <h2 className="text-sm font-medium text-white">Vos Profils</h2>
                     <p className="text-xs text-zinc-500 mt-1">
                         {profiles.length > 0
-                            ? `${profiles.length} profil${profiles.length > 1 ? "s" : ""} actif${profiles.length > 1 ? "s" : ""}${frozenProfiles.length > 0 ? ` · ${frozenProfiles.length} gelé${frozenProfiles.length > 1 ? 's' : ''}` : ''}`
-                            : "Gérez vos limitations par thématique."
+                            ? `${profiles.length} ${navigator.language?.startsWith('fr') ? 'profil' + (profiles.length > 1 ? 's' : '') + ' actif' + (profiles.length > 1 ? 's' : '') : 'active profile' + (profiles.length > 1 ? 's' : '')}${frozenProfiles.length > 0 ? ` · ${frozenProfiles.length} gelé${frozenProfiles.length > 1 ? 's' : ''}` : ''}`
+                            : "{navigator.language?.startsWith('fr') ? 'Gérez vos limitations par type de site.' : 'Manage your limits by site type.'}hématique."
                         }
                     </p>
                 </div>
@@ -62,9 +68,7 @@ const TimerProfiles: React.FC = () => {
                     to="/profiles/create"
                     className="no-underline flex items-center gap-2 px-4 py-2 bg-white hover:bg-zinc-200 text-black text-xs font-medium rounded-lg transition-colors"
                 >
-                    <Icon icon="solar:add-square-linear" width="16" />
-                    Créer un profil
-                </Link>
+                    <Icon icon="solar:add-square-linear" width="16" />{t('createFirst')}</Link>
             </div>
 
             {/* ── État vide ─────────────────────────────────────────────────── */}
@@ -72,18 +76,16 @@ const TimerProfiles: React.FC = () => {
                 <div className="h-80 flex flex-col gap-4 items-center justify-center py-8 text-neutral-400 border border-dashed border-neutral-800 rounded-xl">
                     <Icon icon="solar:folder-with-files-linear" width="36" height="36" className="opacity-40" />
                     <div className="text-center">
-                        <h3 className="text-[14px] font-medium">Aucun profil créé</h3>
+                        <h3 className="text-[14px] font-medium">{t('noProfile')}</h3>
                         <p className="text-[12px] text-zinc-600 mt-1">
-                            Commencez par créer un nouveau profil.
+                            {navigator.language?.startsWith('fr') ? 'Commencez par créer un nouveau profil.' : 'Start by creating a new profile.'}
                         </p>
                     </div>
                     <Link
                         to="/profiles/create"
                         className="no-underline flex items-center gap-2 px-4 py-2 bg-white hover:bg-zinc-200 text-black text-xs font-medium rounded-lg transition-colors"
                     >
-                        <Icon icon="solar:add-square-linear" width="16" />
-                        Créer un profil
-                    </Link>
+                        <Icon icon="solar:add-square-linear" width="16" />{t('createFirst')}</Link>
                 </div>
             )}
 
@@ -126,7 +128,7 @@ const TimerProfiles: React.FC = () => {
                                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-xl">
                                         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900/90 border border-amber-500/30 rounded-full">
                                             <Icon icon="solar:lock-keyhole-linear" className="text-amber-400" width="12" />
-                                            <span className="text-[10px] font-medium text-amber-300">Gelé — Plan Premium</span>
+                                            <span className="text-[10px] font-medium text-amber-300">{navigator.language?.startsWith('fr') ? 'Gelé — Plan Premium' : 'Frozen — Premium Plan'}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -141,11 +143,10 @@ const TimerProfiles: React.FC = () => {
                 <div className="flex items-center gap-3 p-4 bg-amber-500/8 border border-amber-500/20 rounded-xl">
                     <Icon icon="solar:info-circle-linear" className="text-amber-400 shrink-0" width="16" />
                     <p className="text-xs text-amber-300/80 flex-1">
-                        {frozenProfiles.length} profil{frozenProfiles.length > 1 ? 's' : ''} gelé{frozenProfiles.length > 1 ? 's' : ''} suite au passage en plan gratuit.
-                        Passez à Premium pour les réactiver.
+                        {frozenProfiles.length} {navigator.language?.startsWith('fr') ? 'profil' + (frozenProfiles.length > 1 ? 's' : '') + ' gelé' + (frozenProfiles.length > 1 ? 's' : '') : 'frozen profile' + (frozenProfiles.length > 1 ? 's' : '')} {navigator.language?.startsWith('fr') ? 'suite au passage en plan gratuit. Passez à Premium pour les réactiver.' : 'frozen after downgrade. Upgrade to Premium to reactivate.'} Premium pour les réactiver.
                     </p>
                     <Link to="/pricing" className="no-underline text-[10px] font-bold text-black bg-amber-500 hover:bg-amber-400 px-3 py-1.5 rounded-lg transition-colors shrink-0">
-                        Upgrader
+                        {tc("upgrade")}
                     </Link>
                 </div>
             )}

@@ -4,8 +4,13 @@ import { useStateContext } from '@/context/GlobalStateContext';
 import { Toaster } from "@/components/ui/sonner"
 import { useEffect } from 'react'
 import { sendToBackground } from '@/lib/utils'
+import { useT } from '@/lib/i18n'
 
 const Layout = () => {
+    const t  = useT('sidebar')
+    const tp = useT('popup')
+    const ts = useT('strictMode')
+    const tc = useT('common')
     const { state } = useStateContext();
     const location = useLocation();
 
@@ -28,9 +33,10 @@ const Layout = () => {
         return () => clearInterval(id)
     }, [state?.strictModeUntil])
 
-    const titles = {
-        '/': "Vue d'ensemble", '/block-lists': "Listes de Contrôle", '/profiles': "Profils Limiteurs",
-        '/pricing': "Abonnements", '/strict-mode-settings': "Configuration Mode Strict", '/account': "Mon Compte", 'profile-create': "Nouveau Profil", 'profile-edit': "Édition du Profil", 'profile-detail': "Détails du Profil"
+    const titles: Record<string, string> = {
+        '/': t('analytics'), '/block-lists': t('blockLists'), '/profiles': t('profiles'),
+        '/pricing': t('pricing'), '/strict-mode-settings': ts('title'), '/account': tc('manage'),
+        'profile-create': t('profiles'), 'profile-edit': t('profiles'), 'profile-detail': t('profiles')
     };
 
     /* ── Ouvrir le dashboard ── */
@@ -62,7 +68,7 @@ const Layout = () => {
                                         className="px-4 py-2 bg-white hover:bg-zinc-200 text-black text-xs font-medium rounded-lg transition-colors"
                                     >
                                         {/* <Icon icon="solar:add-square-linear" width="16" /> */}
-                                        Connexion
+                                        {tp('login')}
                                     </button>
                                 </div>
                             )}
@@ -73,7 +79,7 @@ const Layout = () => {
                                         "w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)] transition-colors"
                                         : "w-2 h-2 rounded-full bg-zinc-600 transition-colors"}></div>
                                     <span id="strict-text" className={`text-[10px] font-medium ${state?.strictModeUntil ? 'text-green-500' : 'text-zinc-500'} uppercase tracking-wider`}>
-                                        {state?.strictModeUntil ? 'Mode strict actif' : 'Mode strict inactif'}
+                                        {state?.strictModeUntil ? ts('active') : ts('inactive')}
                                     </span>
                                 </div>
                             </div>
