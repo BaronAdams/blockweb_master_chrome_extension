@@ -2,7 +2,6 @@ import { useStateContext } from '@/context/GlobalStateContext'
 import { Profile, WeekDay } from '@/lib/types'
 import { formatDuration, getProfileSiteTime, getProfileTotalTime } from '@/lib/utils'
 import { getProfileLimitMs, isIntervalActive, isProfileActiveToday, isInTimeRange } from '@/background/time'
-import { Icon } from '@iconify/react'
 import { useEffect, useState } from 'react'
 import { useT, getT } from '@/lib/i18n'
 import { useNavigate, useFetcher, useSubmit, useRouteLoaderData } from 'react-router-dom'
@@ -12,27 +11,26 @@ import {
     AlertDialogMedia,
     AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
+import { ArrowLeft, Calendar, Clock, Pen, Shield, Sun, Trash2, Trash2Icon } from 'lucide-react'
+import SmartImage from '@/components/SmartImage';
+import globeIcon from '@/assets/globe.svg';
 
 /* =========================================================
    CONSTANTES
 ========================================================= */
 
 const twh  = getT('profiles')
-// const twhc = getT('common')
+const twhc = getT('common')
 
-const DAY_LABELS_FR: Record<WeekDay, string> = {
-    0: 'Dim', 1: 'Lun', 2: 'Mar', 3: 'Mer', 4: 'Jeu', 5: 'Ven', 6: 'Sam',
+const DAY_LABELS : Record<WeekDay, string> = {
+    0: twhc('Sun'), 1: twhc('Mon'), 2: twhc('Tue'), 3: twhc('Wed'), 4: twhc('Thu'), 5: twhc('Fri'), 6: twhc('Sat'),
 }
-const DAY_LABELS_EN: Record<WeekDay, string> = {
-    0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat',
-}
-const DAY_LABELS = navigator.language?.startsWith('fr') ? DAY_LABELS_FR : DAY_LABELS_EN
 
-const TYPE_META: Record<string, { icon: string; label: string; color: string }> = {
-    daily: { icon: 'solar:sun-linear', label: twh('dailyType'), color: 'text-amber-400' },
-    hourly: { icon: 'solar:clock-circle-linear', label: twh('hourlyType'), color: 'text-blue-400' },
-    weekly: { icon: 'solar:calendar-linear', label: twh('weeklyType'), color: 'text-violet-400' },
-    interval: { icon: 'solar:shield-minimalistic-linear', label: twh('intervalType'), color: 'text-rose-400' },
+const TYPE_META: Record<string, { icon: React.ReactNode; label: string; color: string }> = {
+    daily: { icon: <Sun className='text-amber-400' width={24}/>, label: twh('dailyType'), color: 'text-amber-400' },
+    hourly: { icon: <Clock className='text-blue-400' width={24}/>, label: twh('hourlyType'), color: 'text-blue-400' },
+    weekly: { icon: <Calendar className='text-violet-400' width={24}/>, label: twh('weeklyType'), color: 'text-violet-400' },
+    interval: { icon: <Shield className='text-rose-400' width={24}/>, label: twh('intervalType'), color: 'text-rose-400' },
 }
 
 /* =========================================================
@@ -43,30 +41,27 @@ function getConfigSummary(profile: Profile): { detail: string; extra?: string } 
     const { config } = profile
     switch (config.type) {
         case 'daily': {
-            const h = Math.floor(config.dailyLimit / 60)
-            const m = config.dailyLimit % 60
-            const time = h > 0 ? `${h}h ${m}min / jour` : `${m}min / jour`
             const days = config.days?.length
                 ? config.days.map(d => DAY_LABELS[d]).join(', ')
-                : 'Tous les jours'
-            return { detail: time, extra: days }
+                : twh('allDays')
+            return { detail: twh('getDailyLimit', config.dailyLimit), extra: days }
         }
         case 'hourly': {
-            const time = `${config.hourlyLimit}min / heure`
-            const days = config.days?.length ? config.days.map(d => DAY_LABELS[d]).join(', ') : 'Tous les jours'
+            const time = twh('getHourlyLimit', config.hourlyLimit)
+            const days = config.days?.length ? config.days.map(d => DAY_LABELS[d]).join(', ') : twh('allDays')
             const ranges = config.timeRanges?.length
                 ? config.timeRanges.map(r => `${r.start}–${r.end}`).join(', ')
-                : navigator.language?.startsWith('fr') ? 'Toute la journée' : 'All day'
+                : twh('allDayShrt')
             return { detail: time, extra: `${days} · ${ranges}` }
         }
         case 'weekly': {
             const h = Math.floor(config.weeklyLimit / 60)
             const m = config.weeklyLimit % 60
-            return { detail: h > 0 ? `${h}h ${m}min / semaine` : `${m}min / semaine` }
+            return { detail: twh('getWeeklyLimit',h,m) }
         }
         case 'interval': {
             const n = config.rules.length
-            return { detail: navigator.language?.startsWith('fr') ? `${n} règle${n > 1 ? 's' : ''} programmée${n > 1 ? 's' : ''}` : `${n} scheduled rule${n > 1 ? 's' : ''}` }
+            return { detail: twh('getRulesLimit', n) }
         }
     }
 }
@@ -81,6 +76,7 @@ const TimerProfileDetail = () => {
     const submit = useSubmit()
     const { state } = useStateContext()
     const t  = useT('profiles')
+    const ts  = useT('strictMode')
     const tc = useT('common')
     const { currentProfile } = useRouteLoaderData('timer-profile') as { currentProfile: Profile | undefined }
 
@@ -126,7 +122,7 @@ const TimerProfileDetail = () => {
                 <div className="flex items-center gap-4">
                     <button onClick={() => navigate('/profiles')}
                         className="w-8 h-8 flex items-center justify-center rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white transition-colors">
-                        <Icon icon="solar:arrow-left-linear" />
+                        <ArrowLeft width="12" />
                     </button>
                     <div>
                         <div className="flex items-center gap-2">
@@ -135,7 +131,7 @@ const TimerProfileDetail = () => {
                                 {meta.label}
                             </span>
                         </div>
-                        <p className="text-xs text-zinc-500">{navigator.language?.startsWith('fr') ? 'Détails et statistiques' : 'Details & statistics'}</p>
+                        <p className="text-xs text-zinc-500">{t('detailsStats')}</p>
                     </div>
                 </div>
 
@@ -143,7 +139,7 @@ const TimerProfileDetail = () => {
                     {/* Toggle actif/inactif
                         En mode strict : activation autorisée, désactivation interdite */}
                     <div className="relative flex items-center"
-                        title={state?.strictModeUntil && isEnabled ? navigator.language?.startsWith('fr') ? 'Impossible de désactiver en mode strict' : 'Cannot deactivate in strict mode' : ''}>
+                        title={state?.strictModeUntil && isEnabled ? t('unableDeactivateStrict') : ''}>
                         <input type="checkbox" name="toggle-profile" id="toggle-profile"
                             checked={isEnabled}
                             disabled={!!(state?.strictModeUntil && isEnabled)}
@@ -159,7 +155,7 @@ const TimerProfileDetail = () => {
                     {/* Éditer */}
                     <button onClick={() => navigate(`/profile/${currentProfile.id}/edit`)}
                         className="w-8 h-8 flex items-center justify-center rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white">
-                        <Icon icon="solar:pen-linear" />
+                        <Pen width="12" />
                     </button>
 
                     {/* Supprimer */}
@@ -167,13 +163,13 @@ const TimerProfileDetail = () => {
                         <AlertDialogTrigger asChild>
                             <button type="button" disabled={state?.strictModeUntil != null}
                                 className="w-8 h-8 flex items-center justify-center rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-500 hover:bg-rose-500/20 disabled:cursor-not-allowed">
-                                <Icon icon="solar:trash-bin-trash-linear" />
+                                <Trash2 width="14" />
                             </button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                             <AlertDialogHeader>
                                 <AlertDialogMedia>
-                                    <Icon icon="solar:trash-bin-trash-bold" width="20" />
+                                    <Trash2Icon fill='currentColor' stroke='#ffffff' width="20" />
                                 </AlertDialogMedia>
                                 <AlertDialogTitle className='text-white text-sm font-semibold tracking-tight'>
                                     {t('deleteProfile')}
@@ -189,7 +185,7 @@ const TimerProfileDetail = () => {
                                 <AlertDialogAction
                                     onClick={() => submit({}, { method: 'post', action: 'delete' })}
                                     className="bg-rose-600 hover:bg-rose-500 text-white text-xs font-medium flex items-center justify-center gap-2">
-                                    <Icon icon="solar:trash-bin-trash-linear" width="14" /> Supprimer
+                                    <Trash2 width="14" /> {tc('delete')}
                                 </AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
@@ -204,7 +200,7 @@ const TimerProfileDetail = () => {
                 <div className="md:col-span-2 p-6 bg-zinc-900/50 border border-zinc-800 rounded-xl flex flex-col justify-center">
                     <div className="flex justify-between items-end mb-2">
                         <div>
-                            <span className="text-xs text-zinc-400 uppercase tracking-wide">Consommation</span>
+                            <span className="text-xs text-zinc-400 uppercase tracking-wide">{t('consumption')}</span>
                             <div className="flex items-baseline gap-2 mt-1">
                                 <span className="text-3xl font-bold text-white">{formatDuration(usedMs)}</span>
                                 {hasLimit && (
@@ -240,8 +236,8 @@ const TimerProfileDetail = () => {
                     {/* Info hors scope */}
                     {isEnabled && !inScope && hasLimit && (
                         <p className="text-[10px] text-amber-600 mt-2">
-                            {!isProfileActiveToday(currentProfile) ? navigator.language?.startsWith('fr') ? 'Suivi inactif aujourd\'hui (jour non configuré)' : 'Tracking inactive today (day not configured)'
-                                : cfg.type === 'hourly' ? (navigator.language?.startsWith('fr') ? 'Hors de la plage horaire configurée' : 'Outside the configured time range')
+                            {!isProfileActiveToday(currentProfile) ? t('inactiveTrackingToday') 
+                                : cfg.type === 'hourly' ? t('outsideTimeRange')
                                     : ''}
                         </p>
                     )}
@@ -250,14 +246,14 @@ const TimerProfileDetail = () => {
                 {/* Config summary */}
                 <div className="p-6 bg-zinc-900/50 border border-zinc-800 rounded-xl flex flex-col justify-center items-center text-center gap-2">
                     <div className={`w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center mb-1 ${meta.color}`}>
-                        <Icon icon={meta.icon} width="24" />
+                        {meta.icon}
                     </div>
                     <span className="text-sm font-semibold text-white">{summary.detail}</span>
                     {summary.extra && (
                         <span className="text-[10px] text-zinc-500 leading-relaxed">{summary.extra}</span>
                     )}
                     <span className="text-[10px] text-zinc-600 uppercase mt-1">
-                        {currentProfile.sites.length} site{currentProfile.sites.length > 1 ? 's' : ''} {navigator.language?.startsWith('fr') ? 'surveillé' + (currentProfile.sites.length > 1 ? 's' : '') : 'monitored'}
+                        {t('monitored',currentProfile.sites.length)}
                     </span>
                 </div>
             </div>
@@ -282,7 +278,7 @@ const TimerProfileDetail = () => {
                                         <div className={`w-1.5 h-1.5 rounded-full ${ruleActive ? 'bg-green-400' : 'bg-zinc-600'}`} />
                                         <div>
                                             <p className="text-xs text-zinc-300">
-                                                {rule.allDay ? (navigator.language?.startsWith('fr') ? 'Toute la journée' : 'All day') : `${rule.startTime} – ${rule.endTime}`}
+                                                {rule.allDay ? t('allDayShrt') : `${rule.startTime} – ${rule.endTime}`}
                                             </p>
                                             <p className="text-[10px] text-zinc-600 mt-0.5">
                                                 {rule.days.map(d => DAY_LABELS[d as WeekDay]).join(', ')}
@@ -290,7 +286,7 @@ const TimerProfileDetail = () => {
                                         </div>
                                     </div>
                                     <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${ruleActive ? 'bg-green-500/10 text-green-400' : 'bg-zinc-800 text-zinc-500'}`}>
-                                        {ruleActive ? 'Actif' : 'En attente'}
+                                        {ruleActive ? ts('activeShrt') : t('waiting')}
                                     </span>
                                 </div>
                             )
@@ -303,7 +299,7 @@ const TimerProfileDetail = () => {
             <div className="border border-zinc-800 rounded-xl overflow-hidden">
                 <div className="bg-zinc-900/50 px-4 py-3 border-b border-zinc-800">
                     <h3 className="text-xs font-medium text-white uppercase tracking-wide">
-                        {navigator.language?.startsWith('fr') ? 'Détail par site' : 'Per-site detail'} {cfg.type !== 'weekly' ? (navigator.language?.startsWith('fr') ? "(Aujourd'hui)" : "(Today)") : (navigator.language?.startsWith('fr') ? "(Cette semaine)" : "(This week)")}
+                        {t('perSiteDetail')} {cfg.type !== 'weekly' ? `(${tc('today')})` : `(${tc('thisWeek')})`}
                     </h3>
                 </div>
                 <table className="w-full text-left border-collapse">
@@ -313,8 +309,11 @@ const TimerProfileDetail = () => {
                             return (
                                 <tr key={site} className="hover:bg-zinc-900/30">
                                     <td className="px-4 py-3 flex items-center gap-3">
-                                        <img src={`https://www.google.com/s2/favicons?domain=${site}&sz=32`}
-                                            className="w-6 h-6 opacity-70" alt="" />
+                                        <SmartImage 
+                                            src={`https://www.google.com/s2/favicons?domain=${site}&sz=32`}
+                                            fallbackSrc={globeIcon} 
+                                            className="w-6 h-6 opacity-70" 
+                                        />
                                         <span className="text-zinc-300">{site}</span>
                                     </td>
                                     <td className="px-4 py-3 text-right text-zinc-400 font-mono">

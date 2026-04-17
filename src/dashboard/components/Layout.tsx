@@ -4,15 +4,27 @@ import { useStateContext } from '@/context/GlobalStateContext';
 import { Toaster } from "@/components/ui/sonner"
 import { useEffect } from 'react'
 import { sendToBackground } from '@/lib/utils'
-import { useT } from '@/lib/i18n'
+import { getLocale, useT } from '@/lib/i18n'
 
 const Layout = () => {
-    const t  = useT('sidebar')
+    const t = useT('sidebar')
     const tp = useT('popup')
     const ts = useT('strictMode')
     const tc = useT('common')
     const { state } = useStateContext();
     const location = useLocation();
+
+    // Dans votre composant racine ou Layout
+    useEffect(() => {
+        const locale = getLocale()
+        if (locale === 'ar') {
+            document.documentElement.dir = 'rtl'
+            document.documentElement.lang = 'ar'
+        } else {
+            document.documentElement.dir = 'ltr'
+            document.documentElement.lang = locale
+        }
+    }, [])
 
     /* ── Vérification d'expiration du mode strict ──────────────────────────
        Ce check tourne dans le Layout (toujours monté) toutes les secondes.

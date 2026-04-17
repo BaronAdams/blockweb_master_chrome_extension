@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from 'react'
-import { Icon } from "@iconify/react";
 import ProfileCard from '../components/ProfileCard';
 import { Link } from 'react-router-dom';
 import { useStateContext } from '@/context/GlobalStateContext';
 import { useT, getT } from '@/lib/i18n';
 import { Profile } from '@/lib/types';
+import { Calendar, CircleAlert, Clock, FolderOpen, LockKeyhole, Shield, SquarePlus, Sun } from 'lucide-react';
 
 /* ── Groupement par type ─────────────────────────────────────────────────── */
 const twh = getT('profiles')
 
-const TYPE_META: Record<string, { label: string; icon: string; desc: string }> = {
-    daily:    { label: twh('daily'),       icon: "solar:sun-linear",                 desc: twh('dailyDesc')             },
-    hourly:   { label: twh('hourly'),         icon: "solar:clock-circle-linear",        desc: twh('hourlyDesc')  },
-    weekly:   { label: twh('weekly'),    icon: "solar:calendar-linear",            desc: twh('weeklyDesc')          },
-    interval: { label: twh('interval'),   icon: "solar:shield-minimalistic-linear", desc: twh('intervalDesc')    },
+const TYPE_META: Record<string, { label: string; icon: React.ReactNode; desc: string }> = {
+    daily:    { label: twh('daily'),       icon: <Sun className="text-zinc-500" width="14" />,                 desc: twh('dailyDesc')             },
+    hourly:   { label: twh('hourly'),         icon: <Clock className="text-zinc-500" width="14" />,        desc: twh('hourlyDesc')  },
+    weekly:   { label: twh('weekly'),    icon: <Calendar className="text-zinc-500" width="14" />,            desc: twh('weeklyDesc')          },
+    interval: { label: twh('interval'),   icon: <Shield className="text-zinc-500" width="14" />, desc: twh('intervalDesc')    },
 };
 
 const TimerProfiles: React.FC = () => {
@@ -56,36 +56,36 @@ const TimerProfiles: React.FC = () => {
             {/* ── En-tête ──────────────────────────────────────────────────── */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-sm font-medium text-white">Vos Profils</h2>
+                    <h2 className="text-sm font-medium text-white">{t('yrProfiles')}</h2>
                     <p className="text-xs text-zinc-500 mt-1">
                         {profiles.length > 0
-                            ? `${profiles.length} ${navigator.language?.startsWith('fr') ? 'profil' + (profiles.length > 1 ? 's' : '') + ' actif' + (profiles.length > 1 ? 's' : '') : 'active profile' + (profiles.length > 1 ? 's' : '')}${frozenProfiles.length > 0 ? ` · ${frozenProfiles.length} gelé${frozenProfiles.length > 1 ? 's' : ''}` : ''}`
-                            : "{navigator.language?.startsWith('fr') ? 'Gérez vos limitations par type de site.' : 'Manage your limits by site type.'}hématique."
+                            ? `${profiles.length} ${t('active',profiles.length)} ${frozenProfiles.length > 0 ? ` · ${t('frozen',frozenProfiles.length)}` : ''}`
+                            : t('manageLimits')
                         }
                     </p>
                 </div>
                 <Link
                     to="/profiles/create"
-                    className="no-underline flex items-center gap-2 px-4 py-2 bg-white hover:bg-zinc-200 text-black text-xs font-medium rounded-lg transition-colors"
+                    className="no-underline flex items-center gap-2 px-3 py-1 bg-white hover:bg-zinc-200 text-black text-xs font-medium rounded-lg transition-colors"
                 >
-                    <Icon icon="solar:add-square-linear" width="16" />{t('createFirst')}</Link>
+                    <SquarePlus width="14" strokeWidth={1.4} />{t('createFirst')}</Link>
             </div>
 
             {/* ── État vide ─────────────────────────────────────────────────── */}
             {!hasProfiles && (
                 <div className="h-80 flex flex-col gap-4 items-center justify-center py-8 text-neutral-400 border border-dashed border-neutral-800 rounded-xl">
-                    <Icon icon="solar:folder-with-files-linear" width="36" height="36" className="opacity-40" />
+                    <FolderOpen width="36" height="36" className="opacity-40" />
                     <div className="text-center">
                         <h3 className="text-[14px] font-medium">{t('noProfile')}</h3>
                         <p className="text-[12px] text-zinc-600 mt-1">
-                            {navigator.language?.startsWith('fr') ? 'Commencez par créer un nouveau profil.' : 'Start by creating a new profile.'}
+                            {t('startCreate')}
                         </p>
                     </div>
                     <Link
                         to="/profiles/create"
-                        className="no-underline flex items-center gap-2 px-4 py-2 bg-white hover:bg-zinc-200 text-black text-xs font-medium rounded-lg transition-colors"
+                        className="no-underline flex items-center gap-2 px-3 py-1 bg-white hover:bg-zinc-200 text-black text-xs font-medium rounded-lg transition-colors"
                     >
-                        <Icon icon="solar:add-square-linear" width="16" />{t('createFirst')}</Link>
+                        <SquarePlus width="14" strokeWidth={1.4} />{t('createFirst')}</Link>
                 </div>
             )}
 
@@ -101,14 +101,14 @@ const TimerProfiles: React.FC = () => {
                     <div key={type} className="space-y-3">
                         {/* Titre de section */}
                         <div className="flex items-center gap-2">
-                            <Icon icon={meta.icon} className="text-zinc-500" width="14" />
+                            {meta.icon}
                             <h3 className="text-xs font-medium text-zinc-400 uppercase tracking-wide">{meta.label}</h3>
-                            <span className="text-[10px] text-zinc-600">— {meta.desc}</span>
+                            <span className="text-[12px] text-zinc-600">— {meta.desc}</span>
                             <div className="flex-1 h-px bg-zinc-800 ml-2" />
-                            <span className="text-[10px] text-zinc-600">{group.length}</span>
+                            <span className="text-[12px] text-zinc-600">{group.length}</span>
                             {frozenGroup.length > 0 && (
-                                <span className="text-[10px] text-amber-500/70 flex items-center gap-1">
-                                    <Icon icon="solar:lock-keyhole-linear" width="10" />
+                                <span className="text-[12px] text-amber-500/70 flex items-center gap-1">
+                                    <LockKeyhole width="10" />
                                     {frozenGroup.length}
                                 </span>
                             )}
@@ -127,8 +127,8 @@ const TimerProfiles: React.FC = () => {
                                     </div>
                                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-xl">
                                         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900/90 border border-amber-500/30 rounded-full">
-                                            <Icon icon="solar:lock-keyhole-linear" className="text-amber-400" width="12" />
-                                            <span className="text-[10px] font-medium text-amber-300">{navigator.language?.startsWith('fr') ? 'Gelé — Plan Premium' : 'Frozen — Premium Plan'}</span>
+                                            <LockKeyhole className="text-amber-400" width="12" />
+                                            <span className="text-[10px] font-medium text-amber-300">{t('frozenPlanPremium')}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -141,9 +141,9 @@ const TimerProfiles: React.FC = () => {
             {/* Bannière upgrade si frozen profiles */}
             {frozenProfiles.length > 0 && (
                 <div className="flex items-center gap-3 p-4 bg-amber-500/8 border border-amber-500/20 rounded-xl">
-                    <Icon icon="solar:info-circle-linear" className="text-amber-400 shrink-0" width="16" />
+                    <CircleAlert className="text-amber-400 shrink-0" width="16" />
                     <p className="text-xs text-amber-300/80 flex-1">
-                        {frozenProfiles.length} {navigator.language?.startsWith('fr') ? 'profil' + (frozenProfiles.length > 1 ? 's' : '') + ' gelé' + (frozenProfiles.length > 1 ? 's' : '') : 'frozen profile' + (frozenProfiles.length > 1 ? 's' : '')} {navigator.language?.startsWith('fr') ? 'suite au passage en plan gratuit. Passez à Premium pour les réactiver.' : 'frozen after downgrade. Upgrade to Premium to reactivate.'} Premium pour les réactiver.
+                        {t('frozen',frozenProfiles.length)} {t('frozenAfterDowngrade')}
                     </p>
                     <Link to="/pricing" className="no-underline text-[10px] font-bold text-black bg-amber-500 hover:bg-amber-400 px-3 py-1.5 rounded-lg transition-colors shrink-0">
                         {tc("upgrade")}

@@ -1,21 +1,21 @@
 import { useEffect, useState } from "react";
-import { 
-  ArrowLeft, 
-  Calendar, 
-  CalendarCheck, 
-  CircleX, 
-  Clock, 
-  Globe, 
-  Hourglass, 
-  Lock, 
-  Settings, 
-  ShieldAlert, 
-  Sun, 
-  Text, 
-  Timer 
+import {
+  ArrowLeft,
+  Calendar,
+  CalendarCheck,
+  CircleX,
+  Clock,
+  Globe,
+  Hourglass,
+  Lock,
+  Settings,
+  ShieldAlert,
+  Sun,
+  Text,
+  Timer
 } from "lucide-react";
 import { State } from "@/lib/types";
-import { getT, useT } from "@/lib/i18n";
+import { getT, useT, getLocale } from "@/lib/i18n";
 import logo from '@/assets/blockweb_master_icon.svg'
 import "@fontsource/inter/400.css";
 import './App.css'
@@ -55,40 +55,40 @@ const PROFILE_CONTENT: Record<ProfileType, {
   reason: string;
 }> = {
   daily: {
-    icon:        <Sun className="text-amber-400" width={40} />,
-    iconColor:   "text-amber-400",
-    glowColor:   "bg-amber-500",
-    title:       twh('dailyTitle'),
+    icon: <Sun className="text-amber-400" width={40} />,
+    iconColor: "text-amber-400",
+    glowColor: "bg-amber-500",
+    title: twh('dailyTitle'),
     description: (name) => twh('dailyDesc', name),
-    badge:       twh('dailyBadge'),
-    reason:      twh('dailyReason'),
+    badge: twh('dailyBadge'),
+    reason: twh('dailyReason'),
   },
   hourly: {
-    icon:        <Clock className="text-blue-400" width={40} />,
-    iconColor:   "text-blue-400",
-    glowColor:   "bg-blue-500",
-    title:       twh('hourlyTitle'),
+    icon: <Clock className="text-blue-400" width={40} />,
+    iconColor: "text-blue-400",
+    glowColor: "bg-blue-500",
+    title: twh('hourlyTitle'),
     description: (name) => twh('hourlyDesc', name),
-    badge:       twh('hourlyBadge'),
-    reason:      twh('hourlyReason'),
+    badge: twh('hourlyBadge'),
+    reason: twh('hourlyReason'),
   },
   weekly: {
-    icon:        <CalendarCheck className="text-violet-400" width={40} />,
-    iconColor:   "text-violet-400",
-    glowColor:   "bg-violet-500",
-    title:       twh('weeklyTitle'),
+    icon: <CalendarCheck className="text-violet-400" width={40} />,
+    iconColor: "text-violet-400",
+    glowColor: "bg-violet-500",
+    title: twh('weeklyTitle'),
     description: (name) => twh('weeklyDesc', name),
-    badge:       twh('weeklyBadge'),
-    reason:      twh('weeklyReason'),
+    badge: twh('weeklyBadge'),
+    reason: twh('weeklyReason'),
   },
   interval: {
-    icon:        <Calendar className="text-rose-400" width={40} />,
-    iconColor:   "text-rose-400",
-    glowColor:   "bg-rose-500",
-    title:       twh('intervalTitle'),
+    icon: <Calendar className="text-rose-400" width={40} />,
+    iconColor: "text-rose-400",
+    glowColor: "bg-rose-500",
+    title: twh('intervalTitle'),
     description: (name) => twh('intervalDesc', name),
-    badge:       twh('intervalBadge'),
-    reason:      twh('intervalReason'),
+    badge: twh('intervalBadge'),
+    reason: twh('intervalReason'),
   },
 };
 
@@ -112,6 +112,18 @@ export default function App() {
   const [quote] = useState(randomQuote);
 
   const t = useT('blocked')
+
+  // Dans votre composant racine ou Layout
+  useEffect(() => {
+    const locale = getLocale()
+    if (locale === 'ar') {
+      document.documentElement.dir = 'rtl'
+      document.documentElement.lang = 'ar'
+    } else {
+      document.documentElement.dir = 'ltr'
+      document.documentElement.lang = locale
+    }
+  }, [])
 
   /* ── Lecture des paramètres URL + résolution du profil ── */
   useEffect(() => {
@@ -205,17 +217,17 @@ export default function App() {
         const pc = PROFILE_CONTENT[profileType] ?? PROFILE_CONTENT.daily;
         const profileName = blockInfo.profileName ?? t('limiterProfile');
         return {
-          icon:        pc.icon,
-          iconColor:   pc.iconColor,
-          glowColor:   pc.glowColor,
-          title:       pc.title,
+          icon: pc.icon,
+          iconColor: pc.iconColor,
+          glowColor: pc.glowColor,
+          title: pc.title,
           description: pc.description(profileName),
-          badge:       pc.badge,
+          badge: pc.badge,
           detail: {
-            icon:  <Timer width={18} />,
+            icon: <Timer width={18} />,
             label: t('activeProfile'),
             value: profileName,
-            mono:  false,
+            mono: false,
           },
           reason: pc.reason,
         };
@@ -252,7 +264,7 @@ export default function App() {
       <div className="absolute top-0 left-0 w-full p-8 flex justify-center md:justify-start z-20">
         <div className="flex items-center gap-2 text-white opacity-80 hover:opacity-100 transition-opacity cursor-default">
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/10 flex items-center justify-center shadow-inner">
-              <img src={logo} className="w-8 h-8 object-cover" />
+            <img src={logo} className="w-8 h-8 object-cover" />
           </div>
           <span className="text-sm font-medium tracking-tight text-white">BlockWeb Master</span>
         </div>
@@ -350,7 +362,7 @@ export default function App() {
           <p className="text-[15px] italic font-serif tracking-wide text-zinc-500">
             "{quote.text}"
           </p>
-          {quote.author && (
+          {(quote.author && !quote.author.includes("quote")) && (
             <p className="text-xs text-zinc-600 mt-2 not-italic font-sans">— {quote.author}</p>
           )}
         </div>

@@ -1,15 +1,15 @@
 import { Icon } from '@iconify/react'
 import { ArrowLeft, CheckCircle, CircleAlert, CircleUser, Eye, EyeOff, LoaderCircle, Lock, Mail, RefreshCw } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import logo from '@/assets/blockweb_master_icon.svg'
 import "@fontsource/inter/400.css"
 import './App.css'
-import { useT, getT } from '@/lib/i18n'
+import { useT, getT, getLocale } from '@/lib/i18n'
 
 /* =========================================================
    TYPES
 ========================================================= */
-type Mode   = 'login' | 'register' | 'forgot'
+type Mode = 'login' | 'register' | 'forgot'
 type Status = 'idle' | 'loading' | 'error' | 'success'
 
 // twh (translator without hook)
@@ -21,19 +21,19 @@ const twhc = getT("common")
    Centralisés ici pour être cohérents et maintenables
 ========================================================= */
 const LOGIN_ERRORS: Record<string, string> = {
-    'Invalid login credentials':           twh("invalidCredentials"),
-    'Email not confirmed':                 twh("emailNotConfirmed"),   // géré via notConfirmedEmail
-    'Too many requests':                   twh("loginManyRequests"),
-    'User not found':                      twh("userNotfound"),
+    'Invalid login credentials': twh("invalidCredentials"),
+    'Email not confirmed': twh("emailNotConfirmed"),   // géré via notConfirmedEmail
+    'Too many requests': twh("loginManyRequests"),
+    'User not found': twh("userNotfound"),
 }
 
 const REGISTER_ERRORS: Record<string, string> = {
-    'User already registered':             twh("userAlreadyRegistered"),
-    'already registered':                  twh("userAlreadyRegistered"),
-    'already been registered':             twh("userAlreadyRegistered"),
-    'Password should be at least 6':       twh("passwordLengthRule"),
-    'Unable to validate email address':    twh("invalidEmail"),
-    'Signup is disabled':                  twh("signupDisabled"),
+    'User already registered': twh("userAlreadyRegistered"),
+    'already registered': twh("userAlreadyRegistered"),
+    'already been registered': twh("userAlreadyRegistered"),
+    'Password should be at least 6': twh("passwordLengthRule"),
+    'Unable to validate email address': twh("invalidEmail"),
+    'Signup is disabled': twh("signupDisabled"),
 }
 
 function resolveError(raw: string, map: Record<string, string>): string {
@@ -59,18 +59,18 @@ async function sendToBackground(
    COMPOSANT
 ========================================================= */
 export default function App() {
-    const [mode,   setMode]   = useState<Mode>('login')
+    const [mode, setMode] = useState<Mode>('login')
     const [status, setStatus] = useState<Status>('idle')
 
     // Message d'erreur classique (rouge)
-    const [errorMsg,  setError]   = useState<string | null>(null)
+    const [errorMsg, setError] = useState<string | null>(null)
     // Message informatif persistant (vert) — survit au switch de mode
-    const [infoMsg,   setInfo]    = useState<string | null>(null)
+    const [infoMsg, setInfo] = useState<string | null>(null)
 
     // Email non confirmé — survit aussi au switch register → login
     const [notConfirmedEmail, setNotConfirmedEmail] = useState<string | null>(null)
-    const [resendLoading,     setResendLoading]     = useState(false)
-    const [resendDone,        setResendDone]         = useState(false)
+    const [resendLoading, setResendLoading] = useState(false)
+    const [resendDone, setResendDone] = useState(false)
 
     /* ── Champs login ── */
     const [loginEmailValue, setLoginEmailValue] = useState('')
@@ -78,18 +78,30 @@ export default function App() {
 
     /* ── Champs register ── */
     const regUsername = useRef<HTMLInputElement>(null)
-    const regEmail    = useRef<HTMLInputElement>(null)
+    const regEmail = useRef<HTMLInputElement>(null)
     const regPassword = useRef<HTMLInputElement>(null)
 
     /* ── Champ forgot ── */
     const forgotEmail = useRef<HTMLInputElement>(null)
 
     /* ── Visibilité des mots de passe ── */
-    const [showLoginPwd,  setShowLoginPwd]  = useState(false)
-    const [showRegPwd,    setShowRegPwd]    = useState(false)
+    const [showLoginPwd, setShowLoginPwd] = useState(false)
+    const [showRegPwd, setShowRegPwd] = useState(false)
 
     /* ── Google OAuth ── */
     const [googleLoading, setGoogleLoading] = useState(false)
+
+    // Dans votre composant racine ou Layout
+    useEffect(() => {
+        const locale = getLocale()
+        if (locale === 'ar') {
+            document.documentElement.dir = 'rtl'
+            document.documentElement.lang = 'ar'
+        } else {
+            document.documentElement.dir = 'ltr'
+            document.documentElement.lang = locale
+        }
+    }, [])
 
     /* ── Aller au dashboard ── */
     const goToDashboard = () => {
@@ -149,8 +161,8 @@ export default function App() {
         setStatus('loading')
 
         const result = await sendToBackground({
-            type:     'SIGN_IN',
-            email:    loginEmailValue,
+            type: 'SIGN_IN',
+            email: loginEmailValue,
             password: loginPassword.current?.value,
         })
 
@@ -176,9 +188,9 @@ export default function App() {
         setStatus('loading')
 
         const result = await sendToBackground({
-            type:     'SIGN_UP',
+            type: 'SIGN_UP',
             username: regUsername.current?.value,
-            email:    regEmail.current?.value,
+            email: regEmail.current?.value,
             password: regPassword.current?.value,
         })
 
@@ -222,7 +234,7 @@ export default function App() {
         setStatus('loading')
 
         const result = await sendToBackground({
-            type:  'RESET_PASSWORD',
+            type: 'RESET_PASSWORD',
             email: forgotEmail.current?.value,
         })
 
@@ -239,8 +251,8 @@ export default function App() {
 
     /* ── Bannières visibles ── */
     const showNotConfirmed = !!notConfirmedEmail
-    const showError        = !!errorMsg && !showNotConfirmed
-    const showInfo         = !!infoMsg  && !showNotConfirmed
+    const showError = !!errorMsg && !showNotConfirmed
+    const showInfo = !!infoMsg && !showNotConfirmed
     const t = useT('auth')
 
     return (
@@ -269,7 +281,7 @@ export default function App() {
                             Blockweb Master
                         </button>
                         <p className="text-xs text-zinc-500">
-                            {mode === 'forgot' ? t('resetTagline') : t('tagline') }
+                            {mode === 'forgot' ? t('resetTagline') : t('tagline')}
                         </p>
                     </div>
 
@@ -300,10 +312,10 @@ export default function App() {
 
                         {/* ── Bannière : email non confirmé (ambre) ── */}
                         <div style={{
-                            maxHeight:    showNotConfirmed ? '130px' : '0px',
-                            opacity:      showNotConfirmed ? 1 : 0,
-                            overflow:     'hidden',
-                            transition:   'max-height 0.3s ease, opacity 0.2s ease',
+                            maxHeight: showNotConfirmed ? '130px' : '0px',
+                            opacity: showNotConfirmed ? 1 : 0,
+                            overflow: 'hidden',
+                            transition: 'max-height 0.3s ease, opacity 0.2s ease',
                             marginBottom: showNotConfirmed ? '16px' : '0px',
                         }}>
                             <div className="px-3 py-2.5 bg-amber-500/10 border border-amber-500/20 rounded-lg space-y-2">
@@ -331,10 +343,10 @@ export default function App() {
 
                         {/* ── Bannière : erreur classique (rouge) ── */}
                         <div style={{
-                            maxHeight:    showError ? '70px' : '0px',
-                            opacity:      showError ? 1 : 0,
-                            overflow:     'hidden',
-                            transition:   'max-height 0.25s ease, opacity 0.2s ease',
+                            maxHeight: showError ? '70px' : '0px',
+                            opacity: showError ? 1 : 0,
+                            overflow: 'hidden',
+                            transition: 'max-height 0.25s ease, opacity 0.2s ease',
                             marginBottom: showError ? '16px' : '0px',
                         }}>
                             <div className="flex items-center gap-2 px-3 py-2.5 bg-rose-500/10 border border-rose-500/20 rounded-lg">
@@ -345,10 +357,10 @@ export default function App() {
 
                         {/* ── Bannière : info / succès (vert) — persiste entre les modes ── */}
                         <div style={{
-                            maxHeight:    showInfo ? '80px' : '0px',
-                            opacity:      showInfo ? 1 : 0,
-                            overflow:     'hidden',
-                            transition:   'max-height 0.25s ease, opacity 0.2s ease',
+                            maxHeight: showInfo ? '80px' : '0px',
+                            opacity: showInfo ? 1 : 0,
+                            overflow: 'hidden',
+                            transition: 'max-height 0.25s ease, opacity 0.2s ease',
                             marginBottom: showInfo ? '16px' : '0px',
                         }}>
                             <div className="flex items-start gap-2 px-3 py-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
@@ -368,7 +380,7 @@ export default function App() {
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">{t('email')}</label>
                                     <div className="relative group">
-                                        <Mail className="absolute left-3 top-2.5 text-zinc-500 transition-colors group-focus-within:text-white" />
+                                        <Mail className="absolute left-3 top-[7.3px] text-zinc-500 transition-colors group-focus-within:text-white" />
                                         <input
                                             ref={forgotEmail}
                                             type="email"
@@ -416,7 +428,7 @@ export default function App() {
                                             <div className="space-y-1.5">
                                                 <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">Email</label>
                                                 <div className="relative group">
-                                                    <Mail className="absolute left-3 top-2.5 text-zinc-500 transition-colors group-focus-within:text-white" />
+                                                    <Mail width={16} className="absolute left-3 top-[7.3px] text-zinc-500 transition-colors group-focus-within:text-white" />
                                                     <input
                                                         type="email"
                                                         value={loginEmailValue}
@@ -440,7 +452,7 @@ export default function App() {
                                                     </button>
                                                 </div>
                                                 <div className="relative group">
-                                                    <Lock className="absolute left-3 top-2.5 text-zinc-500 transition-colors group-focus-within:text-white" />
+                                                    <Lock width={16} className="absolute left-3 top-[7.3px] text-zinc-500 transition-colors group-focus-within:text-white" />
                                                     <input
                                                         ref={loginPassword}
                                                         type={showLoginPwd ? 'text' : 'password'}
@@ -453,9 +465,9 @@ export default function App() {
                                                         type="button"
                                                         tabIndex={-1}
                                                         onClick={() => setShowLoginPwd(v => !v)}
-                                                        className="absolute right-2.5 top-2 p-0.5 text-zinc-600 hover:text-zinc-300 transition-colors"
+                                                        className="absolute right-2.5 top-[7.3px] p-0.5 text-zinc-600 hover:text-zinc-300 transition-colors"
                                                     >
-                                                        {showLoginPwd ? <EyeOff width="15" /> : <Eye width="15" /> }
+                                                        {showLoginPwd ? <EyeOff width="16" /> : <Eye width="16" />}
                                                     </button>
                                                 </div>
                                             </div>
@@ -478,7 +490,7 @@ export default function App() {
                                             <div className="space-y-1.5">
                                                 <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">{t('username')}</label>
                                                 <div className="relative group">
-                                                    <CircleUser className="absolute left-3 top-2.5 text-zinc-500 transition-colors group-focus-within:text-white" />
+                                                    <CircleUser width={16} className="absolute left-3 top-[7.3px] text-zinc-500 transition-colors group-focus-within:text-white" />
                                                     <input
                                                         ref={regUsername}
                                                         type="text"
@@ -492,7 +504,7 @@ export default function App() {
                                             <div className="space-y-1.5">
                                                 <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">{t('email')}</label>
                                                 <div className="relative group">
-                                                    <Mail className="absolute left-3 top-2.5 text-zinc-500 transition-colors group-focus-within:text-white" />
+                                                    <Mail width={16} className="absolute left-3 top-[7.3px] text-zinc-500 transition-colors group-focus-within:text-white" />
                                                     <input
                                                         ref={regEmail}
                                                         type="email"
@@ -506,7 +518,7 @@ export default function App() {
                                             <div className="space-y-1.5">
                                                 <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">{t('password')}</label>
                                                 <div className="relative group">
-                                                    <Lock className="absolute left-3 top-2.5 text-zinc-500 transition-colors group-focus-within:text-white" />
+                                                    <Lock width={16} className="absolute left-3 top-[7.3px] text-zinc-500 transition-colors group-focus-within:text-white" />
                                                     <input
                                                         ref={regPassword}
                                                         type={showRegPwd ? 'text' : 'password'}
@@ -519,9 +531,9 @@ export default function App() {
                                                         type="button"
                                                         tabIndex={-1}
                                                         onClick={() => setShowRegPwd(v => !v)}
-                                                        className="absolute right-2.5 top-2 p-0.5 text-zinc-600 hover:text-zinc-300 transition-colors"
+                                                        className="absolute right-2.5 top-[7.3px] p-0.5 text-zinc-600 hover:text-zinc-300 transition-colors"
                                                     >
-                                                        {showRegPwd ? <EyeOff width="15" /> : <Eye width="15" />}
+                                                        {showRegPwd ? <EyeOff width="16" /> : <Eye width="16" />}
                                                     </button>
                                                 </div>
                                             </div>

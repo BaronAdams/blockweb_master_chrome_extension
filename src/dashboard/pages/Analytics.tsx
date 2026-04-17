@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useMemo } from 'react'
-import { Icon } from "@iconify/react";
 import { formatDuration, getLiveTodayTime, domainMatchesSite, sendToBackground } from '@/lib/utils';
 import { SITE_CATEGORIES, CATEGORY_META, SiteCategory } from '@/lib/constants';
 import { PREDEFINED_ADULT_DOMAINS } from '@/lib/constants';
 import { useNavigate } from 'react-router-dom';
 import { useStateContext } from '@/context/GlobalStateContext';
+import SmartImage from '@/components/SmartImage';
+import globeIcon from '@/assets/globe.svg';
 import { useT } from '@/lib/i18n';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -12,6 +13,7 @@ import {
     LineChart, Line,
     PieChart, Pie, Cell,
 } from 'recharts';
+import { Calendar, ChartLine, ChartColumnBig, Globe, Eye, History, Hourglass, Info, Shield, ShieldCheck, Hash } from 'lucide-react';
 
 /* =========================================================
    PALETTE
@@ -371,14 +373,14 @@ const Analytics: React.FC = () => {
             {/* ── Métriques ── */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                    { icon: 'solar:forbidden-circle-linear', label: t('blockedSites'),  value: state?.activeBlockedDomains.length ?? 0 },
-                    { icon: 'solar:text-square-linear',      label: t('keywords'),      value: state?.activeBlockedKeywords.length ?? 0 },
-                    { icon: 'solar:hourglass-line-linear',   label: t('activeProfiles'), value: state?.activeProfiles.filter(p => p.isActive).length ?? 0 },
-                    { icon: 'solar:eye-linear',              label: selectedDay === today ? t('visits') : t('visitsDay', shortDate(selectedDay)), value: sitesForDay.length },
+                    { icon: <Globe width="16"/>, label: t('blockedSites'),  value: state?.activeBlockedDomains.length ?? 0 },
+                    { icon: <Hash width="16"/>,      label: t('keywords'),      value: state?.activeBlockedKeywords.length ?? 0 },
+                    { icon: <Hourglass width="16"/>,   label: t('activeProfiles'), value: state?.activeProfiles.filter(p => p.isActive).length ?? 0 },
+                    { icon: <Eye width="16"/>,              label: selectedDay === today ? t('visits') : t('visitsDay', shortDate(selectedDay)), value: sitesForDay.length },
                 ].map(({ icon, label, value }) => (
                     <div key={label} className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 flex flex-col justify-between h-24">
                         <div className="flex items-center justify-between text-zinc-500">
-                            <Icon icon={icon} width="16" />
+                            {icon}
                             <span className="text-[10px] uppercase tracking-wide">{label}</span>
                         </div>
                         <span className="text-2xl font-semibold text-white tracking-tight">{value}</span>
@@ -395,7 +397,7 @@ const Analytics: React.FC = () => {
                     <p className="text-2xl font-bold text-white">{formatDuration(totalToday)}</p>
                 </div>
                 <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800">
-                    <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1">Temps total historique</p>
+                    <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1">{t('historicTotal')}</p>
                     <p className="text-2xl font-bold text-white">{formatDuration(totalHist)}</p>
                 </div>
             </div>
@@ -409,7 +411,7 @@ const Analytics: React.FC = () => {
                 <div className="px-5 pt-5 pb-4 border-b border-zinc-800 space-y-3">
                     <div className="flex items-start justify-between gap-4">
                         <div>
-                            <h3 className="text-sm font-semibold text-white">Utilisation heure par heure</h3>
+                            <h3 className="text-sm font-semibold text-white">{t('hourlyChart')}</h3>
                             <p className="text-[10px] text-zinc-500 mt-0.5">
                                 {compareMode
                                     ? t('compareMode')
@@ -433,7 +435,7 @@ const Analytics: React.FC = () => {
                                     : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:text-white'
                             }`}
                         >
-                            <Icon icon="solar:graph-up-linear" width="12" />
+                            <ChartLine width="12" />
                             {compareMode ? t('compareActive') : t('compareDays')}
                         </button>
                     </div>
@@ -479,7 +481,7 @@ const Analytics: React.FC = () => {
                     {!compareMode ? (
                         !hasActivity ? (
                             <div className="flex flex-col items-center justify-center py-12 gap-2 text-zinc-700">
-                                <Icon icon="solar:chart-2-linear" width="32" />
+                                <ChartColumnBig width="32" />
                                 <p className="text-xs">{t('noActivity')}</p>
                                 {selectedDays[0] !== today && (
                                     <p className="text-[10px] text-zinc-700">
@@ -494,16 +496,16 @@ const Analytics: React.FC = () => {
                                         <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
                                         <XAxis dataKey="hour" tick={{ fill: '#71717a', fontSize: 10 }}
                                             axisLine={false} tickLine={false}
-                                            tickFormatter={h => Number(h) % 2 === 0 ? `${h}h` : ''} />
+                                            tickFormatter={h => Number(h) % 2 === 0 ? t('getHour', h) : ''} />
                                         <YAxis
                                             domain={[0, 3_599_999]}
                                             ticks={[0, 900_000, 1_800_000, 2_700_000, 3_599_999]}
                                             tickFormatter={v => {
                                                 if (v === 0)         return '0'
-                                                if (v === 900_000)   return '15min'
-                                                if (v === 1_800_000) return '30min'
-                                                if (v === 2_700_000) return '45min'
-                                                return '60min'
+                                                if (v === 900_000)   return t('15min')
+                                                if (v === 1_800_000) return t('30min')
+                                                if (v === 2_700_000) return t('45min')
+                                                return t('60min')
                                             }}
                                             tick={{ fill: '#52525b', fontSize: 9 }}
                                             axisLine={false} tickLine={false} width={46} />
@@ -533,16 +535,16 @@ const Analytics: React.FC = () => {
                                     <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
                                     <XAxis dataKey="hour" tick={{ fill: '#71717a', fontSize: 10 }}
                                         axisLine={false} tickLine={false}
-                                        tickFormatter={h => Number(h) % 2 === 0 ? `${h}h` : ''} />
+                                        tickFormatter={h => Number(h) % 2 === 0 ? t('getHour', h) : ''} />
                                     <YAxis
                                         domain={[0, 3_599_999]}
                                         ticks={[0, 900_000, 1_800_000, 2_700_000, 3_599_999]}
                                         tickFormatter={v => {
                                             if (v === 0)         return '0'
-                                            if (v === 900_000)   return '15min'
-                                            if (v === 1_800_000) return '30min'
-                                            if (v === 2_700_000) return '45min'
-                                            return '60min'
+                                            if (v === 900_000)   return t('15min')
+                                            if (v === 1_800_000) return t('30min')
+                                            if (v === 2_700_000) return t('45min')
+                                            return t('60min')
                                         }}
                                         tick={{ fill: '#52525b', fontSize: 9 }}
                                         axisLine={false} tickLine={false} width={46} />
@@ -585,13 +587,13 @@ const Analytics: React.FC = () => {
                             {t('whereTime')}
                         </h3>
                         <p className="text-[10px] text-zinc-600 mb-4">
-                            {selectedDay === today ? "Aujourd'hui" : shortDate(selectedDay)}
+                            {selectedDay === today ? tc('today') : shortDate(selectedDay)}
                             {' · '}{donutData.total > 0 ? formatDuration(donutData.total) : '—'}
                         </p>
 
                         {donutData.segments.length === 0 ? (
                             <div className="flex items-center justify-center py-10 text-zinc-700">
-                                <p className="text-xs">{navigator.language?.startsWith('fr') ? 'Aucune donnée aujourd\'hui.' : 'No data today.'}</p>
+                                <p className="text-xs">{t('noData')}</p>
                             </div>
                         ) : (
                             <>
@@ -621,7 +623,7 @@ const Analytics: React.FC = () => {
                                                 : 0}%
                                         </span>
                                         <span style={{ fontSize: '9px', color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '3px' }}>
-                                            productif
+                                            {t('productif')}
                                         </span>
                                     </div>
 
@@ -725,19 +727,19 @@ const Analytics: React.FC = () => {
                     {/* ── Bar chart : Moyenne quotidienne vs Aujourd'hui ── */}
                     <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-5">
                         <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1">
-                            Aujourd'hui vs ta moyenne
+                            {t('todayVsAvg')}
                         </h3>
                         <p className="text-[10px] text-zinc-600 mb-4">
-                            Barres grises = ta moyenne ({avgLabel}) sur tes jours réels. Ambre = aujourd'hui. {t('todayVsAvgDesc')}
+                            {t('todayVsAvgDesc', avgLabel)}
                         </p>
 
                         {daysOfHistoryAvailable === 0 ? (
                             <div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
                                 <div className="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center">
-                                    <Icon icon="solar:calendar-linear" className="text-zinc-500" width="18" />
+                                    <Calendar className="text-zinc-500" width="18" />
                                 </div>
                                 <div>
-                                    <p className="text-xs text-zinc-500 font-medium">Historique insuffisant</p>
+                                    <p className="text-xs text-zinc-500 font-medium">{t('insufficientHistory')}</p>
                                     <p className="text-[10px] text-zinc-700 mt-1 max-w-[200px] leading-relaxed">
                                         {t('insufficientDesc')}
                                     </p>
@@ -758,7 +760,7 @@ const Analytics: React.FC = () => {
                             <div className="space-y-3">
                                 {daysOfHistoryAvailable < 3 && (
                                     <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/8 border border-amber-500/20 rounded-lg">
-                                        <Icon icon="solar:info-circle-linear" className="text-amber-400 shrink-0" width="13" />
+                                        <Info className="text-amber-400 shrink-0" width="13" />
                                         <p className="text-[10px] text-amber-300/80">
                                             {t('partialAvg', daysOfHistoryAvailable)}
                                         </p>
@@ -775,25 +777,25 @@ const Analytics: React.FC = () => {
                                         <Tooltip
                                             content={({ active, payload, label }) => {
                                                 if (!active || !payload?.length) return null
-                                                const over = (payload.find((p: any) => p.dataKey === 'Aujourd_hui')?.value ?? 0) >
-                                                             (payload.find((p: any) => p.dataKey === 'Moyenne')?.value ?? 0)
+                                                const over = (payload.find((p: any) => p.dataKey === tc('today'))?.value ?? 0) >
+                                                             (payload.find((p: any) => p.dataKey === t('avgLabelDefault'))?.value ?? 0)
                                                 return (
                                                     <div className="bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-xs shadow-xl min-w-[140px]">
                                                         <p className="text-zinc-400 mb-1.5">{label}</p>
                                                         {payload.map((p: any) => (
                                                             <p key={p.dataKey} className="flex justify-between gap-4" style={{ color: p.fill }}>
-                                                                <span>{p.dataKey === 'Aujourd_hui' ? "Aujourd'hui" : avgLabel}</span>
+                                                                <span>{p.dataKey === tc('today') ? tc('today') : avgLabel}</span>
                                                                 <span className="font-mono">{formatDuration(p.value)}</span>
                                                             </p>
                                                         ))}
-                                                        {over && <p className="text-rose-400 text-[10px] mt-1.5">↑ Au-dessus de ta moyenne</p>}
+                                                        {over && <p className="text-rose-400 text-[10px] mt-1.5">{t('aboveAvg')}</p>}
                                                     </div>
                                                 )
                                             }}
                                             cursor={{ fill: '#27272a' }}
                                         />
                                         <Legend
-                                            formatter={v => v === 'Aujourd_hui' ? "Aujourd'hui" : avgLabel}
+                                            formatter={v => v === tc('today') ? tc('today') : avgLabel}
                                             wrapperStyle={{ fontSize: '10px', color: '#a1a1aa' }}
                                         />
                                         <Bar dataKey="Moyenne"     fill="#3f3f46" radius={[3,3,0,0]} />
@@ -811,14 +813,14 @@ const Analytics: React.FC = () => {
             ═══════════════════════════════════════════ */}
             <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-5">
                 <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1">
-                    Évolution sur 7 jours
+                    {t('evolution7d')}
                 </h3>
                 <p className="text-[10px] text-zinc-600 mb-4">
-                    Temps total de navigation quotidien. Identifie les jours à forte consommation.
+                    {t('evolution7dDesc')}
                 </p>
                 {lineData.every(d => d.Total === 0) ? (
                     <div className="flex items-center justify-center py-10 text-zinc-700">
-                        <p className="text-xs">Pas encore assez de données (accumulation sur 7 jours).</p>
+                        <p className="text-xs">{t('notEnoughData')}</p>
                     </div>
                 ) : (
                     <ResponsiveContainer width="100%" height={180}>
@@ -841,10 +843,10 @@ const Analytics: React.FC = () => {
             ═══════════════════════════════════════════ */}
             <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-5">
                 <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1">
-                    Activité — 30 derniers jours
+                    {t('heatmap30d')}
                 </h3>
                 <p className="text-[10px] text-zinc-600 mb-4">
-                    Couleur plus intense = plus de temps passé en ligne ce jour.
+                    {t('heatmapDesc')}
                 </p>
                 <div className="space-y-1.5">
                     {heatRows.map((row, ri) => (
@@ -866,11 +868,11 @@ const Analytics: React.FC = () => {
                     ))}
                 </div>
                 <div className="flex items-center gap-2 mt-3">
-                    <span className="text-[9px] text-zinc-600">Moins</span>
+                    <span className="text-[9px] text-zinc-600">{t('less')}</span>
                     {['#18181b','#312e26','#78350f','#d97706','#f59e0b'].map(col => (
                         <div key={col} className="w-5 h-3 rounded-sm" style={{ background: col }} />
                     ))}
-                    <span className="text-[9px] text-zinc-600">Plus</span>
+                    <span className="text-[9px] text-zinc-600">{t('more')}</span>
                 </div>
             </div>
 
@@ -880,8 +882,8 @@ const Analytics: React.FC = () => {
                     {/* Header avec sélecteur de jour */}
                     <div className="flex items-center justify-between gap-4 flex-wrap">
                         <h3 className="text-sm font-medium text-white flex items-center gap-2">
-                            <Icon icon="solar:history-linear" className="text-zinc-500" />
-                            Historique de Navigation
+                            <History className="text-zinc-500" />
+                            {t('history')}
                         </h3>
                         {/* Sélecteur de jour — met à jour donut + table + bar chart */}
                         <div className="flex items-center gap-1.5 flex-wrap">
@@ -909,13 +911,13 @@ const Analytics: React.FC = () => {
                     {/* Label jour affiché */}
                     <p className="text-[10px] text-zinc-600">
                         {selectedDay === today
-                            ? "Aujourd'hui"
-                            : `Navigation du ${shortDate(selectedDay)}`
+                            ? tc('today')
+                            : t('navigateOn', shortDate(selectedDay))
                         }
                         {' · '}
-                        {sitesForDay.length} site{sitesForDay.length > 1 ? 's' : ''}
+                        {t('getSiteCount',sitesForDay.length)}
                         {' · '}
-                        {formatDuration(sitesForDay.reduce((s, u) => s + u.liveMs, 0))} total
+                        {formatDuration(sitesForDay.reduce((s, u) => s + u.liveMs, 0))} {t('total')}
                     </p>
                     <div className="rounded-xl border border-zinc-800 overflow-hidden">
                         <table className="w-full text-left border-collapse">
@@ -948,8 +950,11 @@ const Analytics: React.FC = () => {
                                     return (
                                         <tr key={u.domain} className="hover:bg-zinc-900/30">
                                             <td className="px-4 py-2 flex items-center gap-3">
-                                                <img src={`https://www.google.com/s2/favicons?domain=${u.domain}&sz=32`}
-                                                    className="w-4 h-4 opacity-70" alt="" />
+                                                    <SmartImage
+                                                        src={`https://www.google.com/s2/favicons?domain=${u.domain}&sz=32`}
+                                                        fallbackSrc={globeIcon}
+                                                        className="w-4 h-4 opacity-70"
+                                                    />
                                                 <span className="text-zinc-300">{u.domain}</span>
                                             </td>
                                             <td className="px-4 py-2">
@@ -987,13 +992,13 @@ const Analytics: React.FC = () => {
                     </div>
                 </div>
                 <div>
-                    <div className="p-6 rounded-xl bg-gradient-to-b from-zinc-900 to-black border border-zinc-800 h-full flex flex-col items-center justify-center text-center relative overflow-hidden">
+                    <div className="p-6 max-h-82 rounded-xl bg-gradient-to-b from-zinc-900 to-black border border-zinc-800 h-full flex flex-col items-center justify-center text-center relative overflow-hidden">
                         <div className="absolute top-0 right-0 p-4 opacity-10">
-                            <Icon icon="solar:shield-bold" width="120" />
+                            <Shield width={120} height={120} />
                         </div>
-                        <div className="relative z-10 flex flex-col items-center">
+                        <div className="relative z-5 flex flex-col items-center">
                             <div className="w-14 h-14 rounded-2xl bg-zinc-800 flex items-center justify-center mb-4">
-                                <Icon icon="solar:shield-check-linear" className="text-zinc-400" width="28" />
+                                <ShieldCheck className="text-zinc-400" width="28" />
                             </div>
                             <h2 className="text-lg font-semibold text-white mb-2">{t('strictModeTitle')}</h2>
                             <p className="text-xs text-zinc-500 mb-6 max-w-[200px]">

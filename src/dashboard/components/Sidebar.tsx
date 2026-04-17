@@ -1,9 +1,9 @@
 import React from 'react'
 import { useT } from '@/lib/i18n'
-import { Icon } from "@iconify/react";
 import logo from '@/assets/blockweb_master_icon.svg'
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useStateContext } from '@/context/GlobalStateContext';
+import { ChartColumn, Hourglass, ListChecks, Settings, Tag, User } from 'lucide-react';
 
 
 const Sidebar: React.FC = () => {
@@ -32,23 +32,23 @@ const Sidebar: React.FC = () => {
                 {/* <!-- Navigation --> */}
                 <nav className="p-4 space-y-1">
                     <button onClick={() => navigate('/')} id="nav-analytics" className={`tab-btn ${location.pathname == '/' && 'active'} w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-zinc-400 rounded-lg hover:bg-zinc-900 hover:text-zinc-200 transition-all`}>
-                        <Icon icon="solar:chart-square-linear" width="18" className={location.pathname == '/' ? 'text-white' : ''} />
+                        <ChartColumn width="18" className={location.pathname == '/' ? 'text-white' : ''} />
                         {t('analytics')}
                     </button>
                     <button onClick={() => navigate('/block-lists')} id="nav-lists" className={`tab-btn ${location.pathname == '/block-lists' && 'active'} w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-zinc-400 rounded-lg hover:bg-zinc-900 hover:text-zinc-200 transition-all`}>
-                        <Icon icon="solar:list-check-linear" width="18" className={location.pathname == '/block-lists' ? 'text-white' : ''} />
+                        <ListChecks width="18" className={location.pathname == '/block-lists' ? 'text-white' : ''} />
                         {t('blockLists')}
                     </button>
                     <button onClick={() => navigate('/profiles')} id="nav-profiles" className={`tab-btn ${location.pathname.includes('profile') && 'active'} w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-zinc-400 rounded-lg hover:bg-zinc-900 hover:text-zinc-200 transition-all`}>
-                        <Icon icon="solar:hourglass-line-linear" width="18" className={location.pathname.includes('profile') ? 'text-white' : ''} />
+                        <Hourglass width="18" className={location.pathname.includes('profile') ? 'text-white' : ''} />
                         {t('profiles')}
                     </button>
                     <button onClick={() => navigate('/pricing')} id="nav-pricing" className={`tab-btn ${location.pathname == '/pricing' && 'active'} w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-zinc-400 rounded-lg hover:bg-zinc-900 hover:text-zinc-200 transition-all`}>
-                        <Icon icon="solar:tag-price-linear" width="18" className={location.pathname == '/pricing' ? 'text-white' : ''} />
+                        <Tag width="18" className={location.pathname == '/pricing' ? 'text-white' : ''} />
                         {t('pricing')}
                     </button>
                     <button onClick={() => navigate('/strict-mode-settings')} id="nav-strict-mode-settings" className={`tab-btn ${location.pathname == '/strict-mode-settings' && 'active'} w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-zinc-400 rounded-lg hover:bg-zinc-900 hover:text-zinc-200 transition-all`}>
-                        <Icon icon="solar:settings-linear" width="18" className={location.pathname == '/strict-mode-settings' ? 'text-white' : ''} />
+                        <Settings width="18" className={location.pathname == '/strict-mode-settings' ? 'text-white' : ''} />
                         {t('strictMode')}
                     </button>
                 </nav>
@@ -79,14 +79,14 @@ const Sidebar: React.FC = () => {
                                     <img id="sidebar-avatar-img" src={avatarUrl} className="w-full h-full object-cover" />
                                 ) : 
                                 (
-                                    <Icon id="sidebar-avatar-icon" icon="solar:user-linear" width="16" />
+                                    <User width="16" id="sidebar-avatar-icon" />
                                 )}
                             </div>
                             <div className="text-left flex-1 min-w-0">
                                 <p id="sidebar-username" className="text-xs font-medium text-white truncate">{state?.auth?.userName}</p>
                                 <p className="text-[10px] text-zinc-500 truncate">{t('manageAccount')}</p>
                             </div>
-                            <Icon icon="solar:settings-linear" className="text-zinc-600 group-hover:text-zinc-400" />
+                            <Settings width="18" className="text-zinc-600 group-hover:text-zinc-400" />
                         </button>
                     </div>
                 )}

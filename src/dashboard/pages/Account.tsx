@@ -1,8 +1,14 @@
 import { useStateContext } from '@/context/GlobalStateContext'
 import { useT, getT } from '@/lib/i18n'
-import { Icon } from '@iconify/react'
+import { CheckCircle, CircleAlert, CircleUser, FileText, LoaderCircle, Lock, LockKeyhole, LogOut, Trash2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
+import felixAvatar from '@/assets/avatars/felix.svg'
+import anekaAvatar from '@/assets/avatars/aneka.svg'
+import bobAvatar from '@/assets/avatars/bob.svg'
+import jackAvatar from '@/assets/avatars/jack.svg'
+import mollyAvatar from '@/assets/avatars/molly.svg'
+import sarahAvatar from '@/assets/avatars/sarah.svg'
 
 // twh (translator without hook)
 // twhc (common translator without hook)
@@ -61,9 +67,7 @@ function formatExpiry(ts: number | null): string | null {
 /* =========================================================
    AVATARS PRÉDÉFINIS
 ========================================================= */
-const AVATARS = ['Felix', 'Aneka', 'Bob', 'Jack', 'Molly', 'Sarah'].map(
-    seed => `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`
-)
+const AVATARS = [felixAvatar, anekaAvatar, bobAvatar, jackAvatar, mollyAvatar, sarahAvatar]
 
 /* =========================================================
    COMPOSANT
@@ -250,7 +254,7 @@ const Account = () => {
                     <div className="w-full h-full rounded-full bg-zinc-900 border border-zinc-700 overflow-hidden shadow-2xl flex items-center justify-center">
                         {avatarUrl
                             ? <img src={avatarUrl} className="w-full h-full object-cover" alt="avatar" />
-                            : <Icon icon="solar:user-circle-bold" className="text-zinc-500 text-4xl" />
+                            : <CircleUser className="text-zinc-500 text-4xl" />
                         }
                     </div>
                     <span className={`absolute -bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-bold px-2 py-0.5 rounded-full border whitespace-nowrap ${PLAN_COLOR[plan] ?? PLAN_COLOR.FREE}`}>
@@ -311,16 +315,16 @@ const Account = () => {
                             className="px-4 bg-white hover:bg-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed text-black text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5 min-w-[80px] justify-center"
                         >
                             {userSaveStatus === 'loading'
-                                ? <Icon icon="svg-spinners:ring-resize" width="12" />
+                                ? <LoaderCircle className="animate-spin" width="12" />
                                 : userSaveStatus === 'success'
-                                    ? <><Icon icon="solar:check-circle-linear" width="12" className="text-emerald-600" /> {tc('saved')}</>
+                                    ? <><CheckCircle width="12" className="text-emerald-600" /> {tc('saved')}</>
                                     : tc('edit')
                             }
                         </button>
                     </div>
                     {userSaveStatus === 'error' && userSaveError && (
                         <p className="text-[10px] text-rose-400 flex items-center gap-1">
-                            <Icon icon="solar:danger-circle-linear" width="11" /> {userSaveError}
+                            <CircleAlert width="11" /> {userSaveError}
                         </p>
                     )}
                 </div>
@@ -342,7 +346,7 @@ const Account = () => {
                     {showPwdForm && (
                         <div className="space-y-2">
                             <div className="relative group">
-                                <Icon icon="solar:lock-password-linear" className="absolute left-3 top-2.5 text-zinc-500 group-focus-within:text-white transition-colors" width="13" />
+                                <Lock className="absolute left-3 top-2.5 text-zinc-500 group-focus-within:text-white transition-colors" width="13" />
                                 <input
                                     type="password"
                                     value={currentPwd}
@@ -352,7 +356,7 @@ const Account = () => {
                                 />
                             </div>
                             <div className="relative group">
-                                <Icon icon="solar:lock-keyhole-linear" className="absolute left-3 top-2.5 text-zinc-500 group-focus-within:text-white transition-colors" width="13" />
+                                <LockKeyhole className="absolute left-3 top-2.5 text-zinc-500 group-focus-within:text-white transition-colors" width="13" />
                                 <input
                                     type="password"
                                     value={newPwd}
@@ -362,7 +366,7 @@ const Account = () => {
                                 />
                             </div>
                             <div className="relative group">
-                                <Icon icon="solar:lock-keyhole-linear" className="absolute left-3 top-2.5 text-zinc-500 group-focus-within:text-white transition-colors" width="13" />
+                                <LockKeyhole className="absolute left-3 top-2.5 text-zinc-500 group-focus-within:text-white transition-colors" width="13" />
                                 <input
                                     type="password"
                                     value={confirmPwd}
@@ -374,7 +378,7 @@ const Account = () => {
                             </div>
                             {pwdStatus === 'error' && pwdError && (
                                 <p className="text-[10px] text-rose-400 flex items-center gap-1">
-                                    <Icon icon="solar:danger-circle-linear" width="11" /> {pwdError}
+                                    <CircleAlert width="11" /> {pwdError}
                                 </p>
                             )}
                             <button
@@ -383,9 +387,9 @@ const Account = () => {
                                 className="w-full py-2 bg-white hover:bg-zinc-200 disabled:opacity-40 text-black text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5 mt-1"
                             >
                                 {pwdStatus === 'loading'
-                                    ? <><Icon icon="svg-spinners:ring-resize" width="12" /> {t('updating')}</>
+                                    ? <><LoaderCircle className="animate-spin" width="12" /> {t('updating')}</>
                                     : pwdStatus === 'success'
-                                        ? <><Icon icon="solar:check-circle-linear" width="12" className="text-emerald-600" /> {t('passwordSuccess')}</>
+                                        ? <><CheckCircle width="12" className="text-emerald-600" /> {t('passwordSuccess')}</>
                                         : t('updatePwd')
                                 }
                             </button>
@@ -402,7 +406,7 @@ const Account = () => {
                             onClick={() => setLogoutStep('confirm')}
                             className="w-full py-2.5 rounded-lg border border-zinc-700 text-zinc-300 hover:text-white hover:bg-zinc-800 text-xs font-medium transition-colors flex items-center justify-center gap-2"
                         >
-                            <Icon icon="solar:logout-linear" width="14" />
+                            <LogOut width="14" />
                             {t('signOut')}
                         </button>
                     )}
@@ -410,7 +414,7 @@ const Account = () => {
                     {logoutStep === 'confirm' && (
                         <div className="space-y-2 p-3 rounded-lg border border-amber-500/20 bg-amber-500/5">
                             <div className="flex items-start gap-2">
-                                <Icon icon="solar:danger-triangle-linear" className="text-amber-400 shrink-0 mt-0.5" width="14" />
+                                <CircleAlert width="14" className="text-amber-400 shrink-0 mt-0.5" />
                                 <p className="text-xs text-amber-300/80">
                                     {t('confirmSignOut')}
                                 </p>
@@ -445,7 +449,7 @@ const Account = () => {
                             />
                             {logoutError && (
                                 <p className="text-[10px] text-rose-400 flex items-center gap-1.5">
-                                    <Icon icon="solar:danger-circle-linear" width="11" />
+                                    <CircleAlert width="11" />
                                     {logoutError}
                                 </p>
                             )}
@@ -462,8 +466,8 @@ const Account = () => {
                                     className="flex-1 py-2 text-xs font-medium text-white bg-zinc-700 hover:bg-zinc-600 disabled:opacity-50 rounded-lg border border-zinc-600 transition-colors flex items-center justify-center gap-1.5"
                                 >
                                     {logoutLoading
-                                        ? <Icon icon="svg-spinners:ring-resize" width="12" />
-                                        : <Icon icon="solar:logout-linear" width="12" />
+                                        ? <LoaderCircle className="animate-spin" width="12" />
+                                        : <LogOut width="12" />
                                     }
                                     {t('logOut')}
                                 </button>
@@ -477,7 +481,7 @@ const Account = () => {
                             onClick={() => setDeleteStep('confirm')}
                             className="w-full py-2.5 rounded-lg border border-rose-900/30 text-rose-500 hover:bg-rose-950/30 text-xs font-medium transition-colors flex items-center justify-center gap-2"
                         >
-                            <Icon icon="solar:trash-bin-trash-linear" width="14" />
+                            <Trash2 width="14" />
                             {t('deleteMyAccount')}
                         </button>
                     )}
@@ -486,7 +490,7 @@ const Account = () => {
                     {deleteStep === 'confirm' && (
                         <div className="rounded-xl border border-rose-800/40 bg-rose-950/20 p-4 space-y-3">
                             <div className="flex items-start gap-2">
-                                <Icon icon="solar:danger-triangle-linear" className="text-rose-400 shrink-0 mt-0.5" width="16" />
+                                <CircleAlert className="text-rose-400 shrink-0 mt-0.5" width="16" />
                                 <div className="space-y-1.5">
                                     <p className="text-[11px] font-semibold text-rose-300">{t('permanentDeletion')}</p>
                                     <p className="text-[10px] text-rose-400/80 leading-relaxed" dangerouslySetInnerHTML={{ __html: t('deleteDesc')  }} />
@@ -525,7 +529,7 @@ const Account = () => {
                                 {t('enterPwdForDeletion')}
                             </p>
                             <div className="relative group">
-                                <Icon icon="solar:lock-password-linear" className="absolute left-3 top-2.5 text-zinc-500 group-focus-within:text-rose-400 transition-colors" width="13" />
+                                <Lock className="absolute left-3 top-2.5 text-zinc-500 group-focus-within:text-rose-400 transition-colors" width="13" />
                                 <input
                                     type="password"
                                     value={deletePassword}
@@ -538,7 +542,7 @@ const Account = () => {
                             </div>
                             {deleteError && (
                                 <p className="text-[10px] text-rose-400 flex items-center gap-1">
-                                    <Icon icon="solar:danger-circle-linear" width="11" /> {deleteError}
+                                    <CircleAlert width="11" /> {deleteError}
                                 </p>
                             )}
                             <div className="flex gap-2">
@@ -554,7 +558,7 @@ const Account = () => {
                                     className="flex-1 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-medium transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
                                 >
                                     {deleteLoading
-                                        ? <Icon icon="svg-spinners:ring-resize" width="12" />
+                                        ? <LoaderCircle className="animate-spin" width="12" />
                                         : t('permanentDelete')
                                     }
                                 </button>
@@ -567,17 +571,17 @@ const Account = () => {
             {/* ── Historique des abonnements ── */}
             <div className="border-t border-white/5 mt-8 pt-8">
                 <h3 className="text-sm font-medium text-white mb-4 flex items-center gap-2">
-                    <Icon icon="solar:bill-list-linear" className="text-zinc-500" />
+                    <FileText className="text-zinc-500" />
                     {t('subHistory')}
                 </h3>
                 <div className="rounded-xl border border-zinc-800 overflow-hidden">
                     {historyLoading ? (
                         <div className="flex items-center justify-center py-8 gap-2 text-zinc-500 text-xs">
-                            <Icon icon="svg-spinners:ring-resize" width="14" /> {tc('loading')}
+                            <LoaderCircle className="animate-spin" width="14" /> {tc('loading')}
                         </div>
                     ) : history.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-8 gap-2">
-                            <Icon icon="solar:bill-list-linear" className="text-zinc-700 text-2xl" />
+                            <FileText className="text-zinc-700 text-2xl" />
                             <p className="text-xs text-zinc-600">{t('noSubSaved')}</p>
                         </div>
                     ) : (

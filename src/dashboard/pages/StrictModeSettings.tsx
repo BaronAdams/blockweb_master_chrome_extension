@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { Icon } from "@iconify/react";
 import { getDetailsTime, sendToBackground, getRemainingTime } from '@/lib/utils';
 import { LIMITS } from '@/lib/constants';
 import { useStateContext } from '@/context/GlobalStateContext';
 import { useT, getT } from '@/lib/i18n';
+import { CheckCircleIcon, Clock, Copy, Hourglass, Info, LockIcon, Pen, ShieldAlertIcon, ShieldCogIcon, ShieldPlus, Trash2, TriangleAlert } from 'lucide-react';
 
 /* =========================================================
    HELPERS
@@ -14,9 +14,9 @@ const pad = (n: number) => n.toString().padStart(2, '0')
 const twh  = getT('strictMode')
     
 const RESTRICTIONS = [
-    { icon: 'solar:trash-bin-trash-linear', text: twh('r1')  },
-    { icon: 'solar:pen-linear',             text: twh('r2') },
-    { icon: 'solar:shield-plus-linear',     get text() { return navigator.language?.startsWith('fr') ? "Ajout de sites à la whitelist désactivé" : 'Adding sites to the whitelist is disabled' } },
+    { icon: <Trash2 className="text-rose-400" width="11"/>, text: twh('r1')  },
+    { icon: <Pen className="text-rose-400" width="11" />,             text: twh('r2') },
+    { icon: <ShieldPlus className="text-rose-400" width="11"/>,     get text() { return twh('r3') } },
 ]
 
 /* =========================================================
@@ -59,13 +59,9 @@ const OsProtectionGuide: React.FC = () => {
                 type="button"
                 onClick={() => copy(code, id)}
                 className="shrink-0 ml-2 mt-0.5 text-zinc-600 hover:text-white transition-colors"
-                title="Copier"
+                title={t("copy")}
             >
-                <Icon
-                    icon={copied === id ? 'solar:check-circle-bold' : 'solar:copy-linear'}
-                    className={copied === id ? 'text-emerald-400' : ''}
-                    width="13"
-                />
+                {copied === id ? <CheckCircleIcon fill='currentColor' stroke='#000' className="text-emerald-400" width="13" /> : <Copy width="13"/> }
             </button>
         </div>
     )
@@ -75,7 +71,7 @@ const OsProtectionGuide: React.FC = () => {
             {/* Header */}
             <div className="flex items-center gap-3 px-4 py-3 border-b border-zinc-800 bg-zinc-900/60">
                 <div className="w-7 h-7 rounded-lg bg-violet-500/15 flex items-center justify-center shrink-0">
-                    <Icon icon="solar:shield-keyhole-bold" className="text-violet-400" width="14" />
+                    <ShieldCogIcon fill='currentColor' stroke="#4d179a" className="text-violet-400" width="14" />
                 </div>
                 <div className="flex-1">
                     <p className="text-xs font-semibold text-white">{t('osProtection')}</p>
@@ -103,18 +99,14 @@ const OsProtectionGuide: React.FC = () => {
             <div className="p-4 space-y-4">
                 {/* Explication */}
                 <div className="flex items-start gap-2.5 p-3 bg-violet-500/8 border border-violet-500/15 rounded-lg">
-                    <Icon icon="solar:info-circle-linear" className="text-violet-400 shrink-0 mt-0.5" width="13" />
-                    <p className="text-[10px] text-violet-300/80 leading-relaxed">
-                        La politique <strong className="text-violet-200">ExtensionInstallForcelist</strong> de Chrome 
-                        grise le bouton "Supprimer" sur la page des extensions.
-                        {navigator.language?.startsWith('fr') ? "L'extension devient impossible à désinstaller depuis l'interface Chrome." : 'The extension becomes impossible to uninstall from the Chrome interface.'}
-                    </p>
+                    <Info className="text-violet-400 shrink-0 mt-0.5" width="13" />
+                    <p className="text-[10px] text-violet-300/80 leading-relaxed" dangerouslySetInnerHTML={{ __html: t('politicDetails')}} />
                 </div>
 
                 {/* ID de l'extension */}
                 {extId && (
                     <div className="space-y-1.5">
-                        <p className="text-[10px] text-zinc-500 font-medium">ID de ton extension</p>
+                        <p className="text-[10px] text-zinc-500 font-medium">{t('idExt')}</p>
                         <CodeBlock code={extId} id="ext-id" />
                     </div>
                 )}
@@ -123,36 +115,36 @@ const OsProtectionGuide: React.FC = () => {
                 {os === 'windows' && (
                     <div className="space-y-3">
                         <p className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider">
-                            Instructions Windows — Command Prompt (Admin)
+                            {t('winInstructions')}
                         </p>
 
                         <div className="space-y-2">
                             <div className="flex items-center gap-2">
                                 <span className="w-5 h-5 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-[9px] font-bold text-zinc-400 shrink-0">1</span>
-                                <p className="text-[10px] text-zinc-400">Ouvre <strong className="text-zinc-200">Command Prompt en tant qu'Administrateur</strong></p>
+                                <p className="text-[10px] text-zinc-400" dangerouslySetInnerHTML={{__html: t('openCmd') }}></p>
                             </div>
 
                             <div className="flex items-center gap-2">
                                 <span className="w-5 h-5 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-[9px] font-bold text-zinc-400 shrink-0">2</span>
-                                <p className="text-[10px] text-zinc-400">{navigator.language?.startsWith('fr') ? "Crée l'entrée dans le Registre" : 'Creates the Registry entry'}</p>
+                                <p className="text-[10px] text-zinc-400">{t('createEntry')}</p>
                             </div>
                             <CodeBlock code={CMD_WIN_CREATE} id="win-create" />
 
                             <div className="flex items-center gap-2">
                                 <span className="w-5 h-5 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-[9px] font-bold text-zinc-400 shrink-0">3</span>
-                                <p className="text-[10px] text-zinc-400">{navigator.language?.startsWith('fr') ? "Ajoute l'extension à la liste de force" : 'Adds the extension to the force list'}</p>
+                                <p className="text-[10px] text-zinc-400">{t('addExt')}</p>
                             </div>
                             <CodeBlock code={CMD_WIN_ADD} id="win-add" />
 
                             <div className="flex items-center gap-2">
                                 <span className="w-5 h-5 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-[9px] font-bold text-zinc-400 shrink-0">4</span>
-                                <p className="text-[10px] text-zinc-400">Redémarre Chrome — le bouton "Supprimer" sera grisé ✓</p>
+                                <p className="text-[10px] text-zinc-400">{t('restartBrowser')}</p>
                             </div>
                         </div>
 
                         {/* Annuler */}
                         <div className="pt-1 border-t border-zinc-800/60 space-y-1.5">
-                            <p className="text-[10px] text-zinc-600 font-medium">{navigator.language?.startsWith('fr') ? 'Pour annuler (après le mode strict)' : 'To undo (after strict mode)'}</p>
+                            <p className="text-[10px] text-zinc-600 font-medium">{t('winUndo')}</p>
                             <CodeBlock code={CMD_WIN_REMOVE} id="win-remove" />
                         </div>
                     </div>
@@ -162,14 +154,14 @@ const OsProtectionGuide: React.FC = () => {
                 {os === 'mac' && (
                     <div className="space-y-3">
                         <p className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider">
-                            Instructions macOS — Profil de configuration
+                            {t('macInstructions')}
                         </p>
 
                         <div className="space-y-2">
                             <div className="flex items-center gap-2">
                                 <span className="w-5 h-5 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-[9px] font-bold text-zinc-400 shrink-0">1</span>
                                 <p className="text-[10px] text-zinc-400">
-                                    {navigator.language?.startsWith('fr') ? 'Crée un fichier' : 'Creates a file'} <strong className="text-zinc-200">enforce_extension.mobileconfig</strong>
+                                    {t('createFile')} <strong className="text-zinc-200">enforce_extension.mobileconfig</strong>
                                 </p>
                             </div>
                             <CodeBlock
@@ -194,20 +186,19 @@ const OsProtectionGuide: React.FC = () => {
 
                             <div className="flex items-center gap-2">
                                 <span className="w-5 h-5 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-[9px] font-bold text-zinc-400 shrink-0">2</span>
-                                <p className="text-[10px] text-zinc-400">
-                                    {navigator.language?.startsWith('fr') ? "Double-clique sur le fichier pour l'installer via" : 'Double-click the file to install it via'} <strong className="text-zinc-200">Préférences Système → Profils</strong>
+                                <p dangerouslySetInnerHTML={{ __html: t('dblCkick') }} className="text-[10px] text-zinc-400">
                                 </p>
                             </div>
 
                             <div className="flex items-center gap-2">
                                 <span className="w-5 h-5 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-[9px] font-bold text-zinc-400 shrink-0">3</span>
-                                <p className="text-[10px] text-zinc-400">Redémarre Chrome — le bouton "Supprimer" sera grisé ✓</p>
+                                <p className="text-[10px] text-zinc-400">{t('restartBrowser')}</p>
                             </div>
                         </div>
 
                         <div className="pt-1 border-t border-zinc-800/60">
                             <p className="text-[10px] text-zinc-600">
-                                {navigator.language?.startsWith('fr') ? 'Pour annuler : Préférences Système → Profils → sélectionne le profil → bouton' : 'To undo: System Preferences → Profiles → select the profile → button'} <strong>−</strong>
+                                {t('macUndo')} <strong>−</strong>
                             </p>
                         </div>
                     </div>
@@ -215,11 +206,9 @@ const OsProtectionGuide: React.FC = () => {
 
                 {/* Avertissement */}
                 <div className="flex items-start gap-2 p-2.5 bg-amber-500/8 border border-amber-500/20 rounded-lg">
-                    <Icon icon="solar:danger-triangle-linear" className="text-amber-400 shrink-0 mt-0.5" width="12" />
+                    <TriangleAlert className="text-amber-400 shrink-0 mt-0.5" width="12" />
                     <p className="text-[10px] text-amber-400/80 leading-relaxed">
-                        {navigator.language?.startsWith('fr') ? 'Ces commandes nécessitent des droits administrateur sur ton ordinateur.' : 'These commands require administrator rights on your computer.'}
-                        Pour annuler la protection, tu auras besoin de refaire la manipulation inverse.
-                        Note les commandes de suppression quelque part en dehors du navigateur.
+                        {t('warningUndoInstructions')}
                     </p>
                 </div>
             </div>
@@ -248,7 +237,7 @@ const StrictModeSettings: React.FC = () => {
     const isStrict  = state?.strictModeUntil != null
     const isPremium = state?.isPremium ?? false
     const isZero    = days === 0 && hours === 0 && mins === 0
-    const maxLabel  = isPremium ? '30 jours' : '24 heures'
+    const maxLabel  = isPremium ? t('maxPremiumLabel') : t('maxFreeLabel')
 
     /* ── Countdown ── */
     useEffect(() => {
@@ -312,11 +301,11 @@ const StrictModeSettings: React.FC = () => {
             {/* ── Header ── */}
             <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0">
-                    <Icon icon="solar:shield-warning-bold" className="text-rose-400" width="20" />
+                    <ShieldAlertIcon fill="currentColor" stroke='#8b0836' className="text-rose-400" width="20" />
                 </div>
                 <div>
                     <h2 className="text-sm font-semibold text-white">{t('title')}</h2>
-                    <p className="text-xs text-zinc-500">Verrou temporaire contre les distractions.</p>
+                    <p className="text-xs text-zinc-500">{t('tempLock')}</p>
                 </div>
                 <div className={`ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-semibold ${
                     isStrict
@@ -324,18 +313,18 @@ const StrictModeSettings: React.FC = () => {
                         : 'bg-zinc-800 border-zinc-700 text-zinc-500'
                 }`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${isStrict ? 'bg-rose-500 animate-pulse' : 'bg-zinc-600'}`} />
-                    {isStrict ? 'Actif' : 'Inactif'}
+                    {isStrict ? t('activeShrt') : t('inactiveShrt')}
                 </div>
             </div>
 
             {/* ── Restrictions ── */}
             <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 space-y-3">
-                <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Restrictions actives</p>
+                <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">{t('activeRestr')}</p>
                 <div className="space-y-2">
                     {RESTRICTIONS.map(({ icon, text }, i) => (
                         <div key={i} className="flex items-start gap-2.5">
                             <div className="w-5 h-5 rounded-md bg-rose-500/10 flex items-center justify-center shrink-0 mt-0.5">
-                                <Icon icon={icon} className="text-rose-400" width="11" />
+                                {icon}
                             </div>
                             <p className="text-[11px] text-zinc-400 leading-relaxed">{text}</p>
                         </div>
@@ -352,17 +341,17 @@ const StrictModeSettings: React.FC = () => {
                     <div className="p-5 space-y-4">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <Icon icon="solar:lock-password-bold" className="text-rose-400" width="16" />
-                                <span className="text-xs font-semibold text-rose-300 uppercase tracking-wider">{navigator.language?.startsWith('fr') ? 'Verrouillé' : 'Locked'}</span>
+                                <LockIcon fill="currentColor" stroke="#27272a" className="text-rose-400" width="16" />
+                                <span className="text-xs font-semibold text-rose-300 uppercase tracking-wider">{t('locked')}</span>
                             </div>
-                            <p className="text-[10px] text-zinc-600">Impossible de modifier</p>
+                            <p className="text-[10px] text-zinc-600">{t('cantEdit')}</p>
                         </div>
                         <div className="grid grid-cols-4 gap-2">
                             {[
-                                { val: remaining.days,    label: 'jours'    },
-                                { val: remaining.hours,   label: 'heures'   },
-                                { val: remaining.minutes, label: 'minutes'  },
-                                { val: remaining.seconds, label: 'secondes' },
+                                { val: remaining.days,    label: tc('days')    },
+                                { val: remaining.hours,   label: tc('hours')   },
+                                { val: remaining.minutes, label: tc('minutes')  },
+                                { val: remaining.seconds, label: tc('seconds') },
                             ].map(({ val, label }) => (
                                 <div key={label} className="flex flex-col items-center gap-1 bg-black/40 rounded-lg py-3 border border-zinc-800">
                                     <span className="text-2xl font-mono font-bold text-white tabular-nums">{pad(val)}</span>
@@ -371,7 +360,7 @@ const StrictModeSettings: React.FC = () => {
                             ))}
                         </div>
                         <p className="text-[10px] text-center text-zinc-600">
-                            {navigator.language?.startsWith('fr') ? "Se désactivera automatiquement à l'expiration du timer." : 'Will deactivate automatically when the timer expires.'}
+                            {t('willDeactivate')}
                         </p>
                     </div>
                 </div>
@@ -380,11 +369,11 @@ const StrictModeSettings: React.FC = () => {
                 <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-5 space-y-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <Icon icon="solar:hourglass-line-linear" className="text-zinc-400" width="15" />
-                            <p className="text-xs font-medium text-zinc-300">{navigator.language?.startsWith('fr') ? 'Durée du Mode Strict' : 'Strict Mode Duration'}</p>
+                            <Hourglass className="text-zinc-400" width="15" />
+                            <p className="text-xs font-medium text-zinc-300">{t('duration')}</p>
                         </div>
                         <span className="text-[10px] px-2 py-0.5 rounded-md bg-zinc-800 border border-zinc-700 text-zinc-500 font-medium">
-                            Max {maxLabel}
+                            {tc('max')} {maxLabel}
                         </span>
                     </div>
 
@@ -394,8 +383,8 @@ const StrictModeSettings: React.FC = () => {
                             <select value={days} onChange={e => handleDays(e.target.value)}
                                 className="w-full bg-black border border-zinc-700 text-white text-xs rounded-lg px-2 py-2.5 outline-none focus:border-zinc-500 cursor-pointer text-center appearance-none">
                                 {!isPremium
-                                    ? [0, 1].map(d => <option key={d} value={d}>{pad(d)} j</option>)
-                                    : Array.from({ length: 31 }, (_, i) => <option key={i} value={i}>{pad(i)} j</option>)
+                                    ? [0, 1].map(d => <option key={d} value={d}>{pad(d)} {tc('dayShrt')}</option>)
+                                    : Array.from({ length: 31 }, (_, i) => <option key={i} value={i}>{pad(i)} {tc('dayShrt')}</option>)
                                 }
                             </select>
                         </div>
@@ -404,15 +393,15 @@ const StrictModeSettings: React.FC = () => {
                             <select value={hours} onChange={e => handleHours(e.target.value)}
                                 disabled={(!isPremium && days >= 1) || (isPremium && days >= 30)}
                                 className="w-full disabled:opacity-30 disabled:cursor-not-allowed bg-black border border-zinc-700 text-white text-xs rounded-lg px-2 py-2.5 outline-none focus:border-zinc-500 cursor-pointer text-center appearance-none">
-                                {Array.from({ length: 24 }, (_, i) => <option key={i} value={i}>{pad(i)} h</option>)}
+                                {Array.from({ length: 24 }, (_, i) => <option key={i} value={i}>{pad(i)} {tc('hourShrt')}</option>)}
                             </select>
                         </div>
                         <div className="space-y-1">
-                            <p className="text-[10px] text-zinc-600 text-center">Minutes</p>
+                            <p className="text-[10px] text-zinc-600 text-center">{tc('minutes')}</p>
                             <select value={mins} onChange={e => handleMins(e.target.value)}
                                 disabled={(!isPremium && days >= 1) || (isPremium && days >= 30)}
                                 className="w-full disabled:opacity-30 disabled:cursor-not-allowed bg-black border border-zinc-700 text-white text-xs rounded-lg px-2 py-2.5 outline-none focus:border-zinc-500 cursor-pointer text-center appearance-none">
-                                {Array.from({ length: 60 }, (_, i) => <option key={i} value={i}>{pad(i)} min</option>)}
+                                {Array.from({ length: 60 }, (_, i) => <option key={i} value={i}>{pad(i)} {tc('minuteShrt')}</option>)}
                             </select>
                         </div>
                     </div>
@@ -420,20 +409,19 @@ const StrictModeSettings: React.FC = () => {
                     {!isZero && (
                         <>
                             <div className="flex items-center gap-2 px-3 py-2 bg-zinc-800/50 rounded-lg border border-zinc-700/50">
-                                <Icon icon="solar:clock-circle-linear" className="text-zinc-500" width="13" />
+                                <Clock className="text-zinc-500" width="13" />
                                 <p className="text-[10px] text-zinc-400">
-                                    {navigator.language?.startsWith('fr') ? 'Durée sélectionnée :' : 'Selected duration:'}{' '}
+                                    {t('selectedDuration')}{' '}
                                     <span className="text-white font-medium">
-                                        {days > 0  && `${days}j `}
-                                        {hours > 0 && `${hours}h `}
-                                        {mins > 0  && `${mins}min`}
+                                        {days > 0  && `${days}${tc('dayShrt')} `}
+                                        {hours > 0 && `${hours}${tc('hourShrt')} `}
+                                        {mins > 0  && `${mins}${tc('minuteShrt')}`}
                                     </span>
                                 </p>
                             </div>
                             <div className="flex items-start gap-2 p-2.5 bg-rose-500/8 border border-rose-500/15 rounded-lg">
-                                <Icon icon="solar:danger-triangle-linear" className="text-rose-400 shrink-0 mt-0.5" width="13" />
-                                <p className="text-[10px] text-rose-400/80 leading-relaxed">
-                                    {navigator.language?.startsWith('fr') ? 'Une fois activé, le mode strict' : 'Once activated, strict mode'} <strong className="text-rose-300">{navigator.language?.startsWith('fr') ? 'ne peut pas être annulé' : 'cannot be cancelled'}</strong> avant la fin du timer.
+                                <TriangleAlert className="text-rose-400 shrink-0 mt-[0.7px]" width="15" />
+                                <p dangerouslySetInnerHTML={{ __html: t('onceActivated') }} className="text-[10px] text-rose-400/80 leading-relaxed">
                                 </p>
                             </div>
                         </>
@@ -449,8 +437,8 @@ const StrictModeSettings: React.FC = () => {
                 <div className="flex justify-end">
                     <button type="button" onClick={startStrict} disabled={isZero}
                         className="flex items-center gap-2 px-5 py-2 disabled:opacity-40 disabled:cursor-not-allowed bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-lg transition-colors shadow-lg shadow-rose-900/30">
-                        <Icon icon="solar:shield-warning-bold" width="13" />
-                        Activer le Mode Strict
+                        <ShieldAlertIcon fill="currentColor" stroke='#E11D48' width="15" />
+                        {t('activate')}
                     </button>
                 </div>
             )}

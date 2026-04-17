@@ -1,3 +1,5 @@
+import { getT } from "./i18n"
+
 // Définition des limites
 export const LIMITS = {
     FREE: {
@@ -191,8 +193,10 @@ export const SITE_CATEGORIES = {
 
 } as const
 
+
 export type SiteCategory = 'adult' | 'distraction' | 'entertainment' | 'productivity' | 'other'
 
+const twhc = getT('common')
 export const CATEGORY_META: Record<SiteCategory, {
     label:   string
     color:   string
@@ -200,33 +204,33 @@ export const CATEGORY_META: Record<SiteCategory, {
     desc:    string
 }> = {
     adult: {
-        label: 'Contenu Adulte',
+        label: twhc('adultContent'),
         color: '#f43f5e',
         emoji: '🔞',
-        desc:  'Sites à contenu adulte détectés',
+        desc:  twhc('adultContentDesc'),
     },
     distraction: {
-        label: 'Distraction',
+        label: twhc('distraction'),
         color: '#9e4fe7',
         emoji: '📱',
-        desc:  'Réseaux sociaux et contenus chronophages',
+        desc:  twhc('distractionDesc'),
     },
     entertainment: {
-        label: 'Divertissement',
+        label: twhc('entertainment'),
         color: '#fbbf24',
         emoji: '🎬',
-        desc:  'Streaming, musique et jeux',
+        desc:  twhc('entertainmentDesc'),
     },
     productivity: {
-        label: 'Productivité',
+        label: twhc('productivity'),
         color: '#34d399',
         emoji: '💼',
-        desc:  'Travail, code et apprentissage',
+        desc:  twhc('productivityDesc'),
     },
     other: {
-        label: 'Autre',
+        label: twhc('other'),
         color: '#60a5fa',
         emoji: '🌐',
-        desc:  'Navigation non classifiée',
+        desc:  twhc('otherDesc'),
     },
 }
