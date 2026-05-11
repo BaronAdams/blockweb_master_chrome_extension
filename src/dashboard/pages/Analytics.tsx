@@ -715,7 +715,7 @@ const Analytics: React.FC = () => {
                                         <div className="flex items-start gap-2 p-2.5 bg-rose-500/8 border border-rose-500/15 rounded-lg">
                                             <span className="text-[11px] shrink-0">📱</span>
                                             <p className="text-[10px] text-rose-400/80 leading-relaxed">
-                                                <strong className="text-rose-300">{Math.round(donutData.totals.distraction / donutData.total * 100)}%</strong> {t('distractionWarning', Math.round(donutData.totals.distraction / donutData.total * 100))}
+                                                {t('distractionWarning', Math.round(donutData.totals.distraction / donutData.total * 100))}
                                             </p>
                                         </div>
                                     )}

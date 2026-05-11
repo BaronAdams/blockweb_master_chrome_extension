@@ -234,3 +234,9 @@ export const CATEGORY_META: Record<SiteCategory, {
         desc:  twhc('otherDesc'),
     },
 }
+
+
+// /* =========================================================
+//    AVATARS PRÉDÉFINIS
+// ========================================================= */
+// const AVATARS = [felixAvatar, anekaAvatar, bobAvatar, jackAvatar, mollyAvatar, sarahAvatar]

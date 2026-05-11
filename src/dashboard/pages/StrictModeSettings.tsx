@@ -3,7 +3,7 @@ import { getDetailsTime, sendToBackground, getRemainingTime } from '@/lib/utils'
 import { LIMITS } from '@/lib/constants';
 import { useStateContext } from '@/context/GlobalStateContext';
 import { useT, getT } from '@/lib/i18n';
-import { CheckCircleIcon, Clock, Copy, Hourglass, Info, LockIcon, Pen, ShieldAlertIcon, ShieldCogIcon, ShieldPlus, Trash2, TriangleAlert } from 'lucide-react';
+import { Clock, Hourglass, LockIcon, Pen, ShieldAlertIcon, ShieldPlus, Trash2, TriangleAlert } from 'lucide-react';
 
 /* =========================================================
    HELPERS
@@ -12,203 +12,74 @@ import { CheckCircleIcon, Clock, Copy, Hourglass, Info, LockIcon, Pen, ShieldAle
 const pad = (n: number) => n.toString().padStart(2, '0')
 
 const twh  = getT('strictMode')
-    
+
 const RESTRICTIONS = [
     { icon: <Trash2 className="text-rose-400" width="11"/>, text: twh('r1')  },
-    { icon: <Pen className="text-rose-400" width="11" />,             text: twh('r2') },
-    { icon: <ShieldPlus className="text-rose-400" width="11"/>,     get text() { return twh('r3') } },
+    { icon: <Pen className="text-rose-400" width="11" />,   text: twh('r2') },
+    { icon: <ShieldPlus className="text-rose-400" width="11"/>, get text() { return twh('r3') } },
 ]
 
 /* =========================================================
-   SOUS-COMPOSANT — Guide protection OS
-   Explique comment forcer l'installation via ExtensionInstallForcelist
-   sur Windows (Registre) et macOS (Config Profile)
+   SOUS-COMPOSANT — Conseils pour tenir bon
+   Remplace OsProtectionGuide — conseils pratiques et
+   psychologiques pour ne pas contourner le Mode Strict
 ========================================================= */
 
-const OsProtectionGuide: React.FC = () => {
-    const [os,       setOs]       = useState<'windows' | 'mac' | 'other'>('other')
-    const [extId,    setExtId]    = useState<string>('')
-    const [copied,   setCopied]   = useState<string | null>(null)
-    const t  = useT('strictMode')
+const StrictModeTips: React.FC = () => {
+    const t = useT('strictMode')
 
-    useEffect(() => {
-        // Détecter l'OS
-        const ua = navigator.userAgent.toLowerCase()
-        if (ua.includes('win'))    setOs('windows')
-        else if (ua.includes('mac')) setOs('mac')
-
-        // Récupérer l'ID de l'extension
-        setExtId(chrome.runtime.id ?? '')
-    }, [])
-
-    const copy = (text: string, key: string) => {
-        navigator.clipboard.writeText(text).then(() => {
-            setCopied(key)
-            setTimeout(() => setCopied(null), 2000)
-        })
-    }
-
-    const CMD_WIN_CREATE = `reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Google\\Chrome\\ExtensionInstallForcelist"`
-    const CMD_WIN_ADD    = `reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Google\\Chrome\\ExtensionInstallForcelist" /v "1" /t REG_SZ /d "${extId}"`
-    const CMD_WIN_REMOVE = `reg delete "HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Google\\Chrome\\ExtensionInstallForcelist" /v 1 /f`
-
-    const CodeBlock = ({ code, id }: { code: string; id: string }) => (
-        <div className="relative flex items-start gap-2 bg-black/60 border border-zinc-700/50 rounded-lg px-3 py-2.5 font-mono text-[10px] text-zinc-300 group">
-            <span className="flex-1 break-all leading-relaxed">{code}</span>
-            <button
-                type="button"
-                onClick={() => copy(code, id)}
-                className="shrink-0 ml-2 mt-0.5 text-zinc-600 hover:text-white transition-colors"
-                title={t("copy")}
-            >
-                {copied === id ? <CheckCircleIcon fill='currentColor' stroke='#000' className="text-emerald-400" width="13" /> : <Copy width="13"/> }
-            </button>
-        </div>
-    )
+    const TIPS = [
+        {
+            icon: '📵',
+            title: t('tip1Title'),
+            desc:  t('tip1Desc'),
+        },
+        {
+            icon: '🔔',
+            title: t('tip2Title'),
+            desc:  t('tip2Desc'),
+        },
+        {
+            icon: '🧠',
+            title: t('tip3Title'),
+            desc:  t('tip3Desc'),
+        },
+        {
+            icon: '✅',
+            title: t('tip4Title'),
+            desc:  t('tip4Desc'),
+        },
+    ]
 
     return (
         <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl overflow-hidden">
             {/* Header */}
             <div className="flex items-center gap-3 px-4 py-3 border-b border-zinc-800 bg-zinc-900/60">
-                <div className="w-7 h-7 rounded-lg bg-violet-500/15 flex items-center justify-center shrink-0">
-                    <ShieldCogIcon fill='currentColor' stroke="#4d179a" className="text-violet-400" width="14" />
+                <div className="w-7 h-7 rounded-lg bg-amber-500/15 flex items-center justify-center shrink-0">
+                    <span className="text-sm">💡</span>
                 </div>
-                <div className="flex-1">
-                    <p className="text-xs font-semibold text-white">{t('osProtection')}</p>
-                    <p className="text-[10px] text-zinc-500">{t('osDesc')}</p>
-                </div>
-                {/* Sélecteur OS */}
-                <div className="flex gap-1">
-                    {(['windows', 'mac'] as const).map(o => (
-                        <button
-                            key={o}
-                            type="button"
-                            onClick={() => setOs(o)}
-                            className={`px-2.5 py-1 rounded-md text-[10px] font-medium transition-colors ${
-                                os === o
-                                    ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30'
-                                    : 'text-zinc-500 hover:text-zinc-300 border border-transparent'
-                            }`}
-                        >
-                            {o === 'windows' ? t('windows') : t('mac')}
-                        </button>
-                    ))}
+                <div>
+                    <p className="text-xs font-semibold text-white">{t('tipsTitle')}</p>
+                    <p className="text-[10px] text-zinc-500">{t('tipsDesc')}</p>
                 </div>
             </div>
 
-            <div className="p-4 space-y-4">
-                {/* Explication */}
-                <div className="flex items-start gap-2.5 p-3 bg-violet-500/8 border border-violet-500/15 rounded-lg">
-                    <Info className="text-violet-400 shrink-0 mt-0.5" width="13" />
-                    <p className="text-[10px] text-violet-300/80 leading-relaxed" dangerouslySetInnerHTML={{ __html: t('politicDetails')}} />
-                </div>
-
-                {/* ID de l'extension */}
-                {extId && (
-                    <div className="space-y-1.5">
-                        <p className="text-[10px] text-zinc-500 font-medium">{t('idExt')}</p>
-                        <CodeBlock code={extId} id="ext-id" />
-                    </div>
-                )}
-
-                {/* Instructions Windows */}
-                {os === 'windows' && (
-                    <div className="space-y-3">
-                        <p className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider">
-                            {t('winInstructions')}
-                        </p>
-
-                        <div className="space-y-2">
-                            <div className="flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-[9px] font-bold text-zinc-400 shrink-0">1</span>
-                                <p className="text-[10px] text-zinc-400" dangerouslySetInnerHTML={{__html: t('openCmd') }}></p>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-[9px] font-bold text-zinc-400 shrink-0">2</span>
-                                <p className="text-[10px] text-zinc-400">{t('createEntry')}</p>
-                            </div>
-                            <CodeBlock code={CMD_WIN_CREATE} id="win-create" />
-
-                            <div className="flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-[9px] font-bold text-zinc-400 shrink-0">3</span>
-                                <p className="text-[10px] text-zinc-400">{t('addExt')}</p>
-                            </div>
-                            <CodeBlock code={CMD_WIN_ADD} id="win-add" />
-
-                            <div className="flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-[9px] font-bold text-zinc-400 shrink-0">4</span>
-                                <p className="text-[10px] text-zinc-400">{t('restartBrowser')}</p>
-                            </div>
-                        </div>
-
-                        {/* Annuler */}
-                        <div className="pt-1 border-t border-zinc-800/60 space-y-1.5">
-                            <p className="text-[10px] text-zinc-600 font-medium">{t('winUndo')}</p>
-                            <CodeBlock code={CMD_WIN_REMOVE} id="win-remove" />
+            <div className="p-4 space-y-3">
+                {TIPS.map((tip, i) => (
+                    <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-zinc-800/30 border border-zinc-800/50">
+                        <span className="text-base shrink-0 mt-0.5">{tip.icon}</span>
+                        <div>
+                            <p className="text-[11px] font-semibold text-zinc-200 mb-0.5">{tip.title}</p>
+                            <p className="text-[10px] text-zinc-500 leading-relaxed">{tip.desc}</p>
                         </div>
                     </div>
-                )}
+                ))}
 
-                {/* Instructions macOS */}
-                {os === 'mac' && (
-                    <div className="space-y-3">
-                        <p className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider">
-                            {t('macInstructions')}
-                        </p>
-
-                        <div className="space-y-2">
-                            <div className="flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-[9px] font-bold text-zinc-400 shrink-0">1</span>
-                                <p className="text-[10px] text-zinc-400">
-                                    {t('createFile')} <strong className="text-zinc-200">enforce_extension.mobileconfig</strong>
-                                </p>
-                            </div>
-                            <CodeBlock
-                                code={`<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0"><dict>
-  <key>PayloadContent</key><array><dict>
-    <key>PayloadType</key><string>com.apple.ManagedClient.preferences</string>
-    <key>PayloadIdentifier</key><string>com.blockwebmaster.enforce</string>
-    <key>PayloadUUID</key><string>12345678-1234-1234-1234-123456789012</string>
-    <key>PayloadVersion</key><integer>1</integer>
-    <key>ExtensionInstallForcelist</key>
-    <array><string>${extId}</string></array>
-  </dict></array>
-  <key>PayloadIdentifier</key><string>com.blockwebmaster.profile</string>
-  <key>PayloadType</key><string>Configuration</string>
-  <key>PayloadUUID</key><string>87654321-4321-4321-4321-210987654321</string>
-  <key>PayloadVersion</key><integer>1</integer>
-</dict></plist>`}
-                                id="mac-plist"
-                            />
-
-                            <div className="flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-[9px] font-bold text-zinc-400 shrink-0">2</span>
-                                <p dangerouslySetInnerHTML={{ __html: t('dblCkick') }} className="text-[10px] text-zinc-400">
-                                </p>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-[9px] font-bold text-zinc-400 shrink-0">3</span>
-                                <p className="text-[10px] text-zinc-400">{t('restartBrowser')}</p>
-                            </div>
-                        </div>
-
-                        <div className="pt-1 border-t border-zinc-800/60">
-                            <p className="text-[10px] text-zinc-600">
-                                {t('macUndo')} <strong>−</strong>
-                            </p>
-                        </div>
-                    </div>
-                )}
-
-                {/* Avertissement */}
-                <div className="flex items-start gap-2 p-2.5 bg-amber-500/8 border border-amber-500/20 rounded-lg">
-                    <TriangleAlert className="text-amber-400 shrink-0 mt-0.5" width="12" />
-                    <p className="text-[10px] text-amber-400/80 leading-relaxed">
-                        {t('warningUndoInstructions')}
+                {/* Bannière motivationnelle */}
+                <div className="flex items-start gap-2.5 p-3 bg-amber-500/8 border border-amber-500/15 rounded-lg mt-1">
+                    <span className="text-amber-400 text-sm shrink-0">⚡</span>
+                    <p className="text-[10px] text-amber-300/80 leading-relaxed">
+                        {t('tipsBanner')}
                     </p>
                 </div>
             </div>
@@ -228,7 +99,6 @@ const StrictModeSettings: React.FC = () => {
     const [days,  setDays]  = useState(0)
     const [hours, setHours] = useState(0)
     const [mins,  setMins]  = useState(0)
-
 
     const [remaining, setRemaining] = useState<{
         days: number; hours: number; minutes: number; seconds: number
@@ -286,8 +156,6 @@ const StrictModeSettings: React.FC = () => {
     const startStrict = () => {
         if (isZero) return
         const ms = durationMs()
-        // Un seul message atomique — évite la race condition entre
-        // SAVE_STRICT_TIME et ACTIVATE_STRICT_MODE
         sendToBackground({
             type:     'ACTIVATE_STRICT_MODE',
             time:     Date.now() + ms,
@@ -350,7 +218,7 @@ const StrictModeSettings: React.FC = () => {
                             {[
                                 { val: remaining.days,    label: tc('days')    },
                                 { val: remaining.hours,   label: tc('hours')   },
-                                { val: remaining.minutes, label: tc('minutes')  },
+                                { val: remaining.minutes, label: tc('minutes') },
                                 { val: remaining.seconds, label: tc('seconds') },
                             ].map(({ val, label }) => (
                                 <div key={label} className="flex flex-col items-center gap-1 bg-black/40 rounded-lg py-3 border border-zinc-800">
@@ -421,16 +289,15 @@ const StrictModeSettings: React.FC = () => {
                             </div>
                             <div className="flex items-start gap-2 p-2.5 bg-rose-500/8 border border-rose-500/15 rounded-lg">
                                 <TriangleAlert className="text-rose-400 shrink-0 mt-[0.7px]" width="15" />
-                                <p dangerouslySetInnerHTML={{ __html: t('onceActivated') }} className="text-[10px] text-rose-400/80 leading-relaxed">
-                                </p>
+                                <p dangerouslySetInnerHTML={{ __html: t('onceActivated') }} className="text-[10px] text-rose-400/80 leading-relaxed" />
                             </div>
                         </>
                     )}
                 </div>
             )}
 
-            {/* ── Guide protection OS ── */}
-            <OsProtectionGuide />
+            {/* ── Conseils pour tenir bon ── */}
+            <StrictModeTips />
 
             {/* ── Actions ── */}
             {!isStrict && (

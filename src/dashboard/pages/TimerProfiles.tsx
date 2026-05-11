@@ -59,7 +59,7 @@ const TimerProfiles: React.FC = () => {
                     <h2 className="text-sm font-medium text-white">{t('yrProfiles')}</h2>
                     <p className="text-xs text-zinc-500 mt-1">
                         {profiles.length > 0
-                            ? `${profiles.length} ${t('active',profiles.length)} ${frozenProfiles.length > 0 ? ` · ${t('frozen',frozenProfiles.length)}` : ''}`
+                            ? `${t('active',profiles.length)} ${frozenProfiles.length > 0 ? ` · ${t('frozen',frozenProfiles.length)}` : ''}`
                             : t('manageLimits')
                         }
                     </p>

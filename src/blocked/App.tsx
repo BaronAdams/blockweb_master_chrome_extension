@@ -55,7 +55,7 @@ const PROFILE_CONTENT: Record<ProfileType, {
   reason: string;
 }> = {
   daily: {
-    icon: <Sun className="text-amber-400" width={40} />,
+    icon: <Sun className="text-amber-400" width="40" height="40" />,
     iconColor: "text-amber-400",
     glowColor: "bg-amber-500",
     title: twh('dailyTitle'),
@@ -64,7 +64,7 @@ const PROFILE_CONTENT: Record<ProfileType, {
     reason: twh('dailyReason'),
   },
   hourly: {
-    icon: <Clock className="text-blue-400" width={40} />,
+    icon: <Clock className="text-blue-400" width="40" height="40" />,
     iconColor: "text-blue-400",
     glowColor: "bg-blue-500",
     title: twh('hourlyTitle'),
@@ -73,7 +73,7 @@ const PROFILE_CONTENT: Record<ProfileType, {
     reason: twh('hourlyReason'),
   },
   weekly: {
-    icon: <CalendarCheck className="text-violet-400" width={40} />,
+    icon: <CalendarCheck className="text-violet-400" width="40" height="40" />,
     iconColor: "text-violet-400",
     glowColor: "bg-violet-500",
     title: twh('weeklyTitle'),
@@ -82,7 +82,7 @@ const PROFILE_CONTENT: Record<ProfileType, {
     reason: twh('weeklyReason'),
   },
   interval: {
-    icon: <Calendar className="text-rose-400" width={40} />,
+    icon: <Calendar className="text-rose-400" width="40" height="40" />,
     iconColor: "text-rose-400",
     glowColor: "bg-rose-500",
     title: twh('intervalTitle'),
@@ -182,7 +182,7 @@ export default function App() {
     switch (blockInfo.reason) {
       case "adult":
         return {
-          icon: <ShieldAlert className="text-rose-400" width={40} />,
+          icon: <ShieldAlert className="text-rose-400" width="40" height="40" />,
           iconColor: "text-rose-400",
           glowColor: "bg-rose-500",
           title: t('adultBlocked'),
@@ -198,7 +198,7 @@ export default function App() {
         };
       case "keyword":
         return {
-          icon: <Lock className="text-rose-400" width={40} />,
+          icon: <Lock className="text-rose-400" width="40" height="40" />,
           iconColor: "text-rose-400",
           glowColor: "bg-rose-500",
           title: t('restrictedAccess'),
@@ -235,7 +235,7 @@ export default function App() {
       case "url":
       default:
         return {
-          icon: <Lock className="text-rose-400" width={40} />,
+          icon: <Lock className="text-rose-400" width="40" height="40" />,
           iconColor: "text-rose-400",
           glowColor: "bg-rose-500",
           title: t('restrictedAccess'),
@@ -289,7 +289,7 @@ export default function App() {
 
         {/* Titre */}
         <h1 className="text-3xl md:text-4xl font-medium tracking-tight text-white mb-4">
-          {content?.title ?? "Accès Restreint"}
+          {content?.title ?? t('restrictedAccess')}
         </h1>
         <p className="text-zinc-400 text-lg leading-relaxed mb-10 max-w-md mx-auto font-light">
           {content?.description}
