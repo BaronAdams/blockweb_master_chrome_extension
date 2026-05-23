@@ -12,6 +12,7 @@ import TimerProfileEdit, { action as editProfileAction } from './pages/TimerProf
 import TimerProfileCreate, { action as createProfileAction } from './pages/TimerProfileCreate';
 import { deleteProfileAction, toggleProfileAction } from './actions/profiles';
 import "@fontsource/inter/400.css";
+import "@fontsource/montserrat/400.css";
 import './App.css'
 
 export default function App() {

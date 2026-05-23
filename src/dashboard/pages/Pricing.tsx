@@ -7,9 +7,9 @@ import { ArrowDown, CircleCheckIcon, CircleXIcon, CrownIcon } from 'lucide-react
    CONFIG
 ========================================================= */
 const MAKETOU_LINKS = {
-    monthly:  "#", // TODO
-    yearly:   "#", // TODO
-    lifetime: "#", // TODO
+    monthly:  "https://jenniuslabs-store.mymaketou.store/products/abonnement-mensuel-blockweb-master-extension", // TODO
+    yearly:   "https://jenniuslabs-store.mymaketou.store/products/abonnement-mensuel-blockweb-master-extension-9", // TODO
+    lifetime: "https://jenniuslabs-store.mymaketou.store/products/abonnement-mensuel-blockweb-master-extension-9-1", // TODO
 };
 
 const twh  = getT('pricing')

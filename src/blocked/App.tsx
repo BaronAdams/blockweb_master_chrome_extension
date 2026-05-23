@@ -18,6 +18,7 @@ import { State } from "@/lib/types";
 import { getT, useT, getLocale } from "@/lib/i18n";
 import logo from '@/assets/blockweb_master_icon.svg'
 import "@fontsource/inter/400.css";
+import "@fontsource/montserrat/400.css";
 import './App.css'
 
 const twh = getT("blocked")
@@ -262,11 +263,11 @@ export default function App() {
 
       {/* Logo */}
       <div className="absolute top-0 left-0 w-full p-8 flex justify-center md:justify-start z-20">
-        <div className="flex items-center gap-2 text-white opacity-80 hover:opacity-100 transition-opacity cursor-default">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/10 flex items-center justify-center shadow-inner">
-            <img src={logo} className="w-8 h-8 object-cover" />
+        <div className="flex group items-center gap-2.5 text-white opacity-80 hover:opacity-100 transition-opacity cursor-default">
+          <div className="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/25 flex items-center justify-center group-hover:bg-amber-500/20 transition-all">
+            <img src={logo} className="w-7 h-7 object-cover" />
           </div>
-          <span className="text-sm font-medium tracking-tight text-white">BlockWeb Master</span>
+          <span className="text-sm font-medium tracking-tight text-white" translate="no" id="logo-text">BlockWeb Master</span>
         </div>
       </div>
 

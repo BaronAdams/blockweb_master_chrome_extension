@@ -2,6 +2,7 @@
   font-family: 'Inter', sans-serif;
 }
 body { font-family: 'Inter', sans-serif; background-color: #09090b; color: #e4e4e7; }
+#logo-text { font-family: 'Montserrat', sans-serif; user-select:none; }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 3px; }

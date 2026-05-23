@@ -3,6 +3,7 @@ import { ArrowLeft, CheckCircle, CircleAlert, CircleUser, Eye, EyeOff, LoaderCir
 import { useRef, useState, useEffect } from 'react'
 import logo from '@/assets/blockweb_master_icon.svg'
 import "@fontsource/inter/400.css"
+import "@fontsource/montserrat/400.css";
 import './App.css'
 import { useT, getT, getLocale } from '@/lib/i18n'
 
@@ -266,20 +267,16 @@ export default function App() {
                 <div className="w-full max-w-[380px] relative z-10">
 
                     {/* ── Header — logo + titre cliquables vers le dashboard ── */}
-                    <div className="text-center mb-8">
-                        <button
-                            onClick={goToDashboard}
-                            className="w-12 h-12 mx-auto mb-4 rounded-xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/10 flex items-center justify-center shadow-2xl shadow-zinc-900/50 hover:border-white/20 transition-colors"
-                            title="Aller au tableau de bord"
-                        >
-                            <img src={logo} className="size-10 object-cover" alt="logo" />
-                        </button>
-                        <button
-                            onClick={goToDashboard}
-                            className="text-xl font-semibold text-white tracking-tight mb-2 hover:text-zinc-300 transition-colors block mx-auto"
-                        >
-                            Blockweb Master
-                        </button>
+
+                    <div className="flex flex-col items-center mb-8">
+                        <div onClick={goToDashboard} className="flex items-center gap-2.5 group shrink-0 mb-2">
+                            <div className="w-12 h-12 rounded-[10px] bg-amber-500/10 border border-amber-500/25 flex items-center justify-center group-hover:bg-amber-500/20 group-hover:text-zinc-300 transition-all">
+                                <img src={logo} className="w-9 h-9 object-cover" />
+                            </div>
+                            <span id="logo-text" className="text-xl font-bold text-white tracking-tight" translate="no">
+                                BlockWeb Master
+                            </span>
+                        </div>
                         <p className="text-xs text-zinc-500">
                             {mode === 'forgot' ? t('resetTagline') : t('tagline')}
                         </p>
@@ -380,7 +377,7 @@ export default function App() {
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">{t('email')}</label>
                                     <div className="relative group">
-                                        <Mail className="absolute left-3 top-[7.3px] text-zinc-500 transition-colors group-focus-within:text-white" />
+                                        <Mail width={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 transition-colors group-focus-within:text-white pointer-events-none" />
                                         <input
                                             ref={forgotEmail}
                                             type="email"
@@ -394,7 +391,7 @@ export default function App() {
                                 <button
                                     type="submit"
                                     disabled={isLoading || status === 'success'}
-                                    className="w-full py-2.5 bg-white hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed text-black text-xs font-bold rounded-lg transition-colors shadow-[0_0_20px_rgba(255,255,255,0.1)] mt-2 flex items-center justify-center gap-2"
+                                    className="w-full py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-zinc-950 text-xs font-bold rounded-lg transition-colors shadow-[0_0_16px_rgba(245,158,11,0.15)] mt-2 flex items-center justify-center gap-2"
                                 >
                                     {isLoading
                                         ? <><LoaderCircle className="animate-spin" width="14" /> {t('sending')}</>
@@ -428,7 +425,7 @@ export default function App() {
                                             <div className="space-y-1.5">
                                                 <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">Email</label>
                                                 <div className="relative group">
-                                                    <Mail width={16} className="absolute left-3 top-[7.3px] text-zinc-500 transition-colors group-focus-within:text-white" />
+                                                    <Mail width={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 transition-colors group-focus-within:text-white pointer-events-none" />
                                                     <input
                                                         type="email"
                                                         value={loginEmailValue}
@@ -452,7 +449,7 @@ export default function App() {
                                                     </button>
                                                 </div>
                                                 <div className="relative group">
-                                                    <Lock width={16} className="absolute left-3 top-[7.3px] text-zinc-500 transition-colors group-focus-within:text-white" />
+                                                    <Lock width={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 transition-colors group-focus-within:text-white pointer-events-none" />
                                                     <input
                                                         ref={loginPassword}
                                                         type={showLoginPwd ? 'text' : 'password'}
@@ -465,7 +462,7 @@ export default function App() {
                                                         type="button"
                                                         tabIndex={-1}
                                                         onClick={() => setShowLoginPwd(v => !v)}
-                                                        className="absolute right-2.5 top-[7.3px] p-0.5 text-zinc-600 hover:text-zinc-300 transition-colors"
+                                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-zinc-600 hover:text-zinc-300 transition-colors"
                                                     >
                                                         {showLoginPwd ? <EyeOff width="16" /> : <Eye width="16" />}
                                                     </button>
@@ -474,7 +471,7 @@ export default function App() {
                                             <button
                                                 type="submit"
                                                 disabled={isLoading}
-                                                className="w-full py-2.5 bg-white hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed text-black text-xs font-bold rounded-lg transition-colors shadow-[0_0_20px_rgba(255,255,255,0.1)] mt-2 flex items-center justify-center gap-2"
+                                                className="w-full py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-zinc-950 text-xs font-bold rounded-lg transition-colors shadow-[0_0_16px_rgba(245,158,11,0.15)] mt-2 flex items-center justify-center gap-2"
                                             >
                                                 {isLoading && mode === 'login'
                                                     ? <><LoaderCircle className='animate-spin' width="14" /> {t('signingIn')}</>
@@ -490,7 +487,7 @@ export default function App() {
                                             <div className="space-y-1.5">
                                                 <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">{t('username')}</label>
                                                 <div className="relative group">
-                                                    <CircleUser width={16} className="absolute left-3 top-[7.3px] text-zinc-500 transition-colors group-focus-within:text-white" />
+                                                    <CircleUser width={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 transition-colors group-focus-within:text-white pointer-events-none" />
                                                     <input
                                                         ref={regUsername}
                                                         type="text"
@@ -504,7 +501,7 @@ export default function App() {
                                             <div className="space-y-1.5">
                                                 <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">{t('email')}</label>
                                                 <div className="relative group">
-                                                    <Mail width={16} className="absolute left-3 top-[7.3px] text-zinc-500 transition-colors group-focus-within:text-white" />
+                                                    <Mail width={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 transition-colors group-focus-within:text-white pointer-events-none" />
                                                     <input
                                                         ref={regEmail}
                                                         type="email"
@@ -518,7 +515,7 @@ export default function App() {
                                             <div className="space-y-1.5">
                                                 <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">{t('password')}</label>
                                                 <div className="relative group">
-                                                    <Lock width={16} className="absolute left-3 top-[7.3px] text-zinc-500 transition-colors group-focus-within:text-white" />
+                                                    <Lock width={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 transition-colors group-focus-within:text-white pointer-events-none" />
                                                     <input
                                                         ref={regPassword}
                                                         type={showRegPwd ? 'text' : 'password'}
@@ -531,7 +528,7 @@ export default function App() {
                                                         type="button"
                                                         tabIndex={-1}
                                                         onClick={() => setShowRegPwd(v => !v)}
-                                                        className="absolute right-2.5 top-[7.3px] p-0.5 text-zinc-600 hover:text-zinc-300 transition-colors"
+                                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-zinc-600 hover:text-zinc-300 transition-colors"
                                                     >
                                                         {showRegPwd ? <EyeOff width="16" /> : <Eye width="16" />}
                                                     </button>
@@ -540,7 +537,7 @@ export default function App() {
                                             <button
                                                 type="submit"
                                                 disabled={isLoading}
-                                                className="w-full py-2.5 bg-white hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed text-black text-xs font-bold rounded-lg transition-colors shadow-[0_0_20px_rgba(255,255,255,0.1)] mt-2 flex items-center justify-center gap-2"
+                                                className="w-full py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-zinc-950 text-xs font-bold rounded-lg transition-colors shadow-[0_0_16px_rgba(245,158,11,0.15)] mt-2 flex items-center justify-center gap-2"
                                             >
                                                 {isLoading && mode === 'register'
                                                     ? <><LoaderCircle className='animate-spin' width="14" /> {t('creating')}</>

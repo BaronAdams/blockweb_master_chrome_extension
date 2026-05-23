@@ -23,7 +23,7 @@ export function createManifest(env: Record<string, string>) {
         manifest_version: 3,
         name: pkg.name,
         version: pkg.version,
-        description:"Une extension de contrôle parental pour limiter l'accès à certains sites web sur Chrome, avec un dashboard de gestion et une authentification Google.",
+        description: "An extension that helps you block distracting websites, set time limits on social media, track your browsing habits, and stay focused with an unbreakable Strict Mode.",
         icons: {
             48: 'public/icon48.png',
         },
