@@ -1,16 +1,50 @@
 import path from 'node:path'
+import fs from 'node:fs'
 import { crx } from '@crxjs/vite-plugin'
 import react from '@vitejs/plugin-react'
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig, loadEnv, type Plugin } from 'vite'
 import zip from 'vite-plugin-zip-pack'
 import tailwindcss from '@tailwindcss/vite'
-import { viteStaticCopy } from 'vite-plugin-static-copy'
 import { createManifest } from './manifest.config'
 import { name, version } from './package.json'
 import { resolve } from 'path'
 
+/**
+ * Converts _locales/{lang}/messages.json (react-i18next namespace format) to
+ * Chrome's required format { "ns__key": { "message": "value" } } in dist.
+ * The source files stay in namespace format for static imports by i18n.ts.
+ */
+function chromeI18nPlugin(): Plugin {
+  return {
+    name: 'chrome-i18n',
+    apply: 'build',
+    closeBundle() {
+      const srcDir = resolve(__dirname, '_locales')
+      const outDir = resolve(__dirname, 'dist/_locales')
+      const langs = fs.readdirSync(srcDir).filter(f =>
+        fs.statSync(path.join(srcDir, f)).isDirectory()
+      )
+      for (const lang of langs) {
+        const src = path.join(srcDir, lang, 'messages.json')
+        const namespaced: Record<string, Record<string, string>> = JSON.parse(fs.readFileSync(src, 'utf8'))
+        const chrome: Record<string, { message: string }> = {}
+        for (const [ns, keys] of Object.entries(namespaced)) {
+          for (const [key, value] of Object.entries(keys)) {
+            if (typeof value !== 'string') continue
+            // Chrome keys: [A-Za-z0-9_] only, max 75 chars
+            const chromeKey = `${ns}__${key}`.replace(/[^A-Za-z0-9_]/g, '_').slice(0, 75)
+            chrome[chromeKey] = { message: value }
+          }
+        }
+        const dest = path.join(outDir, lang)
+        fs.mkdirSync(dest, { recursive: true })
+        fs.writeFileSync(path.join(dest, 'messages.json'), JSON.stringify(chrome, null, 2))
+      }
+    },
+  }
+}
+
 export default defineConfig(({ mode }) => {
-  // Charge les variables .env selon le mode (development / production)
   const env = loadEnv(mode, process.cwd(), '')
 
   return {
@@ -20,17 +54,11 @@ export default defineConfig(({ mode }) => {
       },
     },
 
-    // ── CRITIQUE pour les service workers Chrome (MV3) ────────────────────
-    // @crxjs/vite-plugin ne remplace PAS import.meta.env dans le service worker.
-    // `define` force Vite/Rollup à substituer ces expressions à la compilation,
-    // ce qui les rend disponibles même dans le contexte du service worker.
     define: {
       'import.meta.env.VITE_SUPABASE_URL':
         JSON.stringify(env.VITE_SUPABASE_URL),
       'import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY':
         JSON.stringify(env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY),
-      // Nécessaire dans le service worker (main.ts) pour construire l'URL OAuth
-      // launchWebAuthFlow a besoin du client_id dans le code runtime
       'import.meta.env.VITE_GOOGLE_CLIENT_ID':
         JSON.stringify(env.VITE_GOOGLE_CLIENT_ID ?? ''),
       'import.meta.env.RESET_PASSWORD_URL':
@@ -43,7 +71,7 @@ export default defineConfig(({ mode }) => {
       react(),
       tailwindcss(),
       crx({ manifest: createManifest(env) }),
-      viteStaticCopy({ targets: [{ src: '_locales', dest: '.' }] }),
+      chromeI18nPlugin(),
       zip({ outDir: 'release', outFileName: `crx-${name}-${version}.zip` }),
     ],
 
@@ -63,8 +91,6 @@ export default defineConfig(({ mode }) => {
           auth:      resolve(__dirname, 'src/auth/index.html'),
         },
         output: {
-          // Évite les fichiers "vendor" séparés qui causent des erreurs
-          // de chargement dans le contexte de l'extension
           manualChunks: undefined,
         },
       },
