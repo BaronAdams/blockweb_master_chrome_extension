@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { getDetailsTime, sendToBackground, getRemainingTime } from '@/lib/utils';
 import { LIMITS } from '@/lib/constants';
 import { useStateContext } from '@/context/GlobalStateContext';
-import { useT, getT } from '@/lib/i18n';
+import { useTranslation } from 'react-i18next';
+import { getT } from '@/lib/i18n';
 import { Clock, Hourglass, LockIcon, Pen, ShieldAlertIcon, ShieldPlus, Trash2, TriangleAlert } from 'lucide-react';
 
 /* =========================================================
@@ -26,7 +27,7 @@ const RESTRICTIONS = [
 ========================================================= */
 
 const StrictModeTips: React.FC = () => {
-    const t = useT('strictMode')
+    const { t } = useTranslation('strictMode')
 
     const TIPS = [
         {
@@ -92,8 +93,8 @@ const StrictModeTips: React.FC = () => {
 ========================================================= */
 
 const StrictModeSettings: React.FC = () => {
-    const t  = useT('strictMode')
-    const tc = useT('common')
+    const { t }  = useTranslation('strictMode')
+    const { t: tc } = useTranslation('common')
     const { state } = useStateContext()
 
     const [days,  setDays]  = useState(0)

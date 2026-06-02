@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useStateContext } from '@/context/GlobalStateContext';
 import SmartImage from '@/components/SmartImage';
 import globeIcon from '@/assets/globe.svg';
-import { useT } from '@/lib/i18n';
+import { useTranslation } from 'react-i18next';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid,
     Tooltip, ResponsiveContainer, Legend,
@@ -124,8 +124,8 @@ const LineTooltip = ({ active, payload, label }: any) => {
    COMPOSANT PRINCIPAL
 ========================================================= */
 const Analytics: React.FC = () => {
-    const t  = useT('analytics')
-    const tc = useT('common')
+    const { t }  = useTranslation('analytics')
+    const { t: tc } = useTranslation('common')
     const { state } = useStateContext()
     const [now, setNow] = useState(Date.now())
     const navigate = useNavigate()
@@ -331,7 +331,7 @@ const Analytics: React.FC = () => {
     }, [state?.usageHistory])
 
     // Label dynamique pour la légende/tooltip selon les jours réels
-    const avgLabel = daysOfHistoryAvailable > 0 ? t('avgLabel', daysOfHistoryAvailable) : t('avgLabelDefault')
+    const avgLabel = daysOfHistoryAvailable > 0 ? t('avgLabel', { n: daysOfHistoryAvailable }) : t('avgLabelDefault')
 
     /* ── 7 jours ── */
     const lineData = useMemo(() =>
@@ -376,7 +376,7 @@ const Analytics: React.FC = () => {
                     { icon: <Globe width="16"/>, label: t('blockedSites'),  value: state?.activeBlockedDomains.length ?? 0 },
                     { icon: <Hash width="16"/>,      label: t('keywords'),      value: state?.activeBlockedKeywords.length ?? 0 },
                     { icon: <Hourglass width="16"/>,   label: t('activeProfiles'), value: state?.activeProfiles.filter(p => p.isActive).length ?? 0 },
-                    { icon: <Eye width="16"/>,              label: selectedDay === today ? t('visits') : t('visitsDay', shortDate(selectedDay)), value: sitesForDay.length },
+                    { icon: <Eye width="16"/>,              label: selectedDay === today ? t('visits') : t('visitsDay', { date: shortDate(selectedDay) }), value: sitesForDay.length },
                 ].map(({ icon, label, value }) => (
                     <div key={label} className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 flex flex-col justify-between h-24">
                         <div className="flex items-center justify-between text-zinc-500">
@@ -392,7 +392,7 @@ const Analytics: React.FC = () => {
             <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800">
                     <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1">
-                        {selectedDay === today ? t('todayTotal') : t('dayTotal', shortDate(selectedDay))}
+                        {selectedDay === today ? t('todayTotal') : t('dayTotal', { date: shortDate(selectedDay) })}
                     </p>
                     <p className="text-2xl font-bold text-white">{formatDuration(totalToday)}</p>
                 </div>
@@ -496,7 +496,7 @@ const Analytics: React.FC = () => {
                                         <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
                                         <XAxis dataKey="hour" tick={{ fill: '#71717a', fontSize: 10 }}
                                             axisLine={false} tickLine={false}
-                                            tickFormatter={h => Number(h) % 2 === 0 ? t('getHour', h) : ''} />
+                                            tickFormatter={h => Number(h) % 2 === 0 ? t('getHour', { h }) : ''} />
                                         <YAxis
                                             domain={[0, 3_599_999]}
                                             ticks={[0, 900_000, 1_800_000, 2_700_000, 3_599_999]}
@@ -535,7 +535,7 @@ const Analytics: React.FC = () => {
                                     <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
                                     <XAxis dataKey="hour" tick={{ fill: '#71717a', fontSize: 10 }}
                                         axisLine={false} tickLine={false}
-                                        tickFormatter={h => Number(h) % 2 === 0 ? t('getHour', h) : ''} />
+                                        tickFormatter={h => Number(h) % 2 === 0 ? t('getHour', { h }) : ''} />
                                     <YAxis
                                         domain={[0, 3_599_999]}
                                         ticks={[0, 900_000, 1_800_000, 2_700_000, 3_599_999]}
@@ -703,8 +703,8 @@ const Analytics: React.FC = () => {
                                             <span className="text-[11px] shrink-0">🔞</span>
                                             <p className="text-[10px] leading-relaxed" style={{ color: '#fda4af' }}>
                                                 {donutData.adultBlocked
-                                                    ? <>{t('adultWarningBlocked', formatDuration(donutData.totals.adult))}</>
-                                                    : <>{t('adultWarningFree', formatDuration(donutData.totals.adult))}</>
+                                                    ? <>{t('adultWarningBlocked', { time: formatDuration(donutData.totals.adult) })}</>
+                                                    : <>{t('adultWarningFree', { time: formatDuration(donutData.totals.adult) })}</>
                                                 }
                                             </p>
                                         </div>
@@ -715,7 +715,7 @@ const Analytics: React.FC = () => {
                                         <div className="flex items-start gap-2 p-2.5 bg-rose-500/8 border border-rose-500/15 rounded-lg">
                                             <span className="text-[11px] shrink-0">📱</span>
                                             <p className="text-[10px] text-rose-400/80 leading-relaxed">
-                                                {t('distractionWarning', Math.round(donutData.totals.distraction / donutData.total * 100))}
+                                                {t('distractionWarning', { pct: Math.round(donutData.totals.distraction / donutData.total * 100) })}
                                             </p>
                                         </div>
                                     )}
@@ -730,7 +730,7 @@ const Analytics: React.FC = () => {
                             {t('todayVsAvg')}
                         </h3>
                         <p className="text-[10px] text-zinc-600 mb-4">
-                            {t('todayVsAvgDesc', avgLabel)}
+                            {t('todayVsAvgDesc')}
                         </p>
 
                         {daysOfHistoryAvailable === 0 ? (
@@ -762,7 +762,7 @@ const Analytics: React.FC = () => {
                                     <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/8 border border-amber-500/20 rounded-lg">
                                         <Info className="text-amber-400 shrink-0" width="13" />
                                         <p className="text-[10px] text-amber-300/80">
-                                            {t('partialAvg', daysOfHistoryAvailable)}
+                                            {t('partialAvg', { n: daysOfHistoryAvailable })}
                                         </p>
                                     </div>
                                 )}
@@ -912,10 +912,10 @@ const Analytics: React.FC = () => {
                     <p className="text-[10px] text-zinc-600">
                         {selectedDay === today
                             ? tc('today')
-                            : t('navigateOn', shortDate(selectedDay))
+                            : t('navigateOn', { dayLabel: shortDate(selectedDay) })
                         }
                         {' · '}
-                        {t('getSiteCount',sitesForDay.length)}
+                        {t('getSiteCount', { count: sitesForDay.length })}
                         {' · '}
                         {formatDuration(sitesForDay.reduce((s, u) => s + u.liveMs, 0))} {t('total')}
                     </p>

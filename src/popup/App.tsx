@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { State } from '@/lib/types';
-import { getLocale, useT } from '@/lib/i18n';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/lib/i18n';
 import { getRemainingTime, sendToBackground } from '@/lib/utils';
 import { LIMITS } from '@/lib/constants';
 import { ArrowRight, BadgeCheckIcon, BanIcon, ChartColumn, CheckCircleIcon, CircleAlert, CrownIcon, FileType, Globe, Hash, LockIcon, LockKeyhole, ShieldAlertIcon, ShieldCheck, Trash2 } from 'lucide-react';
@@ -14,8 +15,8 @@ const STORAGE_KEY = "blockweb_master_state";
 const pad = (n: number) => n.toString().padStart(2, '0');
 
 export default function App() {
-    const t = useT('popup');
-    const tc = useT('common');
+    const { t } = useTranslation('popup');
+    const { t: tc } = useTranslation('common');
 
     const [activeTab, setActiveTab] = useState<'domains' | 'keywords' | 'whitelist'>('domains');
     const [state, setState_] = useState<State | null>(null);
@@ -36,7 +37,7 @@ export default function App() {
 
     // Dans votre composant racine ou Layout
     useEffect(() => {
-        const locale = getLocale()
+        const locale = i18n.language
         if (locale === 'ar') {
             document.documentElement.dir = 'rtl'
             document.documentElement.lang = 'ar'
@@ -208,7 +209,7 @@ export default function App() {
                         className="w-4 h-4 opacity-70 shrink-0"
                     />
                     <p className="text-[10px] text-zinc-300 flex-1 truncate min-w-0"
-                        dangerouslySetInnerHTML={{ __html: t('blockQuestion', currentTabDomain) }}
+                        dangerouslySetInnerHTML={{ __html: t('blockQuestion', { domain: currentTabDomain }) }}
                     >
                     </p>
                     <div className="flex gap-1.5 shrink-0">

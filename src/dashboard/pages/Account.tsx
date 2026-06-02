@@ -1,5 +1,6 @@
 import { useStateContext } from '@/context/GlobalStateContext'
-import { useT, getT } from '@/lib/i18n'
+import { useTranslation } from 'react-i18next'
+import { getT } from '@/lib/i18n'
 import { Icon } from '@iconify/react'
 import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
@@ -309,8 +310,8 @@ const AVATARS = [felixAvatar, anekaAvatar, bobAvatar, jackAvatar, mollyAvatar, s
    COMPOSANT
 ========================================================= */
 const Account = () => {
-    const t  = useT('account')
-    const tc = useT('common')
+    const { t }  = useTranslation('account')
+    const { t: tc } = useTranslation('common')
     const location             = useLocation()
     const { state, avatarUrl } = useStateContext()   // ← source unique de vérité
 

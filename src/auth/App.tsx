@@ -5,7 +5,9 @@ import logo from '@/assets/blockweb_master_icon.svg'
 import "@fontsource/inter/400.css"
 import "@fontsource/montserrat/400.css";
 import './App.css'
-import { useT, getT, getLocale } from '@/lib/i18n'
+import { useTranslation } from 'react-i18next'
+import { getT } from '@/lib/i18n'
+import i18n from '@/lib/i18n'
 
 /* =========================================================
    TYPES
@@ -94,7 +96,7 @@ export default function App() {
 
     // Dans votre composant racine ou Layout
     useEffect(() => {
-        const locale = getLocale()
+        const locale = i18n.language
         if (locale === 'ar') {
             document.documentElement.dir = 'rtl'
             document.documentElement.lang = 'ar'
@@ -254,7 +256,7 @@ export default function App() {
     const showNotConfirmed = !!notConfirmedEmail
     const showError = !!errorMsg && !showNotConfirmed
     const showInfo = !!infoMsg && !showNotConfirmed
-    const t = useT('auth')
+    const { t } = useTranslation('auth')
 
     return (
         <main className="h-screen w-screen overflow-hidden antialiased selection:bg-amber-500/30 selection:text-amber-200 bg-black">

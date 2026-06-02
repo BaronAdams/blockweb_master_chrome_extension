@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react'
 import { useStateContext } from '@/context/GlobalStateContext';
-import { useT, getT } from '@/lib/i18n';
+import { useTranslation } from 'react-i18next';
+import { getT } from '@/lib/i18n';
 import { ArrowDown, CircleCheckIcon, CircleXIcon, CrownIcon } from 'lucide-react';
 
 /* =========================================================
@@ -17,8 +18,8 @@ const twh  = getT('pricing')
 /* ── Comparatif Free vs Premium ── */
 const COMPARISON = () => [
     { label: twh('blockedSites'),         free: "3 sites",    premium: twh('unlimited') },
-    { label:  twh('blockedKeywords'),     free: twh('getKeywords',3), premium: twh('unlimited') },
-    { label: twh('profiles'),     free: twh('getProfiles',1),   premium: twh('unlimited')       },
+    { label:  twh('blockedKeywords'),     free: twh('getKeywords', { n: 3 }), premium: twh('unlimited') },
+    { label: twh('profiles'),     free: twh('getProfiles', { n: 1 }),   premium: twh('unlimited')       },
     { label: twh('sitesProfile'),     free: "3 sites",   premium: twh('unlimited')       },
     { label: twh('whitelist'),             free: false,    premium: twh('unlimited')        },
     // { label: "Types de profil",       free: "Quotidien",  premium: "Tous les types"   },
@@ -100,8 +101,8 @@ const FaqItem: React.FC<{ q: string; a: string; isOpen: boolean; onToggle: () =>
    COMPOSANT PRINCIPAL
 ========================================================= */
 const Pricing: React.FC = () => {
-    const t  = useT('pricing')
-    const tc = useT('common')
+    const { t }  = useTranslation('pricing')
+    const { t: tc } = useTranslation('common')
     const { state }  = useStateContext();
     const [openFaq, setOpenFaq] = useState<number | null>(null);
 

@@ -3,7 +3,8 @@ import { Profile, WeekDay } from '@/lib/types'
 import { formatDuration, getProfileSiteTime, getProfileTotalTime } from '@/lib/utils'
 import { getProfileLimitMs, isIntervalActive, isProfileActiveToday, isInTimeRange } from '@/background/time'
 import { useEffect, useState } from 'react'
-import { useT, getT } from '@/lib/i18n'
+import { useTranslation } from 'react-i18next'
+import { getT } from '@/lib/i18n'
 import { useNavigate, useFetcher, useSubmit, useRouteLoaderData } from 'react-router-dom'
 import {
     AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -44,10 +45,12 @@ function getConfigSummary(profile: Profile): { detail: string; extra?: string } 
             const days = config.days?.length
                 ? config.days.map(d => DAY_LABELS[d]).join(', ')
                 : twh('allDays')
-            return { detail: twh('getDailyLimit', config.dailyLimit), extra: days }
+            const h = Math.floor(config.dailyLimit / 60)
+            const m = config.dailyLimit % 60
+            return { detail: h > 0 ? twh('getDailyLimit_hm', { h, m }) : twh('getDailyLimit_m', { m }), extra: days }
         }
         case 'hourly': {
-            const time = twh('getHourlyLimit', config.hourlyLimit)
+            const time = twh('getHourlyLimit', { hourlyLimit: config.hourlyLimit })
             const days = config.days?.length ? config.days.map(d => DAY_LABELS[d]).join(', ') : twh('allDays')
             const ranges = config.timeRanges?.length
                 ? config.timeRanges.map(r => `${r.start}–${r.end}`).join(', ')
@@ -57,11 +60,11 @@ function getConfigSummary(profile: Profile): { detail: string; extra?: string } 
         case 'weekly': {
             const h = Math.floor(config.weeklyLimit / 60)
             const m = config.weeklyLimit % 60
-            return { detail: twh('getWeeklyLimit',h,m) }
+            return { detail: h > 0 ? twh('getWeeklyLimit_hm', { h, m }) : twh('getWeeklyLimit_m', { m }) }
         }
         case 'interval': {
             const n = config.rules.length
-            return { detail: twh('getRulesLimit', n) }
+            return { detail: twh('getRulesLimit', { n }) }
         }
     }
 }
@@ -75,9 +78,9 @@ const TimerProfileDetail = () => {
     const fetcher = useFetcher()
     const submit = useSubmit()
     const { state } = useStateContext()
-    const t  = useT('profiles')
-    const ts  = useT('strictMode')
-    const tc = useT('common')
+    const { t } = useTranslation('profiles')
+    const { t: ts } = useTranslation('strictMode')
+    const { t: tc } = useTranslation('common')
     const { currentProfile } = useRouteLoaderData('timer-profile') as { currentProfile: Profile | undefined }
 
     const [isEnabled, setIsEnabled] = useState(currentProfile?.isActive ?? false)
@@ -253,7 +256,7 @@ const TimerProfileDetail = () => {
                         <span className="text-[10px] text-zinc-500 leading-relaxed">{summary.extra}</span>
                     )}
                     <span className="text-[10px] text-zinc-600 uppercase mt-1">
-                        {t('monitored',currentProfile.sites.length)}
+                        {t('monitored', { n: currentProfile.sites.length })}
                     </span>
                 </div>
             </div>

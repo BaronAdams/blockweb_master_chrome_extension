@@ -4,19 +4,19 @@ import { useStateContext } from '@/context/GlobalStateContext';
 import { Toaster } from "@/components/ui/sonner"
 import { useEffect } from 'react'
 import { sendToBackground } from '@/lib/utils'
-import { getLocale, useT } from '@/lib/i18n'
+import { useTranslation } from 'react-i18next'
+import i18n from '@/lib/i18n'
 
 const Layout = () => {
-    const t = useT('sidebar')
-    const tp = useT('popup')
-    const ts = useT('strictMode')
-    const tc = useT('common')
+    const { t } = useTranslation('sidebar')
+    const { t: tp } = useTranslation('popup')
+    const { t: ts } = useTranslation('strictMode')
+    const { t: tc } = useTranslation('common')
     const { state } = useStateContext();
     const location = useLocation();
 
-    // Dans votre composant racine ou Layout
     useEffect(() => {
-        const locale = getLocale()
+        const locale = i18n.language
         if (locale === 'ar') {
             document.documentElement.dir = 'rtl'
             document.documentElement.lang = 'ar'
