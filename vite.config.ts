@@ -4,7 +4,6 @@ import react from '@vitejs/plugin-react'
 import { defineConfig, loadEnv } from 'vite'
 import zip from 'vite-plugin-zip-pack'
 import tailwindcss from '@tailwindcss/vite'
-import { viteStaticCopy } from 'vite-plugin-static-copy'
 import { createManifest } from './manifest.config'
 import { name, version } from './package.json'
 import { resolve } from 'path'
@@ -43,9 +42,6 @@ export default defineConfig(({ mode }) => {
       react(),
       tailwindcss(),
       crx({ manifest: createManifest(env) }),
-      viteStaticCopy({
-        targets: [{ src: '_locales', dest: '.' }],
-      }),
       zip({ outDir: 'release', outFileName: `crx-${name}-${version}.zip` }),
     ],
 
