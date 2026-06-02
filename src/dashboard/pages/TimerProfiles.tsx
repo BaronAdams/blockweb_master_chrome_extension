@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react'
 import ProfileCard from '../components/ProfileCard';
 import { Link } from 'react-router-dom';
 import { useStateContext } from '@/context/GlobalStateContext';
-import { useT, getT } from '@/lib/i18n';
+import { useTranslation } from 'react-i18next';
+import { getT } from '@/lib/i18n';
 import { Profile } from '@/lib/types';
 import { Calendar, CircleAlert, Clock, FolderOpen, LockKeyhole, Shield, SquarePlus, Sun } from 'lucide-react';
 
@@ -17,8 +18,8 @@ const TYPE_META: Record<string, { label: string; icon: React.ReactNode; desc: st
 };
 
 const TimerProfiles: React.FC = () => {
-    const t  = useT('profiles')
-    const tc = useT('common')
+    const { t }  = useTranslation('profiles')
+    const { t: tc } = useTranslation('common')
 
     const { state } = useStateContext();
     const [now, setNow] = useState(Date.now());
@@ -59,7 +60,7 @@ const TimerProfiles: React.FC = () => {
                     <h2 className="text-sm font-medium text-white">{t('yrProfiles')}</h2>
                     <p className="text-xs text-zinc-500 mt-1">
                         {profiles.length > 0
-                            ? `${t('active',profiles.length)} ${frozenProfiles.length > 0 ? ` · ${t('frozen',frozenProfiles.length)}` : ''}`
+                            ? `${t('active', { n: profiles.length })} ${frozenProfiles.length > 0 ? ` · ${t('frozen', { n: frozenProfiles.length })}` : ''}`
                             : t('manageLimits')
                         }
                     </p>
@@ -143,7 +144,7 @@ const TimerProfiles: React.FC = () => {
                 <div className="flex items-center gap-3 p-4 bg-amber-500/8 border border-amber-500/20 rounded-xl">
                     <CircleAlert className="text-amber-400 shrink-0" width="16" />
                     <p className="text-xs text-amber-300/80 flex-1">
-                        {t('frozen',frozenProfiles.length)} {t('frozenAfterDowngrade')}
+                        {t('frozen', { n: frozenProfiles.length })} {t('frozenAfterDowngrade')}
                     </p>
                     <Link to="/pricing" className="no-underline text-[10px] font-bold text-black bg-amber-500 hover:bg-amber-400 px-3 py-1.5 rounded-lg transition-colors shrink-0">
                         {tc("upgrade")}

@@ -12,7 +12,8 @@ import { IntervalRule, Profile, ProfileConfig, TimeRange, WeekDay } from '@/lib/
 import { sendToBackground, isValidUrl, normalizeDomain } from '@/lib/utils'
 import { useState } from 'react'
 import { LIMITS } from '@/lib/constants'
-import { useT, getT } from '@/lib/i18n'
+import { useTranslation } from 'react-i18next'
+import { getT } from '@/lib/i18n'
 import { ArrowLeft, CheckCheckIcon, CircleAlert, CirclePlus, Lock, Trash2, Trash2Icon } from 'lucide-react'
 import SmartImage from '@/components/SmartImage';
 import globeIcon from '@/assets/globe.svg';
@@ -170,8 +171,8 @@ function DurationPicker({ maxHours, value, onChange, label, disabled }: {
 ========================================================= */
 
 const TimerProfileEdit = () => {
-    const t  = useT('profiles')
-    const tc = useT('common')
+    const { t }  = useTranslation('profiles')
+    const { t: tc } = useTranslation('common')
     const { currentProfile } = useRouteLoaderData('timer-profile') as { currentProfile: Profile | undefined }
     const navigate = useNavigate()
     const submit = useSubmit()
@@ -246,7 +247,7 @@ const TimerProfileEdit = () => {
         if (!isValidUrl(trimmed)) { setSiteError(t('invalidUrl')); return }
         const normalized = normalizeDomain(trimmed)
         if (sites.includes(normalized)) { setSiteError(t('siteAlreadyAdded')); return }
-        if (sites.length >= maxSites) { setSiteError(t('maxSitesReached',maxSites)); return }
+        if (sites.length >= maxSites) { setSiteError(t('maxSitesReached', { maxSites })); return }
         setSites(s => [...s, normalized])
         setSiteInput('')
         setSiteError('')

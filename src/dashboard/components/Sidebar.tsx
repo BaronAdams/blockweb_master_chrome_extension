@@ -1,5 +1,5 @@
 import React from 'react'
-import { useT } from '@/lib/i18n'
+import { useTranslation } from 'react-i18next'
 import logo from '@/assets/blockweb_master_icon.svg'
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useStateContext } from '@/context/GlobalStateContext';
@@ -7,8 +7,8 @@ import { ChartColumn, Hourglass, ListChecks, Settings, Tag, User } from 'lucide-
 
 
 const Sidebar: React.FC = () => {
-    const t = useT('sidebar')
-    const tc = useT('common')
+    const { t } = useTranslation('sidebar')
+    const { t: tc } = useTranslation('common')
     const navigate = useNavigate();
     const location = useLocation();
     const { state, avatarUrl } = useStateContext()

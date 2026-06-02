@@ -1,5 +1,6 @@
 import { useStateContext } from '@/context/GlobalStateContext'
-import { useT, getT } from '@/lib/i18n'
+import { useTranslation } from 'react-i18next'
+import { getT } from '@/lib/i18n'
 import { LIMITS } from '@/lib/constants'
 import { IntervalRule, Profile, ProfileConfig, ProfileType, TimeRange, WeekDay } from '@/lib/types'
 import { normalizeDomain, sendToBackground } from '@/lib/utils'
@@ -204,8 +205,8 @@ function ErrorBanner({ msg }: { msg: string }) {
 ========================================================= */
 
 const TimerProfileCreate = () => {
-    const t  = useT('profiles')
-    const tc = useT('common')
+    const { t }  = useTranslation('profiles')
+    const { t: tc } = useTranslation('common')
     const { state } = useStateContext()
     const navigate = useNavigate()
     const actionData = useActionData() as { profileId?: string } | undefined
@@ -352,7 +353,7 @@ const TimerProfileCreate = () => {
                             <div className="flex-1 min-w-0">
                                 <p className="text-[13px] font-medium text-amber-300">{t('limitReached')}</p>
                                 <p className="text-[13px] text-amber-400/80 mt-0.5">
-                                    {LIMITS.FREE.profiles} {t('limitDesc', LIMITS.FREE.profiles).split(LIMITS.FREE.profiles.toString())[1]}
+                                    {LIMITS.FREE.profiles} {t('limitDesc', { n: LIMITS.FREE.profiles }).split(LIMITS.FREE.profiles.toString())[1]}
                                 </p>
                             </div>
                             <Link to="/pricing"

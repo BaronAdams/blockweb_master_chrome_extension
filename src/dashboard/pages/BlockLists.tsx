@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { isValidUrl, sendToBackground } from '@/lib/utils';
 import { LIMITS } from '@/lib/constants';
 import { useStateContext } from '@/context/GlobalStateContext';
-import { useT } from '@/lib/i18n';
+import { useTranslation } from 'react-i18next';
 import { toast } from "sonner"
 import { ArrowDown, Ban, BanIcon, CircleCheck, CirclePlus, FileType, Globe, Hash, Info, Link, LockKeyhole, Trash2 } from 'lucide-react';
 import SmartImage from '@/components/SmartImage';
@@ -30,7 +30,7 @@ const CollapsibleList: React.FC<CollapsibleListProps> = ({ children }) => {
     const preview  = children.slice(0, PREVIEW_COUNT)
     const extra    = children.slice(PREVIEW_COUNT)
     const hasExtra = extra.length > 0
-    const t = useT('blockLists')
+    const { t } = useTranslation('blockLists')
 
     // Mesure la hauteur réelle des éléments cachés pour l'animation
     useEffect(() => {
@@ -72,7 +72,7 @@ const CollapsibleList: React.FC<CollapsibleListProps> = ({ children }) => {
                         </span>
                     )}
                     <span className="text-[10px] text-zinc-500 group-hover:text-zinc-300 transition-colors">
-                        {expanded ? t('showLess') : t('seeMore', extra.length)}
+                        {expanded ? t('showLess') : t('seeMore', { n: extra.length })}
                     </span>
                     <ArrowDown
                         width="12"
@@ -88,8 +88,8 @@ const CollapsibleList: React.FC<CollapsibleListProps> = ({ children }) => {
    COMPOSANT PRINCIPAL
 ========================================================= */
 const BlockLists: React.FC = () => {
-    const t  = useT('blockLists')
-    const tc = useT('common')
+    const { t }  = useTranslation('blockLists')
+    const { t: tc } = useTranslation('common')
     const navigate = useNavigate()
     const { state } = useStateContext()
 
@@ -387,7 +387,7 @@ const BlockLists: React.FC = () => {
                     <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/8 border border-amber-500/20 rounded-lg">
                         <Info className="text-amber-400 shrink-0" width="13" />
                         <p className="text-xs text-amber-300/80 flex-1">
-                            {frozenDomains.length} {t('domain',frozenDomains.length)} {t('frozen') + ' — ' + t('upgradePremiumToActivate')}
+                            {frozenDomains.length} {t('domain')} {t('frozen') + ' — ' + t('upgradePremiumToActivate')}
                         </p>
                         <button onClick={() => navigate('/pricing')}
                             className="text-[10px] font-bold text-black bg-amber-500 hover:bg-amber-400 px-2 py-1 rounded transition-colors shrink-0">{tc('upgrade')}</button>
@@ -440,7 +440,7 @@ const BlockLists: React.FC = () => {
                     <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/8 border border-amber-500/20 rounded-lg">
                         <Info className="text-amber-400 shrink-0" width="13" />
                         <p className="text-xs text-amber-300/80 flex-1">
-                            {frozenKeywords.length} {t('keyword', frozenKeywords.length)} {t('frozen') + ' — ' + t('upgradePremiumToActivate')}
+                            {frozenKeywords.length} {t('keyword')} {t('frozen') + ' — ' + t('upgradePremiumToActivate')}
                         </p>
                         <button onClick={() => navigate('/pricing')}
                             className="text-[10px] font-bold text-black bg-amber-500 hover:bg-amber-400 px-2 py-1 rounded transition-colors shrink-0">{tc('upgrade')}</button>

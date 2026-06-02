@@ -15,7 +15,9 @@ import {
   Timer
 } from "lucide-react";
 import { State } from "@/lib/types";
-import { getT, useT, getLocale } from "@/lib/i18n";
+import { useTranslation } from 'react-i18next'
+import { getT } from '@/lib/i18n'
+import i18n from '@/lib/i18n';
 import logo from '@/assets/blockweb_master_icon.svg'
 import "@fontsource/inter/400.css";
 import "@fontsource/montserrat/400.css";
@@ -60,7 +62,7 @@ const PROFILE_CONTENT: Record<ProfileType, {
     iconColor: "text-amber-400",
     glowColor: "bg-amber-500",
     title: twh('dailyTitle'),
-    description: (name) => twh('dailyDesc', name),
+    description: (name: string) => twh('dailyDesc', { name }),
     badge: twh('dailyBadge'),
     reason: twh('dailyReason'),
   },
@@ -69,7 +71,7 @@ const PROFILE_CONTENT: Record<ProfileType, {
     iconColor: "text-blue-400",
     glowColor: "bg-blue-500",
     title: twh('hourlyTitle'),
-    description: (name) => twh('hourlyDesc', name),
+    description: (name: string) => twh('hourlyDesc', { name }),
     badge: twh('hourlyBadge'),
     reason: twh('hourlyReason'),
   },
@@ -78,7 +80,7 @@ const PROFILE_CONTENT: Record<ProfileType, {
     iconColor: "text-violet-400",
     glowColor: "bg-violet-500",
     title: twh('weeklyTitle'),
-    description: (name) => twh('weeklyDesc', name),
+    description: (name: string) => twh('weeklyDesc', { name }),
     badge: twh('weeklyBadge'),
     reason: twh('weeklyReason'),
   },
@@ -87,7 +89,7 @@ const PROFILE_CONTENT: Record<ProfileType, {
     iconColor: "text-rose-400",
     glowColor: "bg-rose-500",
     title: twh('intervalTitle'),
-    description: (name) => twh('intervalDesc', name),
+    description: (name: string) => twh('intervalDesc', { name }),
     badge: twh('intervalBadge'),
     reason: twh('intervalReason'),
   },
@@ -112,11 +114,10 @@ export default function App() {
   const [blockInfo, setBlockInfo] = useState<BlockInfo | null>(null);
   const [quote] = useState(randomQuote);
 
-  const t = useT('blocked')
+  const { t } = useTranslation('blocked')
 
-  // Dans votre composant racine ou Layout
   useEffect(() => {
-    const locale = getLocale()
+    const locale = i18n.language
     if (locale === 'ar') {
       document.documentElement.dir = 'rtl'
       document.documentElement.lang = 'ar'
@@ -203,7 +204,7 @@ export default function App() {
           iconColor: "text-rose-400",
           glowColor: "bg-rose-500",
           title: t('restrictedAccess'),
-          description: t('keywordDesc', blockInfo.value),
+          description: t('keywordDesc', { keyword: blockInfo.value }),
           badge: t('keywordBadge'),
           detail: {
             icon: <Text width={18} />,

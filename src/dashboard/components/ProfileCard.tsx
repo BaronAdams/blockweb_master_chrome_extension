@@ -3,7 +3,8 @@ import { Profile, WeekDay } from '@/lib/types'
 import { formatDuration, getProfileTotalTime } from '@/lib/utils'
 import { getProfileLimitMs, isIntervalActive, isProfileActiveToday, isInTimeRange } from '@/background/time'
 import React from 'react'
-import { getT, useT } from '@/lib/i18n'
+import { useTranslation } from 'react-i18next'
+import { getT } from '@/lib/i18n'
 import { useNavigate } from 'react-router-dom'
 import { Calendar, Clock, Shield, Sun } from 'lucide-react'
 
@@ -35,14 +36,16 @@ function getConfigDetail(profile: Profile): string {
     const { config } = profile
     switch (config.type) {
         case 'daily': {
-            const base = twh('getDailyLimit', config.dailyLimit)
+            const h = Math.floor(config.dailyLimit / 60)
+            const m = config.dailyLimit % 60
+            const base = h > 0 ? twh('getDailyLimit_hm', { h, m }) : twh('getDailyLimit_m', { m })
             if (config.days?.length) {
                 return base + ` · ${config.days.map(d => DAY_SHORT[d]).join(' ')}`
             }
             return base
         }
         case 'hourly': {
-            const base = twh('getHourlyLimit', config.hourlyLimit)
+            const base = twh('getHourlyLimit', { hourlyLimit: config.hourlyLimit })
             if (config.days?.length) {
                 return base + ` · ${config.days.map(d => DAY_SHORT[d]).join(' ')}`
             }
@@ -51,7 +54,7 @@ function getConfigDetail(profile: Profile): string {
         case 'weekly': {
             const h = Math.floor(config.weeklyLimit / 60)
             const m = config.weeklyLimit % 60
-            return twh('getWeeklyLimit', h, m)
+            return h > 0 ? twh('getWeeklyLimit_hm', { h, m }) : twh('getWeeklyLimit_m', { m })
         }
         case 'interval': {
             const n = config.rules.length
@@ -93,7 +96,7 @@ function getActiveState(profile: Profile): {
 const ProfileCard: React.FC<Props> = ({ profile, now }) => {
     const navigate    = useNavigate()
     const { state }   = useStateContext()
-    const t = useT("profiles")
+    const { t } = useTranslation('profiles')
 
     const usedMs      = getProfileTotalTime(profile, state?.siteUsage || {}, now)
     const limitMs     = getProfileLimitMs(profile)
@@ -136,7 +139,7 @@ const ProfileCard: React.FC<Props> = ({ profile, now }) => {
                     <div>
                         <h3 className="text-xs font-semibold text-white">{profile.name}</h3>
                         <p className="text-[10px] text-zinc-500">
-                            {t('getSiteCount', profile.sites.length)} · {getConfigDetail(profile)}
+                            {t('getSiteCount', { count: profile.sites.length })} · {getConfigDetail(profile)}
                         </p>
                     </div>
                 </div>
