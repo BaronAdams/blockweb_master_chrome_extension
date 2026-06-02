@@ -24,6 +24,7 @@ export function createManifest(env: Record<string, string>) {
         name: pkg.name,
         version: pkg.version,
         description: "Block distracting websites, set time limits on social media, and stay focused with an unbreakable Strict Mode.",
+        default_locale: "en",
         icons: {
             48: 'public/icon48.png',
         },
