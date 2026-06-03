@@ -49,17 +49,14 @@ export function createManifest(env: Record<string, string>) {
             default_popup: 'src/popup/index.html',
         },
         permissions: [
-            'idle',
-            'sidePanel',
-            'storage',
-            'webNavigation',
-            'declarativeNetRequest',
-            'declarativeNetRequestFeedback',
-            'declarativeNetRequestWithHostAccess',
             'alarms',
-            'tabs',
+            'declarativeNetRequest',
+            'declarativeNetRequestWithHostAccess',
+            'identity',
+            'idle',
             'notifications',
-            'identity',  // requis pour chrome.identity.getAuthToken (Google OAuth)
+            'storage',
+            'tabs',
         ],
         host_permissions: ["<all_urls>"],
 
@@ -87,9 +84,6 @@ export function createManifest(env: Record<string, string>) {
                 run_at: 'document_start',
             },
         ],
-        side_panel: {
-            default_path: 'src/sidepanel/index.html',
-        },
         web_accessible_resources: [
             {
                 resources: ["src/dashboard/index.html", "src/auth/index.html", "src/blocked/index.html"],
