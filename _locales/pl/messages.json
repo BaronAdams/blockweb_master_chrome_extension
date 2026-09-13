@@ -447,7 +447,7 @@
     "restrictions": "Aktywne ograniczenia",
     "r1": "Usunięcie zablokowanych domen lub słów kluczowych niemożliwe",
     "r2": "Modyfikacja lub usunięcie istniejących profili zablokowana",
-    "r3": "Dodawanie stron do białej listy wyłączone",
+    "r3": "Dodawanie lub usuwanie witryn z białej listy jest wyłączone",
     "osProtection": "Ochrona systemu",
     "osDesc": "Aby zapobiec odinstalowaniu rozszerzenia, możesz wymusić je poprzez politykę przedsiębiorstwa swojego systemu operacyjnego.",
     "windows": "Windows",
@@ -487,7 +487,12 @@
     "tip3Desc": "Przed aktywacją wypisz 3 konkretne zadania, nad którymi będziesz pracować. Pusty harmonogram jest wrogiem skupienia.",
     "tip4Title": "Pamiętaj: timer się wyzeruje",
     "tip4Desc": "Dyskomfort jest tymczasowy. Praca, którą wykonasz w tym czasie, pozostanie na zawsze.",
-    "tipsBanner": "Osoby, które ustanawiają zewnętrzną odpowiedzialność, są 3 razy bardziej skłonne do wytrwania niż te, które polegają wyłącznie na motywacji."
+    "tipsBanner": "Osoby, które ustanawiają zewnętrzną odpowiedzialność, są 3 razy bardziej skłonne do wytrwania niż te, które polegają wyłącznie na motywacji.",
+    "r4": "Blokowanie treści dla dorosłych nie może zostać wyłączone (jeśli było aktywne)",
+    "confirmTitle": "Aktywować Tryb Ścisły?",
+    "confirmSubtitle": "Przez następne {{duration}} następujące działania będą trwale zablokowane:",
+    "confirmWarning": "Ta czynność jest nieodwracalna — timer nie może zostać zatrzymany ani skrócony.",
+    "confirmBtn": "Tak, Aktywuj"
   },
   "account": {
     "title": "Moje Konto",

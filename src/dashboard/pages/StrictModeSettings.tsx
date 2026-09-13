@@ -5,6 +5,7 @@ import { useStateContext } from '@/context/GlobalStateContext';
 import { useTranslation } from 'react-i18next';
 import { getT } from '@/lib/i18n';
 import { Clock, Hourglass, LockIcon, Pen, ShieldAlertIcon, ShieldPlus, Trash2, TriangleAlert } from 'lucide-react';
+import StrictModeConfirmDialog from '@/components/StrictModeConfirmDialog';
 
 /* =========================================================
    HELPERS
@@ -100,6 +101,7 @@ const StrictModeSettings: React.FC = () => {
     const [days,  setDays]  = useState(0)
     const [hours, setHours] = useState(0)
     const [mins,  setMins]  = useState(0)
+    const [showConfirm, setShowConfirm] = useState(false)
 
     const [remaining, setRemaining] = useState<{
         days: number; hours: number; minutes: number; seconds: number
@@ -154,8 +156,18 @@ const StrictModeSettings: React.FC = () => {
         return Math.min(raw, limits.maxStrictDuration)
     }
 
-    const startStrict = () => {
+    const durationLabel = [
+        days  > 0 ? `${days}${tc('dayShrt')}`    : '',
+        hours > 0 ? `${hours}${tc('hourShrt')}`  : '',
+        mins  > 0 ? `${mins}${tc('minuteShrt')}` : '',
+    ].filter(Boolean).join(' ')
+
+    const confirmStrict = () => {
         if (isZero) return
+        setShowConfirm(true)
+    }
+
+    const startStrict = () => {
         const ms = durationMs()
         sendToBackground({
             type:     'ACTIVATE_STRICT_MODE',
@@ -303,13 +315,20 @@ const StrictModeSettings: React.FC = () => {
             {/* ── Actions ── */}
             {!isStrict && (
                 <div className="flex justify-end">
-                    <button type="button" onClick={startStrict} disabled={isZero}
+                    <button type="button" onClick={confirmStrict} disabled={isZero}
                         className="flex items-center gap-2 px-5 py-2 disabled:opacity-40 disabled:cursor-not-allowed bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-lg transition-colors shadow-lg shadow-rose-900/30">
                         <ShieldAlertIcon fill="currentColor" stroke='#E11D48' width="15" />
                         {t('activate')}
                     </button>
                 </div>
             )}
+
+            <StrictModeConfirmDialog
+                open={showConfirm}
+                onOpenChange={setShowConfirm}
+                onConfirm={startStrict}
+                durationLabel={durationLabel}
+            />
         </div>
     )
 }

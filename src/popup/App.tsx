@@ -10,6 +10,7 @@ import globeIcon from '@/assets/globe.svg'
 import "@fontsource/inter/400.css";
 import './App.css';
 import SmartImage from '@/components/SmartImage';
+import StrictModeConfirmDialog from '@/components/StrictModeConfirmDialog';
 
 const STORAGE_KEY = "blockweb_master_state";
 const pad = (n: number) => n.toString().padStart(2, '0');
@@ -34,6 +35,7 @@ export default function App() {
     const [currentTabDomain, setCurrentTabDomain] = useState<string | null>(null);
     const [tabIsWebPage, setTabIsWebPage] = useState<boolean | null>(null); // null = loading
     const [quickBlockStatus, setQuickBlockStatus] = useState<'idle' | 'blocked' | 'dismissed'>('idle');
+    const [showStrictConfirm, setShowStrictConfirm] = useState(false);
 
     // Dans votre composant racine ou Layout
     useEffect(() => {
@@ -149,9 +151,19 @@ export default function App() {
         setMins(Number(v));
     };
 
+    const durationLabel = [
+        days  > 0 ? `${days}${tc('dayShrt')}`    : '',
+        hours > 0 ? `${hours}${tc('hourShrt')}`  : '',
+        mins  > 0 ? `${mins}${tc('minuteShrt')}` : '',
+    ].filter(Boolean).join(' ');
+
+    const confirmStrict = () => {
+        if (isZeroDuration) return;
+        setShowStrictConfirm(true);
+    };
+
     /* ── Activation atomique ── */
     const startStrict = () => {
-        if (isZeroDuration) return;
         const limits = isPremium ? LIMITS.PREMIUM : LIMITS.FREE;
         const raw = ((days * 24 * 60) + (hours * 60) + mins) * 60_000;
         const ms = Math.min(raw, limits.maxStrictDuration);
@@ -505,7 +517,7 @@ export default function App() {
                                 </select>
                             </div>
                         </div>
-                        <button onClick={startStrict} disabled={isZeroDuration}
+                        <button onClick={confirmStrict} disabled={isZeroDuration}
                             className="w-full py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-rose-600 hover:bg-rose-500 text-white">
                             <ShieldAlertIcon fill='currentColor' stroke="#E11D48" width="16" />
                             {t('activateStrict')}
@@ -531,6 +543,13 @@ export default function App() {
                     v1.0.2 • <span className="hover:text-zinc-500 cursor-pointer">{tc('support')}</span>
                 </p>
             </footer>
+
+            <StrictModeConfirmDialog
+                open={showStrictConfirm}
+                onOpenChange={setShowStrictConfirm}
+                onConfirm={startStrict}
+                durationLabel={durationLabel}
+            />
         </div>
     );
 }
