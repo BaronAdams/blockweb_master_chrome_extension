@@ -447,7 +447,7 @@
     "restrictions": "Restricciones activas",
     "r1": "Eliminación de dominios o palabras clave bloqueadas imposible",
     "r2": "Modificación o eliminación de perfiles existentes bloqueada",
-    "r3": "Adición de sitios a la lista blanca desactivada",
+    "r3": "Agregar o eliminar sitios de la lista blanca está desactivado",
     "osProtection": "Protección del SO",
     "osDesc": "Para evitar desinstalar la extensión, puedes forzarla a través de la política empresarial de tu SO.",
     "windows": "Windows",
@@ -487,7 +487,12 @@
     "tip3Desc": "Antes de activar, escribe 3 tareas específicas en las que trabajarás. Una agenda vacía es enemiga del enfoque.",
     "tip4Title": "Recuerda: el temporizador se agotará",
     "tip4Desc": "La incomodidad es temporal. El trabajo que hagas durante este tiempo es permanente.",
-    "tipsBanner": "Las personas que establecen una responsabilidad externa tienen 3 veces más probabilidades de cumplir que aquellas que solo confían en la motivación."
+    "tipsBanner": "Las personas que establecen una responsabilidad externa tienen 3 veces más probabilidades de cumplir que aquellas que solo confían en la motivación.",
+    "r4": "El bloqueo de contenido adulto no puede desactivarse (si estaba activo)",
+    "confirmTitle": "¿Activar el Modo Estricto?",
+    "confirmSubtitle": "Durante los próximos {{duration}}, las siguientes acciones estarán bloqueadas permanentemente:",
+    "confirmWarning": "Esta acción es irreversible — el temporizador no puede detenerse ni acortarse.",
+    "confirmBtn": "Sí, Activar"
   },
   "account": {
     "title": "Mi Cuenta",

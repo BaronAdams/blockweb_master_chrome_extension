@@ -447,7 +447,7 @@
     "restrictions": "Restrictions actives",
     "r1": "Suppression de domaines ou mots-clés bloqués impossible",
     "r2": "Modification ou suppression des profils existants bloquée",
-    "r3": "Ajout de sites à la whitelist désactivé",
+    "r3": "L'ajout et la suppression de sites dans la liste blanche sont désactivés",
     "osProtection": "Protection OS",
     "osDesc": "Pour empêcher la désinstallation de l'extension, tu peux la forcer via la politique d'entreprise de ton OS.",
     "windows": "Windows",
@@ -487,7 +487,12 @@
     "tip3Desc": "Avant d'activer, note 3 tâches précises. Un agenda vide est l'ennemi de la concentration.",
     "tip4Title": "Rappelle-toi : le timer va s'arrêter",
     "tip4Desc": "L'inconfort est temporaire. Le travail accompli pendant cette période est permanent.",
-    "tipsBanner": "Les personnes qui mettent en place une responsabilité externe sont 3× plus susceptibles d'aller jusqu'au bout."
+    "tipsBanner": "Les personnes qui mettent en place une responsabilité externe sont 3× plus susceptibles d'aller jusqu'au bout.",
+    "r4": "Le blocage de contenu adulte ne peut pas être désactivé (s'il était actif)",
+    "confirmTitle": "Activer le Mode Strict ?",
+    "confirmSubtitle": "Pendant les {{duration}} à venir, les actions suivantes seront définitivement verrouillées :",
+    "confirmWarning": "Cette action est irréversible — le minuteur ne peut pas être arrêté ou raccourci.",
+    "confirmBtn": "Oui, Activer"
   },
   "account": {
     "title": "Mon Compte",

@@ -447,7 +447,7 @@
     "restrictions": "Aktive Einschränkungen",
     "r1": "Löschen blockierter Domains oder Schlüsselwörter nicht möglich",
     "r2": "Änderung oder Löschung bestehender Profile blockiert",
-    "r3": "Hinzufügen von Seiten zur Weißliste deaktiviert",
+    "r3": "Hinzufügen oder Entfernen von Websites aus der Whitelist ist deaktiviert",
     "osProtection": "Betriebssystem-Schutz",
     "osDesc": "Um die Deinstallation der Erweiterung zu verhindern, kannst du sie über die Unternehmensrichtlinie deines Betriebssystems erzwingen.",
     "windows": "Windows",
@@ -487,7 +487,12 @@
     "tip3Desc": "Schreibe vor der Aktivierung 3 konkrete Aufgaben auf, an denen du arbeiten wirst. Eine leere Agenda ist der Feind der Konzentration.",
     "tip4Title": "Denk daran: Der Timer wird ablaufen",
     "tip4Desc": "Das Unbehagen ist vorübergehend. Die Arbeit, die du in dieser Zeit erledigst, ist von Dauer.",
-    "tipsBanner": "Menschen, die externe Verantwortlichkeit einrichten, setzen ihre Vorhaben 3-mal häufiger um als diejenigen, die sich nur auf Motivation verlassen."
+    "tipsBanner": "Menschen, die externe Verantwortlichkeit einrichten, setzen ihre Vorhaben 3-mal häufiger um als diejenigen, die sich nur auf Motivation verlassen.",
+    "r4": "Die Blockierung von Erwachseneninhalten kann nicht deaktiviert werden (wenn aktiv)",
+    "confirmTitle": "Strikten Modus aktivieren?",
+    "confirmSubtitle": "Für die nächsten {{duration}} werden folgende Aktionen dauerhaft gesperrt:",
+    "confirmWarning": "Diese Aktion ist unwiderruflich — der Timer kann nicht gestoppt oder verkürzt werden.",
+    "confirmBtn": "Ja, Aktivieren"
   },
   "account": {
     "title": "Mein Konto",

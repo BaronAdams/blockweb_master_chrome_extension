@@ -447,7 +447,7 @@
     "restrictions": "Active restrictions",
     "r1": "Deletion of blocked domains or keywords is impossible",
     "r2": "Modification or deletion of existing profiles is blocked",
-    "r3": "Adding sites to the whitelist is disabled",
+    "r3": "Adding or removing sites from the whitelist is disabled",
     "osProtection": "OS Protection",
     "osDesc": "To prevent uninstalling the extension, you can force it via your OS enterprise policy.",
     "windows": "Windows",
@@ -487,7 +487,12 @@
     "tip3Desc": "Before activating, write 3 specific tasks you will work on. An empty agenda is the enemy of focus.",
     "tip4Title": "Remember: the timer will run out",
     "tip4Desc": "The discomfort is temporary. The work you do during this time is permanent.",
-    "tipsBanner": "People who set up external accountability are 3× more likely to follow through than those who rely on motivation alone."
+    "tipsBanner": "People who set up external accountability are 3× more likely to follow through than those who rely on motivation alone.",
+    "r4": "Adult content blocking cannot be disabled (if active)",
+    "confirmTitle": "Activate Strict Mode?",
+    "confirmSubtitle": "For the next {{duration}}, the following will be permanently locked:",
+    "confirmWarning": "This action is irreversible — the timer cannot be stopped or shortened.",
+    "confirmBtn": "Yes, Activate"
   },
   "account": {
     "title": "My Account",

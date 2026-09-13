@@ -447,7 +447,7 @@
     "restrictions": "Actieve beperkingen",
     "r1": "Verwijderen van geblokkeerde domeinen of trefwoorden onmogelijk",
     "r2": "Wijzigen of verwijderen van bestaande profielen geblokkeerd",
-    "r3": "Toevoegen van sites aan de witlijst uitgeschakeld",
+    "r3": "Toevoegen of verwijderen van sites uit de whitelist is uitgeschakeld",
     "osProtection": "OS-beveiliging",
     "osDesc": "Om de-installatie van de extensie te voorkomen, kun je deze forceren via het bedrijfsbeleid van je besturingssysteem.",
     "windows": "Windows",
@@ -487,7 +487,12 @@
     "tip3Desc": "Schrijf voor het activeren 3 specifieke taken op waaraan je zult werken. Een lege agenda is de vijand van focus.",
     "tip4Title": "Onthoud: de timer loopt af",
     "tip4Desc": "Het ongemak is tijdelijk. Het werk dat je gedurende deze tijd doet, is blijvend.",
-    "tipsBanner": "Mensen die externe verantwoordelijkheid instellen, hebben 3 keer meer kans om door te zetten dan degenen die alleen op motivatie vertrouwen."
+    "tipsBanner": "Mensen die externe verantwoordelijkheid instellen, hebben 3 keer meer kans om door te zetten dan degenen die alleen op motivatie vertrouwen.",
+    "r4": "Blokkering van volwasseneninhoud kan niet worden uitgeschakeld (indien actief)",
+    "confirmTitle": "Strikte Modus activeren?",
+    "confirmSubtitle": "Voor de komende {{duration}} worden de volgende acties permanent vergrendeld:",
+    "confirmWarning": "Deze actie is onomkeerbaar — de timer kan niet worden gestopt of verkort.",
+    "confirmBtn": "Ja, Activeren"
   },
   "account": {
     "title": "Mijn Account",

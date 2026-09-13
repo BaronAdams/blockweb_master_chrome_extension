@@ -447,7 +447,7 @@
     "restrictions": "Restrizioni attive",
     "r1": "Eliminazione di domini o parole chiave bloccati impossibile",
     "r2": "Modifica o eliminazione di profili esistenti bloccata",
-    "r3": "Aggiunta di siti alla lista bianca disabilitata",
+    "r3": "Aggiunta o rimozione di siti dalla whitelist è disabilitata",
     "osProtection": "Protezione OS",
     "osDesc": "Per impedire la disinstallazione dell'estensione, puoi forzarla tramite la policy aziendale del tuo sistema operativo.",
     "windows": "Windows",
@@ -487,7 +487,12 @@
     "tip3Desc": "Prima di attivare, scrivi 3 compiti specifici su cui lavorerai. Un'agenda vuota è nemica della concentrazione.",
     "tip4Title": "Ricorda: il timer scadrà",
     "tip4Desc": "Il disagio è temporaneo. Il lavoro che fai durante questo tempo è permanente.",
-    "tipsBanner": "Le persone che impostano una responsabilità esterna hanno 3 volte più probabilità di portare a termine rispetto a quelle che si affidano solo alla motivazione."
+    "tipsBanner": "Le persone che impostano una responsabilità esterna hanno 3 volte più probabilità di portare a termine rispetto a quelle che si affidano solo alla motivazione.",
+    "r4": "Il blocco dei contenuti per adulti non può essere disattivato (se attivo)",
+    "confirmTitle": "Attivare la Modalità Strict?",
+    "confirmSubtitle": "Per i prossimi {{duration}}, le seguenti azioni saranno bloccate in modo permanente:",
+    "confirmWarning": "Questa azione è irreversibile — il timer non può essere fermato o accorciato.",
+    "confirmBtn": "Sì, Attiva"
   },
   "account": {
     "title": "Il Mio Account",
