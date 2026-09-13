@@ -540,7 +540,7 @@ export default function App() {
                 )}
 
                 <p className="text-center text-[9px] text-zinc-700">
-                    v1.0.2 • <span className="hover:text-zinc-500 cursor-pointer">{tc('support')}</span>
+                    v1.1.0 • <span className="hover:text-zinc-500 cursor-pointer">{tc('support')}</span>
                 </p>
             </footer>
 

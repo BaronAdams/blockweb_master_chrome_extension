@@ -24,7 +24,7 @@ const COMPARISON = () => [
     { label: twh('whitelist'),             free: false,    premium: twh('unlimited')        },
     // { label: "Types de profil",       free: "Quotidien",  premium: "Tous les types"   },
     { label: twh('redirect'),    free: false,        premium: true               },
-    { label: twh('adultBlocker'), free: false,   premium: true               },
+    { label: twh('adultBlocker'), free: true,    premium: true               },
     { label: twh('strictMode'),           free: twh('freeMaxDay'), premium: twh('proMaxDay')     },
     { label: twh('support'),   free: false,        premium: true               },
     { label: twh('updates'), free: true, premium: true },

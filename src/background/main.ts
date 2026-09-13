@@ -48,9 +48,6 @@ export function downgradeToFree(state: State): void {
 
     state.isPremium = false
 
-    // Désactiver le blocage adulte (fonctionnalité Premium)
-    state.adultContentBlocked = false
-
     // Plafonne le mode strict à 24h en Free
     if (state.strictDefaultTime > 86_400_000) state.strictDefaultTime = 86_400_000
     if (state.strictModeUntil && state.strictModeUntil > Date.now() + 86_400_000) {
@@ -635,10 +632,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
             /* ── Adulte / Strict / URL ── */
             case 'TOGGLE_ADULT_CONTENT': {
-                if (!state.isPremium) {
-                    sendResponse({ success: false, reason: 'Cette fonctionnalité est premium' })
-                    return
-                }
                 await setState({ ...state, adultContentBlocked: !state.adultContentBlocked })
                 sendResponse({ success: true })
                 return
