@@ -86,7 +86,12 @@ export function createManifest(env: Record<string, string>) {
         ],
         web_accessible_resources: [
             {
-                resources: ["src/dashboard/index.html", "src/auth/index.html", "src/blocked/index.html"],
+                resources: [
+                    "src/dashboard/index.html",
+                    "src/auth/index.html",
+                    "src/blocked/index.html",
+                    "src/onboarding/index.html",
+                ],
                 matches: ["<all_urls>"]
             }
         ]

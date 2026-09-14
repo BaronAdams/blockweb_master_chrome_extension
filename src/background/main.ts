@@ -147,7 +147,7 @@ let activeStartTime: number | null = null
    ON INSTALLED
 ========================================================= */
 
-chrome.runtime.onInstalled.addListener(async () => {
+chrome.runtime.onInstalled.addListener(async ({ reason }) => {
     const initialState: State = {
         auth: {
             isAuthenticated: false,
@@ -182,11 +182,20 @@ chrome.runtime.onInstalled.addListener(async () => {
         usageHistory: {},
         detectedAdultDomains: [],
         customProductivitySites: [],
+        onboardingCompleted: false,
     }
 
     const existing = await chrome.storage.local.get('blockweb_master_state')
     if (!existing.blockweb_master_state) {
         await setState(initialState)
+    } else if ((existing.blockweb_master_state as State).onboardingCompleted === undefined) {
+        // Existing user updating — mark onboarding done so they never see it
+        await setState({ ...(existing.blockweb_master_state as State), onboardingCompleted: true })
+    }
+
+    // Ouvrir l'onboarding uniquement lors d'une installation fraîche
+    if (reason === 'install') {
+        chrome.tabs.create({ url: chrome.runtime.getURL('src/onboarding/index.html') })
     }
 
     // Page affichée si l'extension est désinstallée en mode strict.

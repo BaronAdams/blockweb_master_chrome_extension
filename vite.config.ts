@@ -86,9 +86,10 @@ export default defineConfig(({ mode }) => {
     build: {
       rollupOptions: {
         input: {
-          dashboard: resolve(__dirname, 'src/dashboard/index.html'),
-          blocked:   resolve(__dirname, 'src/blocked/index.html'),
-          auth:      resolve(__dirname, 'src/auth/index.html'),
+          dashboard:  resolve(__dirname, 'src/dashboard/index.html'),
+          blocked:    resolve(__dirname, 'src/blocked/index.html'),
+          auth:       resolve(__dirname, 'src/auth/index.html'),
+          onboarding: resolve(__dirname, 'src/onboarding/index.html'),
         },
         output: {
           manualChunks: undefined,
