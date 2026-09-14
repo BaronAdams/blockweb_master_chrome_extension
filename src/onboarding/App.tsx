@@ -6,6 +6,16 @@ import {
     EyeOffIcon, TrendingDownIcon, Gamepad2Icon, TimerIcon,
 } from 'lucide-react'
 import logo from '@/assets/blockweb_master_icon.svg'
+import imgWelcome    from '@/assets/onboarding/ob-welcome.png'
+import imgProblem    from '@/assets/onboarding/ob-problem.jpg'
+import imgCta        from '@/assets/onboarding/ob-cta.jpg'
+import imgFeatBlock  from '@/assets/onboarding/ob-feat-block.png'
+import imgFeatStrict from '@/assets/onboarding/ob-feat-strict.png'
+import imgFeatProfs  from '@/assets/onboarding/ob-feat-profiles.jpg'
+import imgGoalWork   from '@/assets/onboarding/ob-goal-work.jpg'
+import imgGoalStudy  from '@/assets/onboarding/ob-goal-study.jpg'
+import imgGoalDetox  from '@/assets/onboarding/ob-goal-detox.jpg'
+import imgGoalPers   from '@/assets/onboarding/ob-goal-personal.jpg'
 import "@fontsource/inter/400.css"
 import "@fontsource/inter/600.css"
 import "@fontsource/inter/700.css"
@@ -84,15 +94,20 @@ function ScreenWelcome({ onNext }: { onNext: () => void }) {
     const { t } = useTranslation('onboarding')
 
     return (
-        <div className="stagger flex flex-col items-center justify-center text-center py-12 min-h-[500px]">
+        <div className="stagger flex flex-col items-center text-center py-6">
             {/* Logo */}
-            <div className="logo-pop mb-8">
+            <div className="logo-pop mb-5">
                 <div className="relative">
                     <div className="absolute inset-0 rounded-full bg-amber-400/20 blur-xl scale-150" />
-                    <div className="relative w-20 h-20 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-2xl">
-                        <img src={logo} alt="BlockWeb Master" className="w-12 h-12" />
+                    <div className="relative w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-2xl">
+                        <img src={logo} alt="BlockWeb Master" className="w-10 h-10" />
                     </div>
                 </div>
+            </div>
+
+            {/* Hero image */}
+            <div className="w-full rounded-2xl overflow-hidden mb-6 shadow-2xl shadow-black/60" style={{ height: '190px' }}>
+                <img src={imgWelcome} alt="" className="w-full h-full object-cover object-center" />
             </div>
 
             {/* Title */}
@@ -107,7 +122,7 @@ function ScreenWelcome({ onNext }: { onNext: () => void }) {
             </h1>
 
             {/* Tagline */}
-            <p className="text-zinc-400 text-base max-w-xs leading-relaxed mb-10">
+            <p className="text-zinc-400 text-base max-w-xs leading-relaxed mb-8">
                 {t('tagline')}
             </p>
 
@@ -132,38 +147,10 @@ function ScreenProblem({ onNext, onSkip }: { onNext: () => void; onSkip: () => v
     const { t } = useTranslation('onboarding')
 
     const problems = [
-        {
-            icon: <EyeOffIcon width={18} />,
-            label: t('problem1'),
-            sub: t('problem1Sub'),
-            color: 'text-rose-400',
-            bg: 'bg-rose-500/8 border-rose-500/18',
-            dot: 'bg-rose-500',
-        },
-        {
-            icon: <TrendingDownIcon width={18} />,
-            label: t('problem2'),
-            sub: t('problem2Sub'),
-            color: 'text-orange-400',
-            bg: 'bg-orange-500/8 border-orange-500/18',
-            dot: 'bg-orange-500',
-        },
-        {
-            icon: <Gamepad2Icon width={18} />,
-            label: t('problem3'),
-            sub: t('problem3Sub'),
-            color: 'text-violet-400',
-            bg: 'bg-violet-500/8 border-violet-500/18',
-            dot: 'bg-violet-500',
-        },
-        {
-            icon: <TimerIcon width={18} />,
-            label: t('problem4'),
-            sub: t('problem4Sub'),
-            color: 'text-amber-400',
-            bg: 'bg-amber-500/8 border-amber-500/18',
-            dot: 'bg-amber-500',
-        },
+        { icon: <EyeOffIcon width={16} />,       label: t('problem1'), sub: t('problem1Sub'), color: 'text-rose-400',   dot: 'bg-rose-500' },
+        { icon: <TrendingDownIcon width={16} />,  label: t('problem2'), sub: t('problem2Sub'), color: 'text-orange-400', dot: 'bg-orange-500' },
+        { icon: <Gamepad2Icon width={16} />,      label: t('problem3'), sub: t('problem3Sub'), color: 'text-violet-400', dot: 'bg-violet-500' },
+        { icon: <TimerIcon width={16} />,         label: t('problem4'), sub: t('problem4Sub'), color: 'text-amber-400',  dot: 'bg-amber-500' },
     ]
 
     const stats = [
@@ -173,33 +160,41 @@ function ScreenProblem({ onNext, onSkip }: { onNext: () => void; onSkip: () => v
     ]
 
     return (
-        <div className="py-6">
-            <div className="stagger mb-5 text-center">
+        <div className="py-4">
+            {/* Hero image */}
+            <div className="w-full rounded-2xl overflow-hidden mb-5 shadow-2xl shadow-black/60" style={{ height: '175px' }}>
+                <img src={imgProblem} alt="" className="w-full h-full object-cover object-top" />
+            </div>
+
+            {/* Header */}
+            <div className="stagger mb-4 text-center">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold mb-3">
                     <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
                     {t('problemBadge')}
                 </div>
                 <h2 className="text-2xl font-bold text-white mb-2 leading-snug">{t('problemTitle')}</h2>
-                <p className="text-zinc-500 text-sm leading-relaxed max-w-sm mx-auto">{t('problemDesc')}</p>
+                <p className="text-zinc-400 text-sm leading-relaxed max-w-sm mx-auto">{t('problemDesc')}</p>
             </div>
 
-            {/* 4 real problem tiles */}
-            <div className="stagger grid grid-cols-2 gap-2.5 mb-3">
+            {/* Problem pills */}
+            <div className="stagger grid grid-cols-2 gap-2 mb-4">
                 {problems.map((p, i) => (
-                    <div key={i} className={`p-3.5 rounded-xl border ${p.bg}`}>
-                        <div className={`mb-2 ${p.color}`}>{p.icon}</div>
-                        <p className="text-[13px] font-semibold text-white leading-tight mb-1">{p.label}</p>
-                        <p className="text-[10px] text-zinc-500 leading-snug">{p.sub}</p>
+                    <div key={i} className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-zinc-900/70 border border-zinc-800">
+                        <span className={`shrink-0 ${p.color}`}>{p.icon}</span>
+                        <div>
+                            <p className="text-[12px] font-semibold text-white leading-tight">{p.label}</p>
+                            <p className="text-[10px] text-zinc-500 leading-snug">{p.sub}</p>
+                        </div>
                     </div>
                 ))}
             </div>
 
-            {/* Consequence stats */}
+            {/* Stats */}
             <div className="stagger grid grid-cols-3 gap-2 mb-2">
                 {stats.map((s, i) => (
                     <div key={i} className={`px-2 py-3 rounded-xl border ${s.bg} text-center`}>
-                        <p className={`text-lg font-bold font-mono tabular-nums leading-none mb-1 ${s.color}`}>{s.value}</p>
-                        <p className="text-[9px] text-zinc-600 leading-snug">{s.label}</p>
+                        <p className={`text-base font-bold font-mono tabular-nums leading-none mb-1 ${s.color}`}>{s.value}</p>
+                        <p className="text-[9px] text-zinc-500 leading-snug">{s.label}</p>
                     </div>
                 ))}
             </div>
@@ -218,20 +213,20 @@ function ScreenFeatures({ onNext, onSkip }: { onNext: () => void; onSkip: () => 
 
     const features = [
         {
-            icon: <BanIcon className="text-rose-400" width={22} />,
-            bg: 'bg-rose-500/10 border-rose-500/20',
+            image: imgFeatBlock,
+            icon: <BanIcon className="text-rose-400" width={18} />,
             title: t('feat1Title'),
             desc: t('feat1Desc'),
         },
         {
-            icon: <ShieldAlertIcon fill="currentColor" stroke="#8b0836" className="text-rose-400" width={22} />,
-            bg: 'bg-rose-500/10 border-rose-500/20',
+            image: imgFeatStrict,
+            icon: <ShieldAlertIcon fill="currentColor" stroke="#8b0836" className="text-rose-400" width={18} />,
             title: t('feat2Title'),
             desc: t('feat2Desc'),
         },
         {
-            icon: <UsersIcon className="text-amber-400" width={22} />,
-            bg: 'bg-amber-500/10 border-amber-500/20',
+            image: imgFeatProfs,
+            icon: <UsersIcon className="text-amber-400" width={18} />,
             title: t('feat3Title'),
             desc: t('feat3Desc'),
         },
@@ -239,22 +234,27 @@ function ScreenFeatures({ onNext, onSkip }: { onNext: () => void; onSkip: () => 
 
     return (
         <div className="py-6">
-            <div className="stagger mb-7 text-center">
-                <h2 className="text-2xl font-bold text-white mb-2">{t('solutionTitle')}</h2>
+            <div className="stagger mb-5 text-center">
+                <h2 className="text-2xl font-bold text-white mb-1">{t('solutionTitle')}</h2>
             </div>
 
             <div className="stagger space-y-3 mb-2">
                 {features.map((f, i) => (
                     <div
                         key={i}
-                        className="flex items-start gap-4 p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 transition-colors"
+                        className="rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 transition-colors overflow-hidden"
                     >
-                        <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${f.bg}`}>
-                            {f.icon}
+                        {/* Feature image banner */}
+                        <div className="w-full overflow-hidden" style={{ height: '100px' }}>
+                            <img src={f.image} alt="" className="w-full h-full object-cover object-center" />
                         </div>
-                        <div>
-                            <p className="text-sm font-semibold text-white mb-0.5">{f.title}</p>
-                            <p className="text-xs text-zinc-500 leading-relaxed">{f.desc}</p>
+                        {/* Text */}
+                        <div className="flex items-start gap-3 p-3.5">
+                            <span className="shrink-0 mt-0.5">{f.icon}</span>
+                            <div>
+                                <p className="text-sm font-semibold text-white mb-0.5">{f.title}</p>
+                                <p className="text-xs text-zinc-400 leading-relaxed">{f.desc}</p>
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -274,17 +274,17 @@ function ScreenGoal({ onNext, onSkip }: { onNext: () => void; onSkip: () => void
     const [selected, setSelected] = useState<number | null>(null)
 
     const goals = [
-        { icon: <BriefcaseIcon width={22} />, label: t('goal1'), color: 'text-blue-400', activeBorder: 'border-blue-500/50', activeBg: 'bg-blue-500/8' },
-        { icon: <BookOpenIcon width={22} />, label: t('goal2'), color: 'text-emerald-400', activeBorder: 'border-emerald-500/50', activeBg: 'bg-emerald-500/8' },
-        { icon: <SmartphoneIcon width={22} />, label: t('goal3'), color: 'text-rose-400', activeBorder: 'border-rose-500/50', activeBg: 'bg-rose-500/8' },
-        { icon: <StarIcon width={22} />, label: t('goal4'), color: 'text-amber-400', activeBorder: 'border-amber-500/50', activeBg: 'bg-amber-500/8' },
+        { image: imgGoalWork,   icon: <BriefcaseIcon width={18} />, label: t('goal1'), color: 'text-blue-300',    ring: 'ring-blue-500/60' },
+        { image: imgGoalStudy,  icon: <BookOpenIcon width={18} />,  label: t('goal2'), color: 'text-emerald-300', ring: 'ring-emerald-500/60' },
+        { image: imgGoalDetox,  icon: <SmartphoneIcon width={18} />,label: t('goal3'), color: 'text-rose-300',    ring: 'ring-rose-500/60' },
+        { image: imgGoalPers,   icon: <StarIcon width={18} />,      label: t('goal4'), color: 'text-amber-300',   ring: 'ring-amber-500/60' },
     ]
 
     return (
         <div className="py-6">
-            <div className="stagger mb-7 text-center">
+            <div className="stagger mb-5 text-center">
                 <h2 className="text-2xl font-bold text-white mb-2">{t('goalTitle')}</h2>
-                <p className="text-zinc-500 text-sm">{t('goalSubtitle')}</p>
+                <p className="text-zinc-400 text-sm">{t('goalSubtitle')}</p>
             </div>
 
             <div className="stagger grid grid-cols-2 gap-3 mb-2">
@@ -294,19 +294,26 @@ function ScreenGoal({ onNext, onSkip }: { onNext: () => void; onSkip: () => void
                         <button
                             key={i}
                             onClick={() => setSelected(i)}
-                            className={`relative p-5 rounded-xl border text-left transition-all duration-200 hover:brightness-110 active:scale-[0.97] ${
-                                isSelected
-                                    ? `${g.activeBorder} ${g.activeBg}`
-                                    : 'border-zinc-800 bg-zinc-900/50 hover:border-zinc-700'
+                            className={`relative rounded-xl overflow-hidden text-left transition-all duration-200 active:scale-[0.97] ${
+                                isSelected ? `ring-2 ${g.ring}` : 'ring-0'
                             }`}
+                            style={{ minHeight: '110px' }}
                         >
+                            {/* Background image */}
+                            <img src={g.image} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                            {/* Dark overlay — lighter when selected */}
+                            <div className={`absolute inset-0 transition-opacity duration-200 ${isSelected ? 'bg-black/40' : 'bg-black/60'}`} />
+                            {/* Selected checkmark */}
                             {isSelected && (
-                                <div className="check-pop absolute top-2.5 right-2.5 w-4 h-4 rounded-full bg-white/20 flex items-center justify-center">
-                                    <CheckIcon width={10} strokeWidth={3} className="text-white" />
+                                <div className="check-pop absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center">
+                                    <CheckIcon width={11} strokeWidth={3} className="text-white" />
                                 </div>
                             )}
-                            <div className={`mb-2 transition-colors ${isSelected ? g.color : 'text-zinc-500'}`}>{g.icon}</div>
-                            <p className="text-sm font-semibold text-white">{g.label}</p>
+                            {/* Content */}
+                            <div className="relative p-3.5 flex flex-col justify-end h-full" style={{ minHeight: '110px' }}>
+                                <div className={`mb-1.5 ${g.color}`}>{g.icon}</div>
+                                <p className="text-sm font-semibold text-white drop-shadow">{g.label}</p>
+                            </div>
                         </button>
                     )
                 })}
@@ -329,15 +336,15 @@ function ScreenCta({ onCreateAccount, onSkipAccount }: {
     const benefits = [t('ctaBenefit1'), t('ctaBenefit2'), t('ctaBenefit3')]
 
     return (
-        <div className="py-6 flex flex-col items-center text-center">
-            <div className="stagger w-full flex flex-col items-center">
-                {/* Logo small */}
-                <div className="mb-5 w-14 h-14 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center">
-                    <img src={logo} alt="BlockWeb Master" className="w-8 h-8" />
-                </div>
+        <div className="py-4 flex flex-col items-center text-center">
+            {/* CTA hero image */}
+            <div className="w-full rounded-2xl overflow-hidden mb-5 shadow-2xl shadow-black/60" style={{ height: '185px' }}>
+                <img src={imgCta} alt="" className="w-full h-full object-cover object-center" />
+            </div>
 
+            <div className="stagger w-full flex flex-col items-center">
                 <h2 className="text-2xl font-bold text-white mb-2">{t('ctaTitle')}</h2>
-                <p className="text-zinc-400 text-sm leading-relaxed max-w-xs mb-7">{t('ctaSubtitle')}</p>
+                <p className="text-zinc-400 text-sm leading-relaxed max-w-xs mb-6">{t('ctaSubtitle')}</p>
             </div>
 
             {/* Benefits */}
