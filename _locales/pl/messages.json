@@ -641,5 +641,8 @@
     "ctaBenefit3": "Darmowy na zawsze — ulepsz kiedy chcesz",
     "ctaCreate": "Utwórz moje darmowe konto",
     "ctaSkip": "Kontynuuj bez konta"
+  },
+  "_manifest": {
+    "appDescription": "Blokuj rozpraszające strony i treści dla dorosłych. Pozostań skupiony z limitami czasu, profilami i Trybem Ścisłym."
   }
 }

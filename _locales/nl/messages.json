@@ -641,5 +641,8 @@
     "ctaBenefit3": "Voor altijd gratis — upgrade wanneer je wil",
     "ctaCreate": "Mijn gratis account aanmaken",
     "ctaSkip": "Doorgaan zonder account"
+  },
+  "_manifest": {
+    "appDescription": "Blokkeer afleidende sites en volwasseneninhoud. Blijf gefocust met tijdslimieten, profielen en Strikte Modus."
   }
 }

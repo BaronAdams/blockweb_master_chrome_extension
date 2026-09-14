@@ -641,5 +641,8 @@
     "ctaBenefit3": "Gratis para siempre — mejora cuando quieras",
     "ctaCreate": "Crear mi cuenta gratuita",
     "ctaSkip": "Continuar sin cuenta"
+  },
+  "_manifest": {
+    "appDescription": "Bloquea sitios distractores y contenido adulto. Mantente enfocado con límites de tiempo, perfiles y Modo Estricto."
   }
 }

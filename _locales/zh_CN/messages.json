@@ -641,5 +641,8 @@
     "ctaBenefit3": "永久免费——随时升级",
     "ctaCreate": "创建我的免费账户",
     "ctaSkip": "不使用账户继续"
+  },
+  "_manifest": {
+    "appDescription": "屏蔽分心网站与成人内容，通过时间限制、配置文件和严格模式保持专注。"
   }
 }

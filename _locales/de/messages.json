@@ -641,5 +641,8 @@
     "ctaBenefit3": "Für immer kostenlos — jederzeit upgraden",
     "ctaCreate": "Mein kostenloses Konto erstellen",
     "ctaSkip": "Ohne Konto fortfahren"
+  },
+  "_manifest": {
+    "appDescription": "Blockiere ablenkende Seiten und Inhalte für Erwachsene. Konzentriert bleiben mit Zeitlimits, Profilen und Striktem Modus."
   }
 }
