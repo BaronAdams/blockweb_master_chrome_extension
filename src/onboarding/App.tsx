@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import {
     BanIcon, ShieldAlertIcon, UsersIcon, ChevronRightIcon,
     CheckIcon, BriefcaseIcon, BookOpenIcon, SmartphoneIcon, StarIcon,
+    EyeOffIcon, TrendingDownIcon, Gamepad2Icon, TimerIcon,
 } from 'lucide-react'
 import logo from '@/assets/blockweb_master_icon.svg'
 import "@fontsource/inter/400.css"
@@ -130,28 +131,75 @@ function ScreenWelcome({ onNext }: { onNext: () => void }) {
 function ScreenProblem({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }) {
     const { t } = useTranslation('onboarding')
 
+    const problems = [
+        {
+            icon: <EyeOffIcon width={18} />,
+            label: t('problem1'),
+            sub: t('problem1Sub'),
+            color: 'text-rose-400',
+            bg: 'bg-rose-500/8 border-rose-500/18',
+            dot: 'bg-rose-500',
+        },
+        {
+            icon: <TrendingDownIcon width={18} />,
+            label: t('problem2'),
+            sub: t('problem2Sub'),
+            color: 'text-orange-400',
+            bg: 'bg-orange-500/8 border-orange-500/18',
+            dot: 'bg-orange-500',
+        },
+        {
+            icon: <Gamepad2Icon width={18} />,
+            label: t('problem3'),
+            sub: t('problem3Sub'),
+            color: 'text-violet-400',
+            bg: 'bg-violet-500/8 border-violet-500/18',
+            dot: 'bg-violet-500',
+        },
+        {
+            icon: <TimerIcon width={18} />,
+            label: t('problem4'),
+            sub: t('problem4Sub'),
+            color: 'text-amber-400',
+            bg: 'bg-amber-500/8 border-amber-500/18',
+            dot: 'bg-amber-500',
+        },
+    ]
+
     const stats = [
-        { value: t('stat1Value'), label: t('stat1Label'), color: 'text-rose-400', bg: 'bg-rose-500/8 border-rose-500/15' },
-        { value: t('stat2Value'), label: t('stat2Label'), color: 'text-amber-400', bg: 'bg-amber-500/8 border-amber-500/15' },
+        { value: t('stat1Value'), label: t('stat1Label'), color: 'text-rose-400',   bg: 'bg-rose-500/8 border-rose-500/15' },
+        { value: t('stat2Value'), label: t('stat2Label'), color: 'text-amber-400',  bg: 'bg-amber-500/8 border-amber-500/15' },
         { value: t('stat3Value'), label: t('stat3Label'), color: 'text-violet-400', bg: 'bg-violet-500/8 border-violet-500/15' },
     ]
 
     return (
         <div className="py-6">
-            <div className="stagger mb-7 text-center">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold mb-4">
+            <div className="stagger mb-5 text-center">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold mb-3">
                     <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-                    {t('problemTitle').split(' ').slice(0, 2).join(' ')}
+                    {t('problemBadge')}
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-3 leading-snug">{t('problemTitle')}</h2>
+                <h2 className="text-2xl font-bold text-white mb-2 leading-snug">{t('problemTitle')}</h2>
                 <p className="text-zinc-500 text-sm leading-relaxed max-w-sm mx-auto">{t('problemDesc')}</p>
             </div>
 
-            <div className="stagger grid grid-cols-3 gap-3 mb-2">
+            {/* 4 real problem tiles */}
+            <div className="stagger grid grid-cols-2 gap-2.5 mb-3">
+                {problems.map((p, i) => (
+                    <div key={i} className={`p-3.5 rounded-xl border ${p.bg}`}>
+                        <div className={`mb-2 ${p.color}`}>{p.icon}</div>
+                        <p className="text-[13px] font-semibold text-white leading-tight mb-1">{p.label}</p>
+                        <p className="text-[10px] text-zinc-500 leading-snug">{p.sub}</p>
+                    </div>
+                ))}
+            </div>
+
+            {/* Consequence stats */}
+            <div className="stagger grid grid-cols-3 gap-2 mb-2">
                 {stats.map((s, i) => (
-                    <div key={i} className={`p-4 rounded-xl border ${s.bg} text-center`}>
-                        <p className={`text-2xl font-bold font-mono tabular-nums mb-1 ${s.color}`}>{s.value}</p>
-                        <p className="text-[10px] text-zinc-500 leading-snug">{s.label}</p>
+                    <div key={i} className={`px-2 py-3 rounded-xl border ${s.bg} text-center`}>
+                        <p className={`text-lg font-bold font-mono tabular-nums leading-none mb-1 ${s.color}`}>{s.value}</p>
+                        <p className="text-[9px] text-zinc-600 leading-snug">{s.label}</p>
                     </div>
                 ))}
             </div>
