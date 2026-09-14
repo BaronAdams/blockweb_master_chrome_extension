@@ -607,5 +607,42 @@
     "paymentInstructions": "Bezpieczna płatność za pośrednictwem MakeTou · Zaloguj się za pomocą adresu e-mail zakupu, aby aktywować swój plan.",
     "included": "Co zawiera",
     "feature": "Funkcja"
+  },
+  "onboarding": {
+    "tagline": "Odzyskaj kontrolę nad swoim czasem online",
+    "getStarted": "Zacznij",
+    "next": "Kontynuuj",
+    "skip": "Pomiń",
+    "problemTitle": "Internet został zaprojektowany, by cię rozpraszać",
+    "problemDesc": "To nie kwestia silnej woli — platformy są zaprojektowane, by kraść twoją uwagę. Oto co cię to kosztuje.",
+    "stat1Value": "2h36",
+    "stat1Label": "stracone codziennie średnio",
+    "stat2Value": "47×",
+    "stat2Label": "sprawdzeń telefonu dziennie",
+    "stat3Value": "68%",
+    "stat3Label": "chce ograniczyć czas ekranowy",
+    "solutionTitle": "Oto twoje narzędzia",
+    "feat1Title": "Zablokuj wszystko",
+    "feat1Desc": "Natychmiast zablokuj dowolną stronę lub słowo kluczowe — na stałe lub wg harmonogramu.",
+    "feat2Title": "Tryb Ścisły",
+    "feat2Desc": "Aktywuj nieprzełamywalną blokadę na określony czas. Bez odwrotu.",
+    "feat3Title": "Inteligentne profile",
+    "feat3Desc": "Twórz skupione sesje dla pracy, nauki lub cyfrowego detoksu.",
+    "goalTitle": "Jaki jest twój główny cel?",
+    "goalSubtitle": "Powiedz nam, co cię tu dzisiaj przyprowadziło",
+    "goal1": "Praca",
+    "goal2": "Nauka",
+    "goal3": "Cyfrowy detoks",
+    "goal4": "Osobisty",
+    "ctaTitle": "Gotowy do skupienia?",
+    "ctaSubtitle": "Utwórz darmowe konto, aby synchronizować ustawienia na wszystkich urządzeniach.",
+    "ctaBenefit1": "Twoje ustawienia bezpiecznie zapisane",
+    "ctaBenefit2": "Działa na wszystkich twoich urządzeniach",
+    "ctaBenefit3": "Darmowy na zawsze — ulepsz kiedy chcesz",
+    "ctaCreate": "Utwórz moje darmowe konto",
+    "ctaSkip": "Kontynuuj bez konta"
+  },
+  "_manifest": {
+    "appDescription": "Blokuj rozpraszające strony i treści dla dorosłych. Pozostań skupiony z limitami czasu, profilami i Trybem Ścisłym."
   }
 }

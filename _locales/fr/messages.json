@@ -607,5 +607,42 @@
     "paymentInstructions": "Paiement sécurisé via MakeTou · Connectez-vous avec l'email d'achat pour activer votre plan.",
     "included": "Ce qui est inclus",
     "feature": "Fonctionnalité"
+  },
+  "onboarding": {
+    "tagline": "Reprenez le contrôle de votre temps en ligne",
+    "getStarted": "Commencer",
+    "next": "Continuer",
+    "skip": "Passer",
+    "problemTitle": "Le web est conçu pour vous distraire",
+    "problemDesc": "Ce n'est pas une question de volonté — les plateformes sont conçues pour capturer votre attention. Voici ce que ça vous coûte.",
+    "stat1Value": "2h36",
+    "stat1Label": "perdues chaque jour en moyenne",
+    "stat2Value": "47×",
+    "stat2Label": "vérifications du téléphone par jour",
+    "stat3Value": "68%",
+    "stat3Label": "veulent réduire leur temps d'écran",
+    "solutionTitle": "Voici vos outils",
+    "feat1Title": "Bloquez tout",
+    "feat1Desc": "Bloquez instantanément n'importe quel site ou mot-clé — pour toujours ou sur un planning.",
+    "feat2Title": "Mode Strict",
+    "feat2Desc": "Activez un verrou infranchissable pour une durée définie. Pas de retour possible.",
+    "feat3Title": "Profils intelligents",
+    "feat3Desc": "Créez des sessions adaptées au travail, aux études ou à la désintox digitale.",
+    "goalTitle": "Quel est votre objectif principal ?",
+    "goalSubtitle": "Dites-nous ce qui vous amène ici aujourd'hui",
+    "goal1": "Travail",
+    "goal2": "Études",
+    "goal3": "Désintox digitale",
+    "goal4": "Personnel",
+    "ctaTitle": "Prêt à vous concentrer ?",
+    "ctaSubtitle": "Créez un compte gratuit pour synchroniser vos paramètres sur tous vos appareils.",
+    "ctaBenefit1": "Vos paramètres sauvegardés en sécurité",
+    "ctaBenefit2": "Fonctionne sur tous vos appareils",
+    "ctaBenefit3": "Gratuit pour toujours — améliorez quand vous voulez",
+    "ctaCreate": "Créer mon compte gratuit",
+    "ctaSkip": "Continuer sans compte"
+  },
+  "_manifest": {
+    "appDescription": "Bloquez sites distrayants et contenu adulte. Restez concentré avec des limites de temps, des profils et le Mode Strict."
   }
 }

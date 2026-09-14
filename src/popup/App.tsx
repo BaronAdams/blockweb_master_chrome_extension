@@ -52,7 +52,16 @@ export default function App() {
     /* ── Chargement state + détection onglet actif ── */
     useEffect(() => {
         // @ts-ignore
-        chrome.storage.local.get(STORAGE_KEY, (res) => setState_(res[STORAGE_KEY] ?? null));
+        chrome.storage.local.get(STORAGE_KEY, (res: any) => {
+            const loaded: State | null = res[STORAGE_KEY] ?? null
+            if (loaded?.onboardingCompleted === false) {
+                // @ts-ignore
+                chrome.tabs.create({ url: chrome.runtime.getURL('src/onboarding/index.html') })
+                window.close()
+                return
+            }
+            setState_(loaded)
+        });
         const listener = (changes: any) => {
             if (changes[STORAGE_KEY]) setState_(changes[STORAGE_KEY].newValue);
         };
@@ -540,7 +549,7 @@ export default function App() {
                 )}
 
                 <p className="text-center text-[9px] text-zinc-700">
-                    v1.0.2 • <span className="hover:text-zinc-500 cursor-pointer">{tc('support')}</span>
+                    v1.1.0 • <span className="hover:text-zinc-500 cursor-pointer">{tc('support')}</span>
                 </p>
             </footer>
 

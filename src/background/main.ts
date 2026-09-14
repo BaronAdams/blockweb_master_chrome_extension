@@ -48,9 +48,6 @@ export function downgradeToFree(state: State): void {
 
     state.isPremium = false
 
-    // Désactiver le blocage adulte (fonctionnalité Premium)
-    state.adultContentBlocked = false
-
     // Plafonne le mode strict à 24h en Free
     if (state.strictDefaultTime > 86_400_000) state.strictDefaultTime = 86_400_000
     if (state.strictModeUntil && state.strictModeUntil > Date.now() + 86_400_000) {
@@ -150,7 +147,7 @@ let activeStartTime: number | null = null
    ON INSTALLED
 ========================================================= */
 
-chrome.runtime.onInstalled.addListener(async () => {
+chrome.runtime.onInstalled.addListener(async ({ reason }) => {
     const initialState: State = {
         auth: {
             isAuthenticated: false,
@@ -185,11 +182,20 @@ chrome.runtime.onInstalled.addListener(async () => {
         usageHistory: {},
         detectedAdultDomains: [],
         customProductivitySites: [],
+        onboardingCompleted: false,
     }
 
     const existing = await chrome.storage.local.get('blockweb_master_state')
     if (!existing.blockweb_master_state) {
         await setState(initialState)
+    } else if ((existing.blockweb_master_state as State).onboardingCompleted === undefined) {
+        // Existing user updating — mark onboarding done so they never see it
+        await setState({ ...(existing.blockweb_master_state as State), onboardingCompleted: true })
+    }
+
+    // Ouvrir l'onboarding uniquement lors d'une installation fraîche
+    if (reason === 'install') {
+        chrome.tabs.create({ url: chrome.runtime.getURL('src/onboarding/index.html') })
     }
 
     // Page affichée si l'extension est désinstallée en mode strict.
@@ -635,10 +641,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
             /* ── Adulte / Strict / URL ── */
             case 'TOGGLE_ADULT_CONTENT': {
-                if (!state.isPremium) {
-                    sendResponse({ success: false, reason: 'Cette fonctionnalité est premium' })
-                    return
-                }
                 await setState({ ...state, adultContentBlocked: !state.adultContentBlocked })
                 sendResponse({ success: true })
                 return

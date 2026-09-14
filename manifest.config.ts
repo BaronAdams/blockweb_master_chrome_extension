@@ -23,7 +23,7 @@ export function createManifest(env: Record<string, string>) {
         manifest_version: 3,
         name: pkg.name,
         version: pkg.version,
-        description: "Block distracting websites, set time limits on social media, and stay focused with an unbreakable Strict Mode.",
+        description: "__MSG_appDescription__",
         default_locale: "en",
         icons: {
             48: 'public/icon48.png',
@@ -86,7 +86,12 @@ export function createManifest(env: Record<string, string>) {
         ],
         web_accessible_resources: [
             {
-                resources: ["src/dashboard/index.html", "src/auth/index.html", "src/blocked/index.html"],
+                resources: [
+                    "src/dashboard/index.html",
+                    "src/auth/index.html",
+                    "src/blocked/index.html",
+                    "src/onboarding/index.html",
+                ],
                 matches: ["<all_urls>"]
             }
         ]

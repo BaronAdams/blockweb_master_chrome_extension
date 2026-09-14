@@ -607,5 +607,42 @@
     "paymentInstructions": "Pagamento seguro via MakeTou · Inicia sessão com o email de compra para ativar o teu plano.",
     "included": "O que está incluído",
     "feature": "Funcionalidade"
+  },
+  "onboarding": {
+    "tagline": "Recupera o controlo do teu tempo online",
+    "getStarted": "Começar",
+    "next": "Continuar",
+    "skip": "Saltar",
+    "problemTitle": "A web foi criada para te distrair",
+    "problemDesc": "Não é falta de vontade — as plataformas são desenhadas para capturar a tua atenção. Aqui está o que te custa.",
+    "stat1Value": "2h36",
+    "stat1Label": "perdidas por dia em média",
+    "stat2Value": "47×",
+    "stat2Label": "verificações do telemóvel por dia",
+    "stat3Value": "68%",
+    "stat3Label": "querem reduzir o tempo de ecrã",
+    "solutionTitle": "Aqui estão as tuas ferramentas",
+    "feat1Title": "Bloqueia tudo",
+    "feat1Desc": "Bloqueia instantaneamente qualquer site ou palavra-chave — permanentemente ou por horário.",
+    "feat2Title": "Modo Estrito",
+    "feat2Desc": "Ativa um bloqueio inabalável por uma duração definida. Sem volta atrás.",
+    "feat3Title": "Perfis inteligentes",
+    "feat3Desc": "Cria sessões focadas para trabalho, estudo ou desintoxicação digital.",
+    "goalTitle": "Qual é o teu objetivo principal?",
+    "goalSubtitle": "Diz-nos o que te trouxe aqui hoje",
+    "goal1": "Trabalho",
+    "goal2": "Estudo",
+    "goal3": "Detox digital",
+    "goal4": "Pessoal",
+    "ctaTitle": "Pronto para te focares?",
+    "ctaSubtitle": "Cria uma conta gratuita para sincronizar as tuas definições em todos os dispositivos.",
+    "ctaBenefit1": "As tuas definições guardadas em segurança",
+    "ctaBenefit2": "Funciona em todos os teus dispositivos",
+    "ctaBenefit3": "Gratuito para sempre — melhora quando quiseres",
+    "ctaCreate": "Criar a minha conta gratuita",
+    "ctaSkip": "Continuar sem conta"
+  },
+  "_manifest": {
+    "appDescription": "Bloqueia sites distrativos e conteúdo adulto. Mantém o foco com limites de tempo, perfis e Modo Estrito."
   }
 }

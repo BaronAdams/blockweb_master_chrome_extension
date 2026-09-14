@@ -607,5 +607,42 @@
     "paymentInstructions": "Veilige betaling via MakeTou · Log in met je aankoop-e-mail om je plan te activeren.",
     "included": "Wat is inbegrepen",
     "feature": "Functie"
+  },
+  "onboarding": {
+    "tagline": "Neem de controle terug over je online tijd",
+    "getStarted": "Begin",
+    "next": "Doorgaan",
+    "skip": "Overslaan",
+    "problemTitle": "Het web is ontworpen om je af te leiden",
+    "problemDesc": "Het is geen kwestie van wilskracht — platforms zijn ontworpen om je aandacht te stelen. Dit is wat het je kost.",
+    "stat1Value": "2u36",
+    "stat1Label": "verloren per dag gemiddeld",
+    "stat2Value": "47×",
+    "stat2Label": "telefoonchecks per dag",
+    "stat3Value": "68%",
+    "stat3Label": "wil minder schermtijd",
+    "solutionTitle": "Dit zijn jouw tools",
+    "feat1Title": "Blokkeer alles",
+    "feat1Desc": "Blokkeer onmiddellijk elke website of trefwoord — permanent of op schema.",
+    "feat2Title": "Strikte modus",
+    "feat2Desc": "Activeer een onverbrekelijke vergrendeling voor een bepaalde duur. Geen weg terug.",
+    "feat3Title": "Slimme profielen",
+    "feat3Desc": "Maak gefocuste sessies voor werk, studie of digitale detox.",
+    "goalTitle": "Wat is jouw voornaamste doel?",
+    "goalSubtitle": "Vertel ons wat je hier vandaag brengt",
+    "goal1": "Werk",
+    "goal2": "Studie",
+    "goal3": "Digitale detox",
+    "goal4": "Persoonlijk",
+    "ctaTitle": "Klaar om te focussen?",
+    "ctaSubtitle": "Maak een gratis account aan om je instellingen op al je apparaten te synchroniseren.",
+    "ctaBenefit1": "Jouw instellingen veilig opgeslagen",
+    "ctaBenefit2": "Werkt op al je apparaten",
+    "ctaBenefit3": "Voor altijd gratis — upgrade wanneer je wil",
+    "ctaCreate": "Mijn gratis account aanmaken",
+    "ctaSkip": "Doorgaan zonder account"
+  },
+  "_manifest": {
+    "appDescription": "Blokkeer afleidende sites en volwasseneninhoud. Blijf gefocust met tijdslimieten, profielen en Strikte Modus."
   }
 }

@@ -318,9 +318,8 @@ const BlockLists: React.FC = () => {
                             <BanIcon fill="#E63B4F" stroke="#000" /*className="text-rose-500"*/ width="20" />
                         </div>
                         <div>
-                            <h3 className="text-sm font-medium text-white flex items-center gap-2">
+                            <h3 className="text-sm font-medium text-white">
                                 {t('adultBlocking')}
-                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500 text-black font-bold">PRO</span>
                             </h3>
                             <p className="text-xs text-zinc-500 mt-0.5">{t('adultDesc')}</p>
                         </div>
@@ -330,14 +329,11 @@ const BlockLists: React.FC = () => {
                             type="checkbox"
                             id="adult-toggle"
                             checked={state?.adultContentBlocked ?? false}
-                            disabled={!isPremium || (isStrict && (state?.adultContentBlocked ?? false))}
+                            disabled={isStrict && (state?.adultContentBlocked ?? false)}
                             onChange={() => sendToBackground({ type: 'TOGGLE_ADULT_CONTENT' })}
                             className={`toggle-checkbox absolute ${state?.adultContentBlocked ? 'right-0' : 'left-0'} block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-zinc-700 transition-all duration-300 z-5`}
                         />
                         <label htmlFor="adult-toggle" className="toggle-label block overflow-hidden h-5 w-10 rounded-full bg-zinc-800 cursor-pointer border border-zinc-700" />
-                        {!isPremium && (
-                            <div onClick={checkPremium} className="absolute inset-0 z-30 cursor-pointer" />
-                        )}
                     </div>
                 </div>
             </section>

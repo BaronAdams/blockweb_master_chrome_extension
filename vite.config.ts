@@ -31,8 +31,10 @@ function chromeI18nPlugin(): Plugin {
         for (const [ns, keys] of Object.entries(namespaced)) {
           for (const [key, value] of Object.entries(keys)) {
             if (typeof value !== 'string') continue
-            // Chrome keys: [A-Za-z0-9_] only, max 75 chars
-            const chromeKey = `${ns}__${key}`.replace(/[^A-Za-z0-9_]/g, '_').slice(0, 75)
+            // Chrome keys: [A-Za-z0-9_] only, max 75 chars.
+            // _manifest namespace: write keys bare (no prefix) so manifest can use __MSG_key__.
+            const raw = ns === '_manifest' ? key : `${ns}__${key}`
+            const chromeKey = raw.replace(/[^A-Za-z0-9_]/g, '_').slice(0, 75)
             chrome[chromeKey] = { message: value }
           }
         }
@@ -86,9 +88,10 @@ export default defineConfig(({ mode }) => {
     build: {
       rollupOptions: {
         input: {
-          dashboard: resolve(__dirname, 'src/dashboard/index.html'),
-          blocked:   resolve(__dirname, 'src/blocked/index.html'),
-          auth:      resolve(__dirname, 'src/auth/index.html'),
+          dashboard:  resolve(__dirname, 'src/dashboard/index.html'),
+          blocked:    resolve(__dirname, 'src/blocked/index.html'),
+          auth:       resolve(__dirname, 'src/auth/index.html'),
+          onboarding: resolve(__dirname, 'src/onboarding/index.html'),
         },
         output: {
           manualChunks: undefined,

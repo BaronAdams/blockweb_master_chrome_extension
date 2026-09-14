@@ -607,5 +607,42 @@
     "paymentInstructions": "通过MakeTou安全支付 · 使用购买电子邮件登录以激活您的套餐。",
     "included": "包含内容",
     "feature": "功能"
+  },
+  "onboarding": {
+    "tagline": "重新掌控您的网络时间",
+    "getStarted": "开始",
+    "next": "继续",
+    "skip": "跳过",
+    "problemTitle": "互联网天生就是为了分散你的注意力",
+    "problemDesc": "这不是意志力问题——平台的设计就是为了窃取你的注意力。以下是它的代价。",
+    "stat1Value": "2小时36分",
+    "stat1Label": "每天平均浪费的时间",
+    "stat2Value": "47次",
+    "stat2Label": "每天查看手机的次数",
+    "stat3Value": "68%",
+    "stat3Label": "的人想减少屏幕时间",
+    "solutionTitle": "这是您的工具",
+    "feat1Title": "拦截一切",
+    "feat1Desc": "即时屏蔽任何分心网站或关键词——永久封锁或按计划封锁。",
+    "feat2Title": "严格模式",
+    "feat2Desc": "在设定的时间内启动无法突破的锁定。没有回头路。",
+    "feat3Title": "智能配置文件",
+    "feat3Desc": "为工作、学习或数字排毒创建专注会话。",
+    "goalTitle": "您的主要目标是什么？",
+    "goalSubtitle": "告诉我们今天带您来这里的原因",
+    "goal1": "工作",
+    "goal2": "学习",
+    "goal3": "数字排毒",
+    "goal4": "个人",
+    "ctaTitle": "准备好专注了吗？",
+    "ctaSubtitle": "创建免费账户，将您的设置同步到所有设备。",
+    "ctaBenefit1": "您的设置安全保存",
+    "ctaBenefit2": "在所有设备上都能使用",
+    "ctaBenefit3": "永久免费——随时升级",
+    "ctaCreate": "创建我的免费账户",
+    "ctaSkip": "不使用账户继续"
+  },
+  "_manifest": {
+    "appDescription": "屏蔽分心网站与成人内容，通过时间限制、配置文件和严格模式保持专注。"
   }
 }

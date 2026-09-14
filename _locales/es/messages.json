@@ -607,5 +607,42 @@
     "paymentInstructions": "Pago seguro vía MakeTou · Inicia sesión con el correo electrónico de compra para activar tu plan.",
     "included": "Lo que está incluido",
     "feature": "Característica"
+  },
+  "onboarding": {
+    "tagline": "Recupera el control de tu tiempo en línea",
+    "getStarted": "Comenzar",
+    "next": "Continuar",
+    "skip": "Saltar",
+    "problemTitle": "La web está diseñada para distraerte",
+    "problemDesc": "No es cuestión de fuerza de voluntad — las plataformas están diseñadas para capturar tu atención. Esto es lo que te cuesta.",
+    "stat1Value": "2h36",
+    "stat1Label": "perdidas al día en promedio",
+    "stat2Value": "47×",
+    "stat2Label": "veces que revisas el teléfono al día",
+    "stat3Value": "68%",
+    "stat3Label": "quieren reducir su tiempo de pantalla",
+    "solutionTitle": "Aquí están tus herramientas",
+    "feat1Title": "Bloquea cualquier cosa",
+    "feat1Desc": "Bloquea instantáneamente cualquier sitio o palabra clave — permanente o por horario.",
+    "feat2Title": "Modo Estricto",
+    "feat2Desc": "Activa un bloqueo inquebrantable por una duración determinada. Sin vuelta atrás.",
+    "feat3Title": "Perfiles inteligentes",
+    "feat3Desc": "Crea sesiones enfocadas para trabajo, estudio o desintoxicación digital.",
+    "goalTitle": "¿Cuál es tu objetivo principal?",
+    "goalSubtitle": "Cuéntanos qué te trae aquí hoy",
+    "goal1": "Trabajo",
+    "goal2": "Estudio",
+    "goal3": "Detox digital",
+    "goal4": "Personal",
+    "ctaTitle": "¿Listo para enfocarte?",
+    "ctaSubtitle": "Crea una cuenta gratuita para sincronizar tu configuración en todos tus dispositivos.",
+    "ctaBenefit1": "Tu configuración guardada de forma segura",
+    "ctaBenefit2": "Funciona en todos tus dispositivos",
+    "ctaBenefit3": "Gratis para siempre — mejora cuando quieras",
+    "ctaCreate": "Crear mi cuenta gratuita",
+    "ctaSkip": "Continuar sin cuenta"
+  },
+  "_manifest": {
+    "appDescription": "Bloquea sitios distractores y contenido adulto. Mantente enfocado con límites de tiempo, perfiles y Modo Estricto."
   }
 }
