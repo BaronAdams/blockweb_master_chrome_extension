@@ -6,8 +6,11 @@ import {
     EyeOffIcon, TrendingDownIcon, Gamepad2Icon, TimerIcon,
 } from 'lucide-react'
 import logo from '@/assets/blockweb_master_icon.svg'
-import imgProblem from '@/assets/onboarding/ob-problem.jpg'
-import imgCta     from '@/assets/onboarding/ob-cta.jpg'
+import imgProblem    from '@/assets/onboarding/ob-problem.jpg'
+import imgCta        from '@/assets/onboarding/ob-cta.jpg'
+import imgFeatBlock  from '@/assets/onboarding/ob-feat-block.png'
+import imgFeatStrict from '@/assets/onboarding/ob-feat-strict.png'
+import imgFeatProfs  from '@/assets/onboarding/ob-feat-profiles.jpg'
 import "@fontsource/inter/400.css"
 import "@fontsource/inter/600.css"
 import "@fontsource/inter/700.css"
@@ -147,43 +150,48 @@ function ScreenProblem({ onNext, onSkip }: { onNext: () => void; onSkip: () => v
     ]
 
     return (
-        <div className="py-4">
-            {/* HStack: image + header text */}
-            <div className="flex gap-3.5 mb-5">
-                <div className="rounded-xl overflow-hidden shrink-0 shadow-2xl shadow-black/60" style={{ width: '150px', height: '200px' }}>
+        <div className="py-2">
+            {/* HStack: image left (80 vh) + ALL text content right */}
+            <div className="flex gap-3 mb-3" style={{ height: '80vh' }}>
+                {/* Image — left column, full height */}
+                <div className="flex-shrink-0 rounded-2xl overflow-hidden shadow-2xl shadow-black/60" style={{ width: '44%' }}>
                     <img src={imgProblem} alt="" className="w-full h-full object-cover object-top" />
                 </div>
-                <div className="flex flex-col justify-center min-w-0">
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[11px] font-semibold mb-3 self-start">
-                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse shrink-0" />
-                        {t('problemBadge')}
-                    </div>
-                    <h2 className="text-[17px] font-bold text-white mb-2 leading-snug">{t('problemTitle')}</h2>
-                    <p className="text-zinc-300 text-[13px] leading-relaxed">{t('problemDesc')}</p>
-                </div>
-            </div>
 
-            {/* Problem pills */}
-            <div className="stagger grid grid-cols-2 gap-2 mb-4">
-                {problems.map((p, i) => (
-                    <div key={i} className="flex items-start gap-2.5 px-3 py-3 rounded-xl bg-zinc-900/70 border border-zinc-800">
-                        <span className={`shrink-0 mt-0.5 ${p.color}`}>{p.icon}</span>
-                        <div>
-                            <p className="text-[13px] font-semibold text-white leading-tight mb-0.5">{p.label}</p>
-                            <p className="text-[11px] text-zinc-400 leading-snug">{p.sub}</p>
+                {/* All text — right column, scrollable */}
+                <div className="flex-1 flex flex-col justify-start overflow-y-auto py-1">
+                    <div className="stagger mb-3">
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-semibold mb-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse shrink-0" />
+                            {t('problemBadge')}
                         </div>
+                        <h2 className="text-[17px] font-bold text-white mb-2 leading-snug">{t('problemTitle')}</h2>
+                        <p className="text-[12px] text-zinc-400 leading-relaxed">{t('problemDesc')}</p>
                     </div>
-                ))}
-            </div>
 
-            {/* Stats */}
-            <div className="stagger grid grid-cols-3 gap-2 mb-2">
-                {stats.map((s, i) => (
-                    <div key={i} className={`px-2 py-3 rounded-xl border ${s.bg} text-center`}>
-                        <p className={`text-base font-bold font-mono tabular-nums leading-none mb-1 ${s.color}`}>{s.value}</p>
-                        <p className="text-[10px] text-zinc-400 leading-snug">{s.label}</p>
+                    {/* Problem pills — single column */}
+                    <div className="stagger space-y-1.5 mb-3">
+                        {problems.map((p, i) => (
+                            <div key={i} className="flex items-center gap-2 px-2.5 py-2 rounded-xl bg-zinc-900/70 border border-zinc-800">
+                                <span className={`shrink-0 ${p.color}`}>{p.icon}</span>
+                                <div>
+                                    <p className="text-[11px] font-semibold text-white leading-tight">{p.label}</p>
+                                    <p className="text-[9px] text-zinc-500 leading-snug">{p.sub}</p>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                ))}
+
+                    {/* Stats */}
+                    <div className="stagger grid grid-cols-3 gap-1.5">
+                        {stats.map((s, i) => (
+                            <div key={i} className={`px-1 py-2 rounded-xl border ${s.bg} text-center`}>
+                                <p className={`text-[13px] font-bold font-mono tabular-nums leading-none mb-1 ${s.color}`}>{s.value}</p>
+                                <p className="text-[8px] text-zinc-500 leading-snug">{s.label}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
 
             <Nav onNext={onNext} onSkipToEnd={onSkip} />
@@ -200,18 +208,21 @@ function ScreenFeatures({ onNext, onSkip }: { onNext: () => void; onSkip: () => 
 
     const features = [
         {
+            image: imgFeatBlock,
             icon: <BanIcon className="text-rose-400" width={20} />,
             bg: 'bg-rose-500/10 border-rose-500/20',
             title: t('feat1Title'),
             desc: t('feat1Desc'),
         },
         {
+            image: imgFeatStrict,
             icon: <ShieldAlertIcon fill="currentColor" stroke="#8b0836" className="text-rose-400" width={20} />,
             bg: 'bg-rose-500/10 border-rose-500/20',
             title: t('feat2Title'),
             desc: t('feat2Desc'),
         },
         {
+            image: imgFeatProfs,
             icon: <CalendarIcon className="text-amber-400" width={20} />,
             bg: 'bg-amber-500/10 border-amber-500/20',
             title: t('feat3Title'),
@@ -220,23 +231,30 @@ function ScreenFeatures({ onNext, onSkip }: { onNext: () => void; onSkip: () => 
     ]
 
     return (
-        <div className="py-6">
+        <div className="py-4">
             <div className="stagger mb-5 text-center">
                 <h2 className="text-2xl font-bold text-white mb-1">{t('solutionTitle')}</h2>
             </div>
 
-            <div className="stagger space-y-3 mb-2">
+            <div className="stagger space-y-5 mb-2">
                 {features.map((f, i) => (
                     <div
                         key={i}
-                        className="flex items-start gap-4 p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 transition-colors"
+                        className="rounded-2xl bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 transition-colors overflow-hidden"
                     >
-                        <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${f.bg}`}>
-                            {f.icon}
+                        {/* Feature image — ~3× bigger (was ~100 px → 300 px) */}
+                        <div className="w-full overflow-hidden" style={{ height: '300px' }}>
+                            <img src={f.image} alt="" className="w-full h-full object-cover object-center" />
                         </div>
-                        <div>
-                            <p className="text-[15px] font-semibold text-white mb-1">{f.title}</p>
-                            <p className="text-[13px] text-zinc-400 leading-relaxed">{f.desc}</p>
+                        {/* Text */}
+                        <div className="flex items-start gap-4 p-5">
+                            <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${f.bg}`}>
+                                {f.icon}
+                            </div>
+                            <div>
+                                <p className="text-[16px] font-bold text-white mb-1">{f.title}</p>
+                                <p className="text-[13px] text-zinc-400 leading-relaxed">{f.desc}</p>
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -312,47 +330,51 @@ function ScreenCta({ onCreateAccount, onSkipAccount }: {
     const benefits = [t('ctaBenefit1'), t('ctaBenefit2'), t('ctaBenefit3')]
 
     return (
-        <div className="py-4 flex flex-col items-center">
-            {/* HStack: image + title/subtitle */}
-            <div className="w-full flex gap-3.5 mb-6">
-                <div className="rounded-xl overflow-hidden shrink-0 shadow-2xl shadow-black/60" style={{ width: '150px', height: '190px' }}>
+        <div className="py-2">
+            {/* HStack: image left (80 vh) + ALL text content right */}
+            <div className="flex gap-3" style={{ height: '80vh' }}>
+                {/* Image — left column, full height */}
+                <div className="flex-shrink-0 rounded-2xl overflow-hidden shadow-2xl shadow-black/60" style={{ width: '44%' }}>
                     <img src={imgCta} alt="" className="w-full h-full object-cover object-center" />
                 </div>
-                <div className="flex flex-col justify-center min-w-0">
-                    <h2 className="text-[17px] font-bold text-white mb-2 leading-snug">{t('ctaTitle')}</h2>
-                    <p className="text-zinc-300 text-[13px] leading-relaxed">{t('ctaSubtitle')}</p>
-                </div>
-            </div>
 
-            {/* Benefits */}
-            <div className="stagger-benefits w-full space-y-2 mb-7">
-                {benefits.map((b, i) => (
-                    <div key={i} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-zinc-900/60 border border-zinc-800 text-left">
-                        <div className="w-5 h-5 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center shrink-0">
-                            <CheckIcon width={10} strokeWidth={3} className="text-emerald-400" />
-                        </div>
-                        <p className="text-[13px] text-zinc-300">{b}</p>
+                {/* All text — right column, scrollable */}
+                <div className="flex-1 flex flex-col justify-center overflow-y-auto py-2">
+                    <div className="stagger mb-4">
+                        <h2 className="text-[20px] font-bold text-white mb-2 leading-snug">{t('ctaTitle')}</h2>
+                        <p className="text-[12px] text-zinc-400 leading-relaxed">{t('ctaSubtitle')}</p>
                     </div>
-                ))}
-            </div>
 
-            {/* CTA buttons */}
-            <div className="stagger w-full space-y-3">
-                <button
-                    onClick={onCreateAccount}
-                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-white font-semibold text-sm shadow-xl shadow-amber-900/20 transition-all hover:brightness-110 active:scale-[0.97]"
-                    style={{ background: 'linear-gradient(135deg, #d97706, #92400e)' }}
-                >
-                    {t('ctaCreate')}
-                    <ChevronRightIcon width={14} />
-                </button>
+                    {/* Benefits */}
+                    <div className="stagger-benefits space-y-2 mb-5">
+                        {benefits.map((b, i) => (
+                            <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-900/60 border border-zinc-800">
+                                <div className="w-4 h-4 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                                    <CheckIcon width={8} strokeWidth={3} className="text-emerald-400" />
+                                </div>
+                                <p className="text-[11px] text-zinc-300">{b}</p>
+                            </div>
+                        ))}
+                    </div>
 
-                <button
-                    onClick={onSkipAccount}
-                    className="w-full py-2.5 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
-                >
-                    {t('ctaSkip')}
-                </button>
+                    {/* CTA buttons */}
+                    <div className="stagger space-y-2">
+                        <button
+                            onClick={onCreateAccount}
+                            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-white font-semibold text-sm shadow-xl shadow-amber-900/20 transition-all hover:brightness-110 active:scale-[0.97]"
+                            style={{ background: 'linear-gradient(135deg, #d97706, #92400e)' }}
+                        >
+                            {t('ctaCreate')}
+                            <ChevronRightIcon width={14} />
+                        </button>
+                        <button
+                            onClick={onSkipAccount}
+                            className="w-full py-2 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+                        >
+                            {t('ctaSkip')}
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     )
