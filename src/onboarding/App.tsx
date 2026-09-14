@@ -18,22 +18,22 @@ const TOTAL = 5
 /* ─── animation helpers ─────────────────────────────────── */
 
 const slide = {
-    enter: (dir: number) => ({ x: dir > 0 ? 72 : -72, opacity: 0 }),
-    center: { x: 0, opacity: 1, transition: { duration: 0.32, ease: 'easeOut' as const } },
+    enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
+    center: { x: 0, opacity: 1, transition: { duration: 0.18, ease: 'easeOut' as const } },
     exit: (dir: number) => ({
-        x: dir > 0 ? -72 : 72, opacity: 0,
-        transition: { duration: 0.24, ease: 'easeIn' as const },
+        x: dir > 0 ? -60 : 60, opacity: 0,
+        transition: { duration: 0.14, ease: 'easeIn' as const },
     }),
 }
 
 const stagger = {
     hidden: {},
-    show: { transition: { staggerChildren: 0.09, delayChildren: 0.05 } },
+    show: { transition: { staggerChildren: 0.05, delayChildren: 0.02 } },
 }
 
 const fadeUp = {
-    hidden: { opacity: 0, y: 22 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.42, ease: 'easeOut' as const } },
+    hidden: { opacity: 0, y: 14 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.22, ease: 'easeOut' as const } },
 }
 
 /* ─── background blobs ───────────────────────────────────── */
@@ -42,19 +42,19 @@ function Blobs() {
     return (
         <div className="fixed inset-0 overflow-hidden pointer-events-none select-none" aria-hidden>
             <motion.div
-                className="absolute top-[10%] left-[5%] w-[500px] h-[500px] rounded-full bg-rose-600/10 blur-[100px]"
-                animate={{ x: [0, 40, 0], y: [0, -30, 0] }}
+                className="absolute top-[5%] left-[0%] w-[550px] h-[550px] rounded-full bg-amber-500/10 blur-[120px]"
+                animate={{ x: [0, 35, 0], y: [0, -25, 0] }}
                 transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
             />
             <motion.div
-                className="absolute bottom-[5%] right-[5%] w-[420px] h-[420px] rounded-full bg-amber-500/8 blur-[90px]"
-                animate={{ x: [0, -30, 0], y: [0, 28, 0] }}
+                className="absolute bottom-[0%] right-[0%] w-[480px] h-[480px] rounded-full bg-yellow-400/8 blur-[110px]"
+                animate={{ x: [0, -28, 0], y: [0, 22, 0] }}
                 transition={{ duration: 13, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
             />
             <motion.div
-                className="absolute top-[45%] right-[20%] w-[300px] h-[300px] rounded-full bg-violet-500/6 blur-[80px]"
-                animate={{ x: [0, 25, 0], y: [0, -35, 0] }}
-                transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut', delay: 5 }}
+                className="absolute top-[40%] left-[35%] w-[320px] h-[320px] rounded-full bg-amber-600/6 blur-[90px]"
+                animate={{ x: [0, 20, 0], y: [0, -28, 0] }}
+                transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut', delay: 4 }}
             />
         </div>
     )
@@ -71,9 +71,9 @@ function Dots({ current }: { current: number }) {
                     className="h-1.5 rounded-full bg-zinc-700"
                     animate={{
                         width: i === current ? 24 : 6,
-                        backgroundColor: i === current ? '#e11d48' : i < current ? '#9f1239' : '#3f3f46',
+                        backgroundColor: i === current ? '#f59e0b' : i < current ? '#92400e' : '#3f3f46',
                     }}
-                    transition={{ duration: 0.3 }}
+                    transition={{ duration: 0.2 }}
                 />
             ))}
         </div>
@@ -132,11 +132,11 @@ function ScreenWelcome({ onNext }: { onNext: () => void }) {
             <motion.div
                 variants={fadeUp}
                 initial={{ opacity: 0, scale: 0.6 }}
-                animate={{ opacity: 1, scale: 1, transition: { duration: 0.6, ease: [0.34, 1.56, 0.64, 1] } }}
+                animate={{ opacity: 1, scale: 1, transition: { duration: 0.32, ease: [0.34, 1.56, 0.64, 1] } }}
                 className="mb-8"
             >
                 <div className="relative">
-                    <div className="absolute inset-0 rounded-full bg-rose-500/25 blur-xl scale-150" />
+                    <div className="absolute inset-0 rounded-full bg-amber-400/20 blur-xl scale-150" />
                     <div className="relative w-20 h-20 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-2xl">
                         <img src={logo} alt="BlockWeb Master" className="w-12 h-12" />
                     </div>
@@ -152,7 +152,7 @@ function ScreenWelcome({ onNext }: { onNext: () => void }) {
                     BlockWeb
                 </span>
                 {' '}
-                <span className="bg-gradient-to-r from-rose-400 to-rose-600 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-amber-300 to-yellow-500 bg-clip-text text-transparent">
                     Master
                 </span>
             </motion.h1>
