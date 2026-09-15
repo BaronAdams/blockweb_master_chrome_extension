@@ -1,61 +1,36 @@
 import { useState, useCallback } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import {
-    BanIcon, ShieldAlertIcon, UsersIcon, ChevronRightIcon,
+    BanIcon, ShieldAlertIcon, CalendarIcon, ChevronRightIcon, ChevronLeftIcon,
     CheckIcon, BriefcaseIcon, BookOpenIcon, SmartphoneIcon, StarIcon,
+    EyeOffIcon, TrendingDownIcon, Gamepad2Icon, TimerIcon,
 } from 'lucide-react'
 import logo from '@/assets/blockweb_master_icon.svg'
+import imgProblem  from '@/assets/onboarding/ob-problem.jpg'
+import imgCta      from '@/assets/onboarding/ob-cta.jpg'
+import imgGoalWork  from '@/assets/onboarding/ob-goal-work.jpg'
+import imgGoalStudy from '@/assets/onboarding/ob-goal-study.jpg'
+import imgGoalDetox from '@/assets/onboarding/ob-goal-detox.jpg'
+import imgGoalPers  from '@/assets/onboarding/ob-goal-personal.jpg'
 import "@fontsource/inter/400.css"
 import "@fontsource/inter/600.css"
 import "@fontsource/inter/700.css"
+import "@fontsource/montserrat/400.css"
+import "@fontsource/montserrat/700.css"
 
 /* ─── constants ─────────────────────────────────────────── */
 
 const STORAGE_KEY = 'blockweb_master_state'
 const TOTAL = 5
 
-/* ─── animation helpers ─────────────────────────────────── */
-
-const slide = {
-    enter: (dir: number) => ({ x: dir > 0 ? 72 : -72, opacity: 0 }),
-    center: { x: 0, opacity: 1, transition: { duration: 0.32, ease: 'easeOut' as const } },
-    exit: (dir: number) => ({
-        x: dir > 0 ? -72 : 72, opacity: 0,
-        transition: { duration: 0.24, ease: 'easeIn' as const },
-    }),
-}
-
-const stagger = {
-    hidden: {},
-    show: { transition: { staggerChildren: 0.09, delayChildren: 0.05 } },
-}
-
-const fadeUp = {
-    hidden: { opacity: 0, y: 22 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.42, ease: 'easeOut' as const } },
-}
-
 /* ─── background blobs ───────────────────────────────────── */
 
 function Blobs() {
     return (
         <div className="fixed inset-0 overflow-hidden pointer-events-none select-none" aria-hidden>
-            <motion.div
-                className="absolute top-[10%] left-[5%] w-[500px] h-[500px] rounded-full bg-rose-600/10 blur-[100px]"
-                animate={{ x: [0, 40, 0], y: [0, -30, 0] }}
-                transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
-            />
-            <motion.div
-                className="absolute bottom-[5%] right-[5%] w-[420px] h-[420px] rounded-full bg-amber-500/8 blur-[90px]"
-                animate={{ x: [0, -30, 0], y: [0, 28, 0] }}
-                transition={{ duration: 13, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-            />
-            <motion.div
-                className="absolute top-[45%] right-[20%] w-[300px] h-[300px] rounded-full bg-violet-500/6 blur-[80px]"
-                animate={{ x: [0, 25, 0], y: [0, -35, 0] }}
-                transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut', delay: 5 }}
-            />
+            <div className="blob-1 absolute top-[5%] left-[0%] w-[550px] h-[550px] rounded-full bg-amber-500/10 blur-[120px]" />
+            <div className="blob-2 absolute bottom-[0%] right-[0%] w-[480px] h-[480px] rounded-full bg-yellow-400/8 blur-[110px]" />
+            <div className="blob-3 absolute top-[40%] left-[35%] w-[320px] h-[320px] rounded-full bg-amber-600/6 blur-[90px]" />
         </div>
     )
 }
@@ -66,14 +41,9 @@ function Dots({ current }: { current: number }) {
     return (
         <div className="flex items-center justify-center gap-2 mt-8">
             {Array.from({ length: TOTAL }).map((_, i) => (
-                <motion.div
+                <div
                     key={i}
-                    className="h-1.5 rounded-full bg-zinc-700"
-                    animate={{
-                        width: i === current ? 24 : 6,
-                        backgroundColor: i === current ? '#e11d48' : i < current ? '#9f1239' : '#3f3f46',
-                    }}
-                    transition={{ duration: 0.3 }}
+                    className={`dot ${i === current ? 'dot-active' : i < current ? 'dot-past' : 'dot-inactive'}`}
                 />
             ))}
         </div>
@@ -85,33 +55,43 @@ function Dots({ current }: { current: number }) {
 interface NavProps {
     onNext: () => void
     onSkipToEnd: () => void
+    onBack?: () => void
     nextLabel?: string
     nextDisabled?: boolean
     showSkip?: boolean
 }
 
-function Nav({ onNext, onSkipToEnd, nextLabel, nextDisabled, showSkip = true }: NavProps) {
+function Nav({ onNext, onSkipToEnd, onBack, nextLabel, nextDisabled, showSkip = true }: NavProps) {
     const { t } = useTranslation('onboarding')
     return (
         <div className="flex items-center justify-between mt-8 pt-4 border-t border-zinc-800/60">
-            {showSkip ? (
-                <button
-                    onClick={onSkipToEnd}
-                    className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors px-1 py-1"
-                >
-                    {t('skip')} →
-                </button>
-            ) : <div />}
-            <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
+            <div className="flex items-center gap-3">
+                {onBack && (
+                    <button
+                        onClick={onBack}
+                        className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300 transition-colors px-1 py-1"
+                    >
+                        <ChevronLeftIcon width={13} />
+                        {t('back')}
+                    </button>
+                )}
+                {showSkip && (
+                    <button
+                        onClick={onSkipToEnd}
+                        className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors px-1 py-1"
+                    >
+                        {t('skip')} →
+                    </button>
+                )}
+            </div>
+            <button
                 onClick={onNext}
                 disabled={nextDisabled}
-                className="flex items-center gap-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-colors shadow-lg shadow-rose-900/30"
+                className="flex items-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-500 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-amber-900/20"
             >
                 {nextLabel ?? t('next')}
                 <ChevronRightIcon width={14} />
-            </motion.button>
+            </button>
         </div>
     )
 }
@@ -124,57 +104,47 @@ function ScreenWelcome({ onNext }: { onNext: () => void }) {
     const { t } = useTranslation('onboarding')
 
     return (
-        <motion.div
-            className="flex flex-col items-center justify-center text-center py-12 min-h-[500px]"
-            variants={stagger} initial="hidden" animate="show"
-        >
+        <div className="stagger flex flex-col items-center text-center py-12 min-h-[480px] justify-center">
             {/* Logo */}
-            <motion.div
-                variants={fadeUp}
-                initial={{ opacity: 0, scale: 0.6 }}
-                animate={{ opacity: 1, scale: 1, transition: { duration: 0.6, ease: [0.34, 1.56, 0.64, 1] } }}
-                className="mb-8"
-            >
+            <div className="logo-pop mb-8">
                 <div className="relative">
-                    <div className="absolute inset-0 rounded-full bg-rose-500/25 blur-xl scale-150" />
+                    <div className="absolute inset-0 rounded-full bg-amber-400/20 blur-xl scale-150" />
                     <div className="relative w-20 h-20 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-2xl">
                         <img src={logo} alt="BlockWeb Master" className="w-12 h-12" />
                     </div>
                 </div>
-            </motion.div>
+            </div>
 
             {/* Title */}
-            <motion.h1
-                variants={fadeUp}
-                className="text-4xl font-bold text-white mb-3 tracking-tight"
+            <h1
+                className="text-4xl font-bold text-white mb-4 tracking-tight"
+                translate="no"
+                style={{ fontFamily: 'Montserrat, sans-serif', userSelect: 'none' }}
             >
                 <span className="bg-gradient-to-r from-white via-zinc-100 to-zinc-400 bg-clip-text text-transparent">
                     BlockWeb
                 </span>
                 {' '}
-                <span className="bg-gradient-to-r from-rose-400 to-rose-600 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-white via-zinc-100 to-zinc-400 bg-clip-text text-transparent">
                     Master
                 </span>
-            </motion.h1>
+            </h1>
 
             {/* Tagline */}
-            <motion.p variants={fadeUp} className="text-zinc-400 text-base max-w-xs leading-relaxed mb-10">
+            <p className="text-zinc-400 text-lg max-w-xs leading-relaxed mb-10">
                 {t('tagline')}
-            </motion.p>
+            </p>
 
             {/* CTA */}
-            <motion.button
-                variants={fadeUp}
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.96 }}
+            <button
                 onClick={onNext}
-                className="flex items-center gap-3 px-8 py-3.5 rounded-2xl text-white font-semibold text-base shadow-xl shadow-rose-900/40 transition-all"
-                style={{ background: 'linear-gradient(135deg, #e11d48, #be123c)' }}
+                className="flex items-center gap-3 px-8 py-3.5 rounded-2xl text-white font-semibold text-base shadow-xl shadow-amber-900/30 transition-all hover:brightness-110 active:scale-[0.97]"
+                style={{ background: 'linear-gradient(135deg, #d97706, #92400e)' }}
             >
                 {t('getStarted')}
                 <ChevronRightIcon width={18} />
-            </motion.button>
-        </motion.div>
+            </button>
+        </div>
     )
 }
 
@@ -182,41 +152,70 @@ function ScreenWelcome({ onNext }: { onNext: () => void }) {
    SCREEN 1 — THE PROBLEM
 ══════════════════════════════════════════════════════════ */
 
-function ScreenProblem({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }) {
+function ScreenProblem({ onNext, onSkip, onBack }: { onNext: () => void; onSkip: () => void; onBack: () => void }) {
     const { t } = useTranslation('onboarding')
 
+    const problems = [
+        { icon: <EyeOffIcon width={16} />,      label: t('problem1'), sub: t('problem1Sub'), color: 'text-rose-400' },
+        { icon: <TrendingDownIcon width={16} />, label: t('problem2'), sub: t('problem2Sub'), color: 'text-orange-400' },
+        { icon: <Gamepad2Icon width={16} />,     label: t('problem3'), sub: t('problem3Sub'), color: 'text-violet-400' },
+        { icon: <TimerIcon width={16} />,        label: t('problem4'), sub: t('problem4Sub'), color: 'text-amber-400' },
+    ]
+
     const stats = [
-        { value: t('stat1Value'), label: t('stat1Label'), color: 'text-rose-400', bg: 'bg-rose-500/8 border-rose-500/15' },
-        { value: t('stat2Value'), label: t('stat2Label'), color: 'text-amber-400', bg: 'bg-amber-500/8 border-amber-500/15' },
+        { value: t('stat1Value'), label: t('stat1Label'), color: 'text-rose-400',   bg: 'bg-rose-500/8 border-rose-500/15' },
+        { value: t('stat2Value'), label: t('stat2Label'), color: 'text-amber-400',  bg: 'bg-amber-500/8 border-amber-500/15' },
         { value: t('stat3Value'), label: t('stat3Label'), color: 'text-violet-400', bg: 'bg-violet-500/8 border-violet-500/15' },
     ]
 
     return (
-        <motion.div variants={stagger} initial="hidden" animate="show" className="py-6">
-            <motion.div variants={fadeUp} className="mb-7 text-center">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold mb-4">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-                    {t('problemTitle').split(' ').slice(0, 2).join(' ')}
+        <div className="py-2">
+            <div className="flex justify-center mb-3">
+            <div className="flex gap-8" style={{ height: '80vh', width: '60vw' }}>
+                {/* Image — left, ~48 % of container width */}
+                <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/60 flex-shrink-0" style={{ flex: '0 0 48%' }}>
+                    <img src={imgProblem} alt="" className="w-full h-full object-cover object-top" />
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-3 leading-snug">{t('problemTitle')}</h2>
-                <p className="text-zinc-500 text-sm leading-relaxed max-w-sm mx-auto">{t('problemDesc')}</p>
-            </motion.div>
 
-            <div className="grid grid-cols-3 gap-3 mb-2">
-                {stats.map((s, i) => (
-                    <motion.div
-                        key={i}
-                        variants={fadeUp}
-                        className={`p-4 rounded-xl border ${s.bg} text-center`}
-                    >
-                        <p className={`text-2xl font-bold font-mono tabular-nums mb-1 ${s.color}`}>{s.value}</p>
-                        <p className="text-[10px] text-zinc-500 leading-snug">{s.label}</p>
-                    </motion.div>
-                ))}
+                {/* All text — right column, scrollable */}
+                <div className="flex-1 min-w-0 flex flex-col justify-start overflow-y-auto py-1">
+                    <div className="stagger mb-3">
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold mb-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse shrink-0" />
+                            {t('problemBadge')}
+                        </div>
+                        <h2 className="text-xl font-bold text-white mb-2 leading-snug">{t('problemTitle')}</h2>
+                        <p className="text-sm text-zinc-400 leading-relaxed">{t('problemDesc')}</p>
+                    </div>
+
+                    {/* Problem pills — single column */}
+                    <div className="stagger space-y-1.5 mb-3">
+                        {problems.map((p, i) => (
+                            <div key={i} className="flex items-center gap-2 px-2.5 py-2 rounded-xl bg-zinc-900/70 border border-zinc-800">
+                                <span className={`shrink-0 ${p.color}`}>{p.icon}</span>
+                                <div>
+                                    <p className="text-[13px] font-semibold text-white leading-tight">{p.label}</p>
+                                    <p className="text-[11px] text-zinc-500 leading-snug">{p.sub}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Stats */}
+                    <div className="stagger grid grid-cols-3 gap-1.5">
+                        {stats.map((s, i) => (
+                            <div key={i} className={`px-1 py-2 rounded-xl border ${s.bg} text-center`}>
+                                <p className={`text-[15px] font-bold font-mono tabular-nums leading-none mb-1 ${s.color}`}>{s.value}</p>
+                                <p className="text-[10px] text-zinc-500 leading-snug">{s.label}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
             </div>
 
-            <Nav onNext={onNext} onSkipToEnd={onSkip} />
-        </motion.div>
+            <Nav onNext={onNext} onSkipToEnd={onSkip} onBack={onBack} />
+        </div>
     )
 }
 
@@ -224,24 +223,24 @@ function ScreenProblem({ onNext, onSkip }: { onNext: () => void; onSkip: () => v
    SCREEN 2 — FEATURES
 ══════════════════════════════════════════════════════════ */
 
-function ScreenFeatures({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }) {
+function ScreenFeatures({ onNext, onSkip, onBack }: { onNext: () => void; onSkip: () => void; onBack: () => void }) {
     const { t } = useTranslation('onboarding')
 
     const features = [
         {
-            icon: <BanIcon className="text-rose-400" width={22} />,
+            icon: <BanIcon className="text-rose-400" width={20} />,
             bg: 'bg-rose-500/10 border-rose-500/20',
             title: t('feat1Title'),
             desc: t('feat1Desc'),
         },
         {
-            icon: <ShieldAlertIcon fill="currentColor" stroke="#8b0836" className="text-rose-400" width={22} />,
+            icon: <ShieldAlertIcon fill="currentColor" stroke="#8b0836" className="text-rose-400" width={20} />,
             bg: 'bg-rose-500/10 border-rose-500/20',
             title: t('feat2Title'),
             desc: t('feat2Desc'),
         },
         {
-            icon: <UsersIcon className="text-amber-400" width={22} />,
+            icon: <CalendarIcon className="text-amber-400" width={20} />,
             bg: 'bg-amber-500/10 border-amber-500/20',
             title: t('feat3Title'),
             desc: t('feat3Desc'),
@@ -249,31 +248,30 @@ function ScreenFeatures({ onNext, onSkip }: { onNext: () => void; onSkip: () => 
     ]
 
     return (
-        <motion.div variants={stagger} initial="hidden" animate="show" className="py-6">
-            <motion.div variants={fadeUp} className="mb-7 text-center">
-                <h2 className="text-2xl font-bold text-white mb-2">{t('solutionTitle')}</h2>
-            </motion.div>
+        <div className="py-6">
+            <div className="stagger mb-5 text-center">
+                <h2 className="text-2xl font-bold text-white mb-1">{t('solutionTitle')}</h2>
+            </div>
 
-            <div className="space-y-3 mb-2">
+            <div className="stagger space-y-3 mb-2">
                 {features.map((f, i) => (
-                    <motion.div
+                    <div
                         key={i}
-                        variants={fadeUp}
                         className="flex items-start gap-4 p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 transition-colors"
                     >
                         <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${f.bg}`}>
                             {f.icon}
                         </div>
                         <div>
-                            <p className="text-sm font-semibold text-white mb-0.5">{f.title}</p>
-                            <p className="text-xs text-zinc-500 leading-relaxed">{f.desc}</p>
+                            <p className="text-[15px] font-semibold text-white mb-1">{f.title}</p>
+                            <p className="text-[13px] text-zinc-400 leading-relaxed">{f.desc}</p>
                         </div>
-                    </motion.div>
+                    </div>
                 ))}
             </div>
 
-            <Nav onNext={onNext} onSkipToEnd={onSkip} />
-        </motion.div>
+            <Nav onNext={onNext} onSkipToEnd={onSkip} onBack={onBack} />
+        </div>
     )
 }
 
@@ -281,61 +279,58 @@ function ScreenFeatures({ onNext, onSkip }: { onNext: () => void; onSkip: () => 
    SCREEN 3 — GOAL SELECTION
 ══════════════════════════════════════════════════════════ */
 
-function ScreenGoal({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }) {
+function ScreenGoal({ onNext, onSkip, onBack }: { onNext: () => void; onSkip: () => void; onBack: () => void }) {
     const { t } = useTranslation('onboarding')
     const [selected, setSelected] = useState<number | null>(null)
 
     const goals = [
-        { icon: <BriefcaseIcon width={22} />, label: t('goal1'), color: 'text-blue-400', activeBg: 'border-blue-500/50 bg-blue-500/8' },
-        { icon: <BookOpenIcon width={22} />, label: t('goal2'), color: 'text-emerald-400', activeBg: 'border-emerald-500/50 bg-emerald-500/8' },
-        { icon: <SmartphoneIcon width={22} />, label: t('goal3'), color: 'text-rose-400', activeBg: 'border-rose-500/50 bg-rose-500/8' },
-        { icon: <StarIcon width={22} />, label: t('goal4'), color: 'text-amber-400', activeBg: 'border-amber-500/50 bg-amber-500/8' },
+        { image: imgGoalWork,  icon: <BriefcaseIcon width={22} />, label: t('goal1'), color: 'text-blue-300',    ring: 'ring-blue-500/60' },
+        { image: imgGoalStudy, icon: <BookOpenIcon width={22} />,  label: t('goal2'), color: 'text-emerald-300', ring: 'ring-emerald-500/60' },
+        { image: imgGoalDetox, icon: <SmartphoneIcon width={22} />,label: t('goal3'), color: 'text-rose-300',    ring: 'ring-rose-500/60' },
+        { image: imgGoalPers,  icon: <StarIcon width={22} />,      label: t('goal4'), color: 'text-amber-300',   ring: 'ring-amber-500/60' },
     ]
 
     return (
-        <motion.div variants={stagger} initial="hidden" animate="show" className="py-6">
-            <motion.div variants={fadeUp} className="mb-7 text-center">
+        <div className="py-6">
+            <div className="stagger mb-6 text-center">
                 <h2 className="text-2xl font-bold text-white mb-2">{t('goalTitle')}</h2>
-                <p className="text-zinc-500 text-sm">{t('goalSubtitle')}</p>
-            </motion.div>
-
-            <div className="grid grid-cols-2 gap-3 mb-2">
-                {goals.map((g, i) => (
-                    <motion.button
-                        key={i}
-                        variants={fadeUp}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.97 }}
-                        onClick={() => setSelected(i)}
-                        className={`relative p-5 rounded-xl border text-left transition-all duration-200 ${
-                            selected === i
-                                ? `${g.activeBg} ${g.color}`
-                                : 'border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-700'
-                        }`}
-                    >
-                        {selected === i && (
-                            <motion.div
-                                layoutId="goal-check"
-                                className="absolute top-2.5 right-2.5 w-4 h-4 rounded-full bg-white/20 flex items-center justify-center"
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-                            >
-                                <CheckIcon width={10} strokeWidth={3} className="text-white" />
-                            </motion.div>
-                        )}
-                        <div className={`mb-2 ${selected === i ? g.color : 'text-zinc-500'}`}>{g.icon}</div>
-                        <p className="text-sm font-semibold text-white">{g.label}</p>
-                    </motion.button>
-                ))}
+                <p className="text-zinc-400 text-sm">{t('goalSubtitle')}</p>
             </div>
 
-            <Nav
-                onNext={onNext}
-                onSkipToEnd={onSkip}
-                nextDisabled={selected === null}
-            />
-        </motion.div>
+            <div className="stagger grid grid-cols-2 gap-3 mb-2">
+                {goals.map((g, i) => {
+                    const isSelected = selected === i
+                    return (
+                        <button
+                            key={i}
+                            onClick={() => setSelected(i)}
+                            className={`relative rounded-xl overflow-hidden text-left transition-all duration-200 active:scale-[0.97] ${
+                                isSelected ? `ring-2 ${g.ring}` : 'ring-0'
+                            }`}
+                            style={{ height: '190px' }}
+                        >
+                            {/* Background image */}
+                            <img src={g.image} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                            {/* Overlay — lighter when selected */}
+                            <div className={`absolute inset-0 transition-opacity duration-200 ${isSelected ? 'bg-black/40' : 'bg-black/60'}`} />
+                            {/* Checkmark */}
+                            {isSelected && (
+                                <div className="check-pop absolute top-3 right-3 w-5 h-5 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center">
+                                    <CheckIcon width={11} strokeWidth={3} className="text-white" />
+                                </div>
+                            )}
+                            {/* Label */}
+                            <div className="relative p-4 flex flex-col justify-end h-full">
+                                <div className={`mb-1.5 ${g.color}`}>{g.icon}</div>
+                                <p className="text-[15px] font-semibold text-white drop-shadow">{g.label}</p>
+                            </div>
+                        </button>
+                    )
+                })}
+            </div>
+
+            <Nav onNext={onNext} onSkipToEnd={onSkip} onBack={onBack} nextDisabled={selected === null} />
+        </div>
     )
 }
 
@@ -343,70 +338,70 @@ function ScreenGoal({ onNext, onSkip }: { onNext: () => void; onSkip: () => void
    SCREEN 4 — CTA
 ══════════════════════════════════════════════════════════ */
 
-function ScreenCta({ onCreateAccount, onSkipAccount }: {
+function ScreenCta({ onCreateAccount, onSkipAccount, onBack }: {
     onCreateAccount: () => void
     onSkipAccount: () => void
+    onBack: () => void
 }) {
     const { t } = useTranslation('onboarding')
-
     const benefits = [t('ctaBenefit1'), t('ctaBenefit2'), t('ctaBenefit3')]
 
     return (
-        <motion.div
-            variants={stagger} initial="hidden" animate="show"
-            className="py-6 flex flex-col items-center text-center"
-        >
-            {/* Logo small */}
-            <motion.div variants={fadeUp} className="mb-5">
-                <div className="w-14 h-14 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center">
-                    <img src={logo} alt="BlockWeb Master" className="w-8 h-8" />
+        <div className="py-2">
+            <div className="flex justify-center">
+            <div className="flex gap-8" style={{ height: '80vh', width: '60vw' }}>
+                {/* Image — left, ~48 % of container width */}
+                <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/60 flex-shrink-0" style={{ flex: '0 0 48%' }}>
+                    <img src={imgCta} alt="" className="w-full h-full object-cover object-center" />
                 </div>
-            </motion.div>
 
-            <motion.h2 variants={fadeUp} className="text-2xl font-bold text-white mb-2">
-                {t('ctaTitle')}
-            </motion.h2>
-            <motion.p variants={fadeUp} className="text-zinc-400 text-sm leading-relaxed max-w-xs mb-7">
-                {t('ctaSubtitle')}
-            </motion.p>
+                {/* All text — right column, scrollable */}
+                <div className="flex-1 min-w-0 flex flex-col justify-center overflow-y-auto py-2">
+                    <div className="stagger mb-4">
+                        <h2 className="text-xl font-bold text-white mb-2 leading-snug">{t('ctaTitle')}</h2>
+                        <p className="text-sm text-zinc-400 leading-relaxed">{t('ctaSubtitle')}</p>
+                    </div>
 
-            {/* Benefits */}
-            <motion.div variants={stagger} className="w-full space-y-2 mb-8 max-w-xs">
-                {benefits.map((b, i) => (
-                    <motion.div
-                        key={i}
-                        variants={fadeUp}
-                        className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800 text-left"
-                    >
-                        <div className="w-5 h-5 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center shrink-0">
-                            <CheckIcon width={10} strokeWidth={3} className="text-emerald-400" />
-                        </div>
-                        <p className="text-xs text-zinc-300">{b}</p>
-                    </motion.div>
-                ))}
-            </motion.div>
+                    {/* Benefits */}
+                    <div className="stagger-benefits space-y-2 mb-5">
+                        {benefits.map((b, i) => (
+                            <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-900/60 border border-zinc-800">
+                                <div className="w-4 h-4 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                                    <CheckIcon width={8} strokeWidth={3} className="text-emerald-400" />
+                                </div>
+                                <p className="text-[13px] text-zinc-300">{b}</p>
+                            </div>
+                        ))}
+                    </div>
 
-            {/* CTA buttons */}
-            <motion.div variants={fadeUp} className="w-full max-w-xs space-y-3">
-                <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.97 }}
-                    onClick={onCreateAccount}
-                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-white font-semibold text-sm shadow-xl shadow-rose-900/30 transition-all"
-                    style={{ background: 'linear-gradient(135deg, #e11d48, #be123c)' }}
-                >
-                    {t('ctaCreate')}
-                    <ChevronRightIcon width={14} />
-                </motion.button>
-
-                <button
-                    onClick={onSkipAccount}
-                    className="w-full py-2.5 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
-                >
-                    {t('ctaSkip')}
-                </button>
-            </motion.div>
-        </motion.div>
+                    {/* CTA buttons */}
+                    <div className="stagger space-y-2">
+                        <button
+                            onClick={onCreateAccount}
+                            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-white font-semibold text-sm shadow-xl shadow-amber-900/20 transition-all hover:brightness-110 active:scale-[0.97]"
+                            style={{ background: 'linear-gradient(135deg, #d97706, #92400e)' }}
+                        >
+                            {t('ctaCreate')}
+                            <ChevronRightIcon width={14} />
+                        </button>
+                        <button
+                            onClick={onSkipAccount}
+                            className="w-full py-2 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+                        >
+                            {t('ctaSkip')}
+                        </button>
+                        <button
+                            onClick={onBack}
+                            className="w-full flex items-center justify-center gap-1 py-1.5 text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
+                        >
+                            <ChevronLeftIcon width={12} />
+                            {t('back')}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
     )
 }
 
@@ -425,56 +420,51 @@ function markCompleted(cb: () => void) {
 
 export default function OnboardingApp() {
     const [screen, setScreen] = useState(0)
-    const [dir, setDir] = useState(1)
+    const [dir, setDir] = useState<'forward' | 'backward'>('forward')
+    const [animKey, setAnimKey] = useState(0)
 
     const go = useCallback((target: number) => {
-        setDir(target > screen ? 1 : -1)
+        setDir(target > screen ? 'forward' : 'backward')
         setScreen(target)
+        setAnimKey(k => k + 1)
     }, [screen])
 
     const next = () => go(screen + 1)
+    const back = () => go(screen - 1)
     const skipToEnd = () => go(TOTAL - 1)
 
     const finish = (openAuth: boolean) => {
         markCompleted(() => {
-            if (openAuth) {
-                // @ts-ignore
-                window.location.href = chrome.runtime.getURL('src/auth/index.html')
-            } else {
-                // @ts-ignore
-                window.location.href = chrome.runtime.getURL('src/dashboard/index.html')
-            }
+            // @ts-ignore
+            window.location.href = chrome.runtime.getURL(
+                openAuth ? 'src/auth/index.html' : 'src/dashboard/index.html'
+            )
         })
     }
 
     return (
-        <div className="min-h-screen bg-zinc-950 relative">
+        <div className="min-h-screen relative">
             <Blobs />
 
             <div className="relative z-10 min-h-screen flex flex-col">
                 <div className="flex-1 flex items-center justify-center px-4 py-6">
-                    <div className="w-full max-w-md">
-                        <AnimatePresence mode="wait" custom={dir}>
-                            <motion.div
-                                key={screen}
-                                custom={dir}
-                                variants={slide}
-                                initial="enter"
-                                animate="center"
-                                exit="exit"
-                            >
-                                {screen === 0 && <ScreenWelcome onNext={next} />}
-                                {screen === 1 && <ScreenProblem onNext={next} onSkip={skipToEnd} />}
-                                {screen === 2 && <ScreenFeatures onNext={next} onSkip={skipToEnd} />}
-                                {screen === 3 && <ScreenGoal onNext={next} onSkip={skipToEnd} />}
-                                {screen === 4 && (
-                                    <ScreenCta
-                                        onCreateAccount={() => finish(true)}
-                                        onSkipAccount={() => finish(false)}
-                                    />
-                                )}
-                            </motion.div>
-                        </AnimatePresence>
+                    <div>
+                        <div
+                            key={animKey}
+                            className={dir === 'forward' ? 'screen-forward' : 'screen-backward'}
+                        >
+                            {screen === 0 && <ScreenWelcome onNext={next} />}
+                            {screen === 1 && <ScreenProblem onNext={next} onSkip={skipToEnd} onBack={back} />}
+                            {screen === 2 && <ScreenFeatures onNext={next} onSkip={skipToEnd} onBack={back} />}
+                            {screen === 3 && <ScreenGoal onNext={next} onSkip={skipToEnd} onBack={back} />}
+                            {screen === 4 && (
+                                <ScreenCta
+                                    onCreateAccount={() => finish(true)}
+                                    onSkipAccount={() => finish(false)}
+                                    onBack={back}
+                                />
+                            )}
+                        </div>
 
                         <Dots current={screen} />
                     </div>

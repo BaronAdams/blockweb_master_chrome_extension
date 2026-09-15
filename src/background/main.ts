@@ -183,6 +183,7 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
         detectedAdultDomains: [],
         customProductivitySites: [],
         onboardingCompleted: false,
+        welcomeShown: false,
     }
 
     const existing = await chrome.storage.local.get('blockweb_master_state')

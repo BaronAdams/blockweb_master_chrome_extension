@@ -4,16 +4,95 @@ html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
-  background-color: #09090b;
+  background:
+    radial-gradient(ellipse 70% 50% at 20% 10%, rgba(245, 158, 11, 0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 45% at 80% 90%, rgba(234, 179, 8, 0.05) 0%, transparent 55%),
+    #09090b;
   color: #fafafa;
   font-family: 'Inter', system-ui, sans-serif;
 }
 
-* {
-  font-family: 'Inter', system-ui, sans-serif;
-  box-sizing: border-box;
-}
+* { font-family: 'Inter', system-ui, sans-serif; box-sizing: border-box; }
 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+/* ── Screen transitions ─────────────────────────────────── */
+@keyframes slideFromRight {
+  from { opacity: 0; transform: translateX(48px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideFromLeft {
+  from { opacity: 0; transform: translateX(-48px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.screen-forward  { animation: slideFromRight 0.38s ease-out both; }
+.screen-backward { animation: slideFromLeft  0.38s ease-out both; }
+
+/* ── Content stagger ────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.stagger > * { animation: fadeUp 0.35s ease-out both; opacity: 0; }
+.stagger > *:nth-child(1) { animation-delay: 0.07s; }
+.stagger > *:nth-child(2) { animation-delay: 0.15s; }
+.stagger > *:nth-child(3) { animation-delay: 0.22s; }
+.stagger > *:nth-child(4) { animation-delay: 0.30s; }
+.stagger > *:nth-child(5) { animation-delay: 0.37s; }
+.stagger > *:nth-child(6) { animation-delay: 0.44s; }
+.stagger > *:nth-child(7) { animation-delay: 0.52s; }
+
+/* ── Logo pop-in ────────────────────────────────────────── */
+@keyframes popIn {
+  0%   { opacity: 0; transform: scale(0.5); }
+  65%  { transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.logo-pop { animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+/* ── Blobs ─────────────────────────────────────────────── */
+@keyframes blobFloat1 {
+  0%, 100% { transform: translate(0, 0); }
+  50%       { transform: translate(35px, -25px); }
+}
+@keyframes blobFloat2 {
+  0%, 100% { transform: translate(0, 0); }
+  50%       { transform: translate(-28px, 22px); }
+}
+@keyframes blobFloat3 {
+  0%, 100% { transform: translate(0, 0); }
+  50%       { transform: translate(20px, -28px); }
+}
+
+.blob-1 { animation: blobFloat1 10s ease-in-out infinite; }
+.blob-2 { animation: blobFloat2 13s ease-in-out infinite 2s; }
+.blob-3 { animation: blobFloat3 16s ease-in-out infinite 4s; }
+
+/* ── Progress dot ───────────────────────────────────────── */
+.dot {
+  height: 6px;
+  border-radius: 9999px;
+  background: #3f3f46;
+  transition: width 0.2s ease, background-color 0.2s ease;
+}
+.dot-active   { width: 24px; background: #f59e0b; }
+.dot-past     { width: 6px;  background: #92400e; }
+.dot-inactive { width: 6px;  background: #3f3f46; }
+
+/* ── Goal check ─────────────────────────────────────────── */
+@keyframes checkPop {
+  from { opacity: 0; transform: scale(0); }
+  60%  { transform: scale(1.2); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.check-pop { animation: checkPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+/* ── Benefit checkmark ──────────────────────────────────── */
+.stagger-benefits > * { animation: fadeUp 0.35s ease-out both; opacity: 0; }
+.stagger-benefits > *:nth-child(1) { animation-delay: 0.12s; }
+.stagger-benefits > *:nth-child(2) { animation-delay: 0.22s; }
+.stagger-benefits > *:nth-child(3) { animation-delay: 0.32s; }

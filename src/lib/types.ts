@@ -154,4 +154,5 @@ export type State = {
    */
   customProductivitySites: string[];
   onboardingCompleted: boolean;
+  welcomeShown: boolean;
 };

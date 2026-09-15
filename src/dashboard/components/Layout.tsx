@@ -6,14 +6,49 @@ import { useEffect } from 'react'
 import { sendToBackground } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
 import i18n from '@/lib/i18n'
+import confetti from 'canvas-confetti'
+import { toast } from 'sonner'
+import { CheckCircle2 } from 'lucide-react'
 
 const Layout = () => {
     const { t } = useTranslation('sidebar')
     const { t: tp } = useTranslation('popup')
     const { t: ts } = useTranslation('strictMode')
     const { t: tc } = useTranslation('common')
+    const { t: to } = useTranslation('onboarding')
     const { state } = useStateContext();
     const location = useLocation();
+
+    /* ── Welcome confetti + toast (first dashboard visit after onboarding) ── */
+    useEffect(() => {
+        const STORAGE_KEY = 'blockweb_master_state'
+        // @ts-ignore
+        chrome.storage.local.get(STORAGE_KEY, (res: any) => {
+            const s = res[STORAGE_KEY] ?? {}
+            if (!s.onboardingCompleted || s.welcomeShown) return
+
+            // Mark as shown immediately so it never fires twice
+            // @ts-ignore
+            chrome.storage.local.set({ [STORAGE_KEY]: { ...s, welcomeShown: true } })
+
+            // Confetti burst
+            const burst = () => confetti({
+                particleCount: 120,
+                spread: 80,
+                origin: { y: 0.55 },
+                colors: ['#f59e0b', '#fbbf24', '#ffffff', '#34d399', '#818cf8'],
+            })
+            burst()
+            setTimeout(burst, 350)
+
+            // Toast
+            toast(to('welcomeTitle'), {
+                description: to('welcomeDesc'),
+                icon: <CheckCircle2 className="text-emerald-500" size={20} />,
+                duration: 6000,
+            })
+        })
+    }, [])
 
     useEffect(() => {
         const locale = i18n.language
