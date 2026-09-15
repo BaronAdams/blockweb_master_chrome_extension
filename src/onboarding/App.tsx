@@ -15,6 +15,8 @@ import imgGoalPers  from '@/assets/onboarding/ob-goal-personal.jpg'
 import "@fontsource/inter/400.css"
 import "@fontsource/inter/600.css"
 import "@fontsource/inter/700.css"
+import "@fontsource/montserrat/400.css"
+import "@fontsource/montserrat/700.css"
 
 /* ─── constants ─────────────────────────────────────────── */
 
@@ -114,12 +116,16 @@ function ScreenWelcome({ onNext }: { onNext: () => void }) {
             </div>
 
             {/* Title */}
-            <h1 className="text-4xl font-bold text-white mb-4 tracking-tight">
+            <h1
+                className="text-4xl font-bold text-white mb-4 tracking-tight"
+                translate="no"
+                style={{ fontFamily: 'Montserrat, sans-serif', userSelect: 'none' }}
+            >
                 <span className="bg-gradient-to-r from-white via-zinc-100 to-zinc-400 bg-clip-text text-transparent">
                     BlockWeb
                 </span>
                 {' '}
-                <span className="bg-gradient-to-r from-amber-300 to-yellow-500 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-white via-zinc-100 to-zinc-400 bg-clip-text text-transparent">
                     Master
                 </span>
             </h1>
@@ -165,7 +171,7 @@ function ScreenProblem({ onNext, onSkip, onBack }: { onNext: () => void; onSkip:
     return (
         <div className="py-2">
             <div className="flex justify-center mb-3">
-            <div className="flex gap-8" style={{ height: '80vh', width: '75vw' }}>
+            <div className="flex gap-8" style={{ height: '80vh', width: '60vw' }}>
                 {/* Image — left, ~48 % of container width */}
                 <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/60 flex-shrink-0" style={{ flex: '0 0 48%' }}>
                     <img src={imgProblem} alt="" className="w-full h-full object-cover object-top" />
@@ -174,12 +180,12 @@ function ScreenProblem({ onNext, onSkip, onBack }: { onNext: () => void; onSkip:
                 {/* All text — right column, scrollable */}
                 <div className="flex-1 min-w-0 flex flex-col justify-start overflow-y-auto py-1">
                     <div className="stagger mb-3">
-                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-semibold mb-2">
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold mb-2">
                             <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse shrink-0" />
                             {t('problemBadge')}
                         </div>
-                        <h2 className="text-[17px] font-bold text-white mb-2 leading-snug">{t('problemTitle')}</h2>
-                        <p className="text-[12px] text-zinc-400 leading-relaxed">{t('problemDesc')}</p>
+                        <h2 className="text-xl font-bold text-white mb-2 leading-snug">{t('problemTitle')}</h2>
+                        <p className="text-sm text-zinc-400 leading-relaxed">{t('problemDesc')}</p>
                     </div>
 
                     {/* Problem pills — single column */}
@@ -188,8 +194,8 @@ function ScreenProblem({ onNext, onSkip, onBack }: { onNext: () => void; onSkip:
                             <div key={i} className="flex items-center gap-2 px-2.5 py-2 rounded-xl bg-zinc-900/70 border border-zinc-800">
                                 <span className={`shrink-0 ${p.color}`}>{p.icon}</span>
                                 <div>
-                                    <p className="text-[11px] font-semibold text-white leading-tight">{p.label}</p>
-                                    <p className="text-[9px] text-zinc-500 leading-snug">{p.sub}</p>
+                                    <p className="text-[13px] font-semibold text-white leading-tight">{p.label}</p>
+                                    <p className="text-[11px] text-zinc-500 leading-snug">{p.sub}</p>
                                 </div>
                             </div>
                         ))}
@@ -199,8 +205,8 @@ function ScreenProblem({ onNext, onSkip, onBack }: { onNext: () => void; onSkip:
                     <div className="stagger grid grid-cols-3 gap-1.5">
                         {stats.map((s, i) => (
                             <div key={i} className={`px-1 py-2 rounded-xl border ${s.bg} text-center`}>
-                                <p className={`text-[13px] font-bold font-mono tabular-nums leading-none mb-1 ${s.color}`}>{s.value}</p>
-                                <p className="text-[8px] text-zinc-500 leading-snug">{s.label}</p>
+                                <p className={`text-[15px] font-bold font-mono tabular-nums leading-none mb-1 ${s.color}`}>{s.value}</p>
+                                <p className="text-[10px] text-zinc-500 leading-snug">{s.label}</p>
                             </div>
                         ))}
                     </div>
@@ -343,7 +349,7 @@ function ScreenCta({ onCreateAccount, onSkipAccount, onBack }: {
     return (
         <div className="py-2">
             <div className="flex justify-center">
-            <div className="flex gap-8" style={{ height: '80vh', width: '75vw' }}>
+            <div className="flex gap-8" style={{ height: '80vh', width: '60vw' }}>
                 {/* Image — left, ~48 % of container width */}
                 <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/60 flex-shrink-0" style={{ flex: '0 0 48%' }}>
                     <img src={imgCta} alt="" className="w-full h-full object-cover object-center" />
@@ -352,8 +358,8 @@ function ScreenCta({ onCreateAccount, onSkipAccount, onBack }: {
                 {/* All text — right column, scrollable */}
                 <div className="flex-1 min-w-0 flex flex-col justify-center overflow-y-auto py-2">
                     <div className="stagger mb-4">
-                        <h2 className="text-[20px] font-bold text-white mb-2 leading-snug">{t('ctaTitle')}</h2>
-                        <p className="text-[12px] text-zinc-400 leading-relaxed">{t('ctaSubtitle')}</p>
+                        <h2 className="text-xl font-bold text-white mb-2 leading-snug">{t('ctaTitle')}</h2>
+                        <p className="text-sm text-zinc-400 leading-relaxed">{t('ctaSubtitle')}</p>
                     </div>
 
                     {/* Benefits */}
@@ -363,7 +369,7 @@ function ScreenCta({ onCreateAccount, onSkipAccount, onBack }: {
                                 <div className="w-4 h-4 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center shrink-0">
                                     <CheckIcon width={8} strokeWidth={3} className="text-emerald-400" />
                                 </div>
-                                <p className="text-[11px] text-zinc-300">{b}</p>
+                                <p className="text-[13px] text-zinc-300">{b}</p>
                             </div>
                         ))}
                     </div>
@@ -442,7 +448,7 @@ export default function OnboardingApp() {
 
             <div className="relative z-10 min-h-screen flex flex-col">
                 <div className="flex-1 flex items-center justify-center px-4 py-6">
-                    <div className="w-full max-w-md">
+                    <div>
                         <div
                             key={animKey}
                             className={dir === 'forward' ? 'screen-forward' : 'screen-backward'}
