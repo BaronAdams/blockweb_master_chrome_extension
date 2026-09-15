@@ -152,8 +152,8 @@ function ScreenProblem({ onNext, onSkip }: { onNext: () => void; onSkip: () => v
 
     return (
         <div className="py-2">
-            {/* HStack centered in container — image ~48 %, gap-8, text flex-1 */}
-            <div className="flex gap-8 mx-auto mb-3" style={{ height: '80vh', width: '75vw' }}>
+            <div className="flex justify-center mb-3">
+            <div className="flex gap-8" style={{ height: '80vh', width: '75vw' }}>
                 {/* Image — left, ~48 % of container width */}
                 <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/60 flex-shrink-0" style={{ flex: '0 0 48%' }}>
                     <img src={imgProblem} alt="" className="w-full h-full object-cover object-top" />
@@ -193,6 +193,7 @@ function ScreenProblem({ onNext, onSkip }: { onNext: () => void; onSkip: () => v
                         ))}
                     </div>
                 </div>
+            </div>
             </div>
 
             <Nav onNext={onNext} onSkipToEnd={onSkip} />
@@ -328,8 +329,8 @@ function ScreenCta({ onCreateAccount, onSkipAccount }: {
 
     return (
         <div className="py-2">
-            {/* HStack centered in container — image ~48 %, gap-8, text flex-1 */}
-            <div className="flex gap-8 mx-auto" style={{ height: '80vh', width: '75vw' }}>
+            <div className="flex justify-center">
+            <div className="flex gap-8" style={{ height: '80vh', width: '75vw' }}>
                 {/* Image — left, ~48 % of container width */}
                 <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/60 flex-shrink-0" style={{ flex: '0 0 48%' }}>
                     <img src={imgCta} alt="" className="w-full h-full object-cover object-center" />
@@ -372,6 +373,7 @@ function ScreenCta({ onCreateAccount, onSkipAccount }: {
                         </button>
                     </div>
                 </div>
+            </div>
             </div>
         </div>
     )
