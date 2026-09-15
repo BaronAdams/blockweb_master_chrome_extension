@@ -6,11 +6,12 @@ import {
     EyeOffIcon, TrendingDownIcon, Gamepad2Icon, TimerIcon,
 } from 'lucide-react'
 import logo from '@/assets/blockweb_master_icon.svg'
-import imgProblem    from '@/assets/onboarding/ob-problem.jpg'
-import imgCta        from '@/assets/onboarding/ob-cta.jpg'
-import imgFeatBlock  from '@/assets/onboarding/ob-feat-block.png'
-import imgFeatStrict from '@/assets/onboarding/ob-feat-strict.png'
-import imgFeatProfs  from '@/assets/onboarding/ob-feat-profiles.jpg'
+import imgProblem  from '@/assets/onboarding/ob-problem.jpg'
+import imgCta      from '@/assets/onboarding/ob-cta.jpg'
+import imgGoalWork  from '@/assets/onboarding/ob-goal-work.jpg'
+import imgGoalStudy from '@/assets/onboarding/ob-goal-study.jpg'
+import imgGoalDetox from '@/assets/onboarding/ob-goal-detox.jpg'
+import imgGoalPers  from '@/assets/onboarding/ob-goal-personal.jpg'
 import "@fontsource/inter/400.css"
 import "@fontsource/inter/600.css"
 import "@fontsource/inter/700.css"
@@ -151,10 +152,10 @@ function ScreenProblem({ onNext, onSkip }: { onNext: () => void; onSkip: () => v
 
     return (
         <div className="py-2">
-            {/* HStack: image left (80 vh) + ALL text content right */}
-            <div className="flex gap-3 mb-3" style={{ height: '80vh' }}>
-                {/* Image — left column, full height */}
-                <div className="flex-shrink-0 rounded-2xl overflow-hidden shadow-2xl shadow-black/60" style={{ width: '44%' }}>
+            {/* HStack: image + gap = 85 vw; text fills the remaining ~15 vw */}
+            <div className="flex gap-5 mb-3" style={{ height: '80vh' }}>
+                {/* Image — left column, dominates width */}
+                <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/60" style={{ width: 'calc(85vw - 1.25rem)', flexShrink: 0 }}>
                     <img src={imgProblem} alt="" className="w-full h-full object-cover object-top" />
                 </div>
 
@@ -208,21 +209,18 @@ function ScreenFeatures({ onNext, onSkip }: { onNext: () => void; onSkip: () => 
 
     const features = [
         {
-            image: imgFeatBlock,
             icon: <BanIcon className="text-rose-400" width={20} />,
             bg: 'bg-rose-500/10 border-rose-500/20',
             title: t('feat1Title'),
             desc: t('feat1Desc'),
         },
         {
-            image: imgFeatStrict,
             icon: <ShieldAlertIcon fill="currentColor" stroke="#8b0836" className="text-rose-400" width={20} />,
             bg: 'bg-rose-500/10 border-rose-500/20',
             title: t('feat2Title'),
             desc: t('feat2Desc'),
         },
         {
-            image: imgFeatProfs,
             icon: <CalendarIcon className="text-amber-400" width={20} />,
             bg: 'bg-amber-500/10 border-amber-500/20',
             title: t('feat3Title'),
@@ -231,30 +229,23 @@ function ScreenFeatures({ onNext, onSkip }: { onNext: () => void; onSkip: () => 
     ]
 
     return (
-        <div className="py-4">
+        <div className="py-6">
             <div className="stagger mb-5 text-center">
                 <h2 className="text-2xl font-bold text-white mb-1">{t('solutionTitle')}</h2>
             </div>
 
-            <div className="stagger space-y-5 mb-2">
+            <div className="stagger space-y-3 mb-2">
                 {features.map((f, i) => (
                     <div
                         key={i}
-                        className="rounded-2xl bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 transition-colors overflow-hidden"
+                        className="flex items-start gap-4 p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 transition-colors"
                     >
-                        {/* Feature image — ~3× bigger (was ~100 px → 300 px) */}
-                        <div className="w-full overflow-hidden" style={{ height: '300px' }}>
-                            <img src={f.image} alt="" className="w-full h-full object-cover object-center" />
+                        <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${f.bg}`}>
+                            {f.icon}
                         </div>
-                        {/* Text */}
-                        <div className="flex items-start gap-4 p-5">
-                            <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${f.bg}`}>
-                                {f.icon}
-                            </div>
-                            <div>
-                                <p className="text-[16px] font-bold text-white mb-1">{f.title}</p>
-                                <p className="text-[13px] text-zinc-400 leading-relaxed">{f.desc}</p>
-                            </div>
+                        <div>
+                            <p className="text-[15px] font-semibold text-white mb-1">{f.title}</p>
+                            <p className="text-[13px] text-zinc-400 leading-relaxed">{f.desc}</p>
                         </div>
                     </div>
                 ))}
@@ -274,10 +265,10 @@ function ScreenGoal({ onNext, onSkip }: { onNext: () => void; onSkip: () => void
     const [selected, setSelected] = useState<number | null>(null)
 
     const goals = [
-        { icon: <BriefcaseIcon width={24} />, label: t('goal1'), color: 'text-blue-400',    activeBorder: 'border-blue-500/50',    activeBg: 'bg-blue-500/10' },
-        { icon: <BookOpenIcon width={24} />,  label: t('goal2'), color: 'text-emerald-400', activeBorder: 'border-emerald-500/50', activeBg: 'bg-emerald-500/10' },
-        { icon: <SmartphoneIcon width={24} />,label: t('goal3'), color: 'text-rose-400',    activeBorder: 'border-rose-500/50',    activeBg: 'bg-rose-500/10' },
-        { icon: <StarIcon width={24} />,      label: t('goal4'), color: 'text-amber-400',   activeBorder: 'border-amber-500/50',   activeBg: 'bg-amber-500/10' },
+        { image: imgGoalWork,  icon: <BriefcaseIcon width={22} />, label: t('goal1'), color: 'text-blue-300',    ring: 'ring-blue-500/60' },
+        { image: imgGoalStudy, icon: <BookOpenIcon width={22} />,  label: t('goal2'), color: 'text-emerald-300', ring: 'ring-emerald-500/60' },
+        { image: imgGoalDetox, icon: <SmartphoneIcon width={22} />,label: t('goal3'), color: 'text-rose-300',    ring: 'ring-rose-500/60' },
+        { image: imgGoalPers,  icon: <StarIcon width={22} />,      label: t('goal4'), color: 'text-amber-300',   ring: 'ring-amber-500/60' },
     ]
 
     return (
@@ -294,20 +285,26 @@ function ScreenGoal({ onNext, onSkip }: { onNext: () => void; onSkip: () => void
                         <button
                             key={i}
                             onClick={() => setSelected(i)}
-                            className={`relative p-5 rounded-xl border text-left transition-all duration-200 hover:brightness-110 active:scale-[0.97] ${
-                                isSelected
-                                    ? `${g.activeBorder} ${g.activeBg}`
-                                    : 'border-zinc-800 bg-zinc-900/50 hover:border-zinc-700'
+                            className={`relative rounded-xl overflow-hidden text-left transition-all duration-200 active:scale-[0.97] ${
+                                isSelected ? `ring-2 ${g.ring}` : 'ring-0'
                             }`}
-                            style={{ minHeight: '140px' }}
+                            style={{ minHeight: '350px' }}
                         >
+                            {/* Background image */}
+                            <img src={g.image} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                            {/* Overlay — lighter when selected */}
+                            <div className={`absolute inset-0 transition-opacity duration-200 ${isSelected ? 'bg-black/40' : 'bg-black/60'}`} />
+                            {/* Checkmark */}
                             {isSelected && (
-                                <div className="check-pop absolute top-3 right-3 w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
+                                <div className="check-pop absolute top-3 right-3 w-5 h-5 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center">
                                     <CheckIcon width={11} strokeWidth={3} className="text-white" />
                                 </div>
                             )}
-                            <div className={`mb-3 transition-colors ${isSelected ? g.color : 'text-zinc-500'}`}>{g.icon}</div>
-                            <p className="text-[15px] font-semibold text-white">{g.label}</p>
+                            {/* Label */}
+                            <div className="relative p-4 flex flex-col justify-end h-full" style={{ minHeight: '350px' }}>
+                                <div className={`mb-1.5 ${g.color}`}>{g.icon}</div>
+                                <p className="text-[15px] font-semibold text-white drop-shadow">{g.label}</p>
+                            </div>
                         </button>
                     )
                 })}
@@ -331,10 +328,10 @@ function ScreenCta({ onCreateAccount, onSkipAccount }: {
 
     return (
         <div className="py-2">
-            {/* HStack: image left (80 vh) + ALL text content right */}
-            <div className="flex gap-3" style={{ height: '80vh' }}>
-                {/* Image — left column, full height */}
-                <div className="flex-shrink-0 rounded-2xl overflow-hidden shadow-2xl shadow-black/60" style={{ width: '44%' }}>
+            {/* HStack: image + gap = 85 vw; text fills the remaining ~15 vw */}
+            <div className="flex gap-5" style={{ height: '80vh' }}>
+                {/* Image — left column, dominates width */}
+                <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/60" style={{ width: 'calc(85vw - 1.25rem)', flexShrink: 0 }}>
                     <img src={imgCta} alt="" className="w-full h-full object-cover object-center" />
                 </div>
 
