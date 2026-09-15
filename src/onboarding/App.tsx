@@ -152,14 +152,14 @@ function ScreenProblem({ onNext, onSkip }: { onNext: () => void; onSkip: () => v
 
     return (
         <div className="py-2">
-            {/* HStack: total width = 85 vw (image + gap + text together) */}
-            <div className="flex gap-5 mb-3" style={{ height: '80vh', width: '85vw' }}>
-                {/* Image — takes ~70 % of the 85 vw container */}
-                <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/60" style={{ flex: '0 0 70%', minWidth: 0 }}>
+            {/* HStack centered in container — image ~48 %, gap-8, text flex-1 */}
+            <div className="flex gap-8 w-full mb-3" style={{ height: '80vh' }}>
+                {/* Image — left, ~48 % of container width */}
+                <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/60 flex-shrink-0" style={{ flex: '0 0 48%' }}>
                     <img src={imgProblem} alt="" className="w-full h-full object-cover object-top" />
                 </div>
 
-                {/* All text — right column, scrollable, gets the remaining ~30 % */}
+                {/* All text — right column, scrollable */}
                 <div className="flex-1 min-w-0 flex flex-col justify-start overflow-y-auto py-1">
                     <div className="stagger mb-3">
                         <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-semibold mb-2">
@@ -278,7 +278,7 @@ function ScreenGoal({ onNext, onSkip }: { onNext: () => void; onSkip: () => void
                 <p className="text-zinc-400 text-sm">{t('goalSubtitle')}</p>
             </div>
 
-            <div className="stagger grid grid-cols-1 gap-3 mb-2">
+            <div className="stagger grid grid-cols-2 gap-3 mb-2">
                 {goals.map((g, i) => {
                     const isSelected = selected === i
                     return (
@@ -328,14 +328,14 @@ function ScreenCta({ onCreateAccount, onSkipAccount }: {
 
     return (
         <div className="py-2">
-            {/* HStack: total width = 85 vw (image + gap + text together) */}
-            <div className="flex gap-5" style={{ height: '80vh', width: '85vw' }}>
-                {/* Image — takes ~70 % of the 85 vw container */}
-                <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/60" style={{ flex: '0 0 70%', minWidth: 0 }}>
+            {/* HStack centered in container — image ~48 %, gap-8, text flex-1 */}
+            <div className="flex gap-8 w-full" style={{ height: '80vh' }}>
+                {/* Image — left, ~48 % of container width */}
+                <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/60 flex-shrink-0" style={{ flex: '0 0 48%' }}>
                     <img src={imgCta} alt="" className="w-full h-full object-cover object-center" />
                 </div>
 
-                {/* All text — right column, scrollable, gets the remaining ~30 % */}
+                {/* All text — right column, scrollable */}
                 <div className="flex-1 min-w-0 flex flex-col justify-center overflow-y-auto py-2">
                     <div className="stagger mb-4">
                         <h2 className="text-[20px] font-bold text-white mb-2 leading-snug">{t('ctaTitle')}</h2>
