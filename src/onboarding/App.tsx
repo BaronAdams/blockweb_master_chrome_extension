@@ -153,7 +153,7 @@ function ScreenProblem({ onNext, onSkip }: { onNext: () => void; onSkip: () => v
     return (
         <div className="py-2">
             {/* HStack centered in container — image ~48 %, gap-8, text flex-1 */}
-            <div className="flex gap-8 w-full mb-3" style={{ height: '80vh' }}>
+            <div className="flex gap-8 mb-3" style={{ height: '80vh', width: '75vw' }}>
                 {/* Image — left, ~48 % of container width */}
                 <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/60 flex-shrink-0" style={{ flex: '0 0 48%' }}>
                     <img src={imgProblem} alt="" className="w-full h-full object-cover object-top" />
@@ -329,7 +329,7 @@ function ScreenCta({ onCreateAccount, onSkipAccount }: {
     return (
         <div className="py-2">
             {/* HStack centered in container — image ~48 %, gap-8, text flex-1 */}
-            <div className="flex gap-8 w-full" style={{ height: '80vh' }}>
+            <div className="flex gap-8" style={{ height: '80vh', width: '75vw' }}>
                 {/* Image — left, ~48 % of container width */}
                 <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/60 flex-shrink-0" style={{ flex: '0 0 48%' }}>
                     <img src={imgCta} alt="" className="w-full h-full object-cover object-center" />
