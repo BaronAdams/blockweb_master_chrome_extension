@@ -649,7 +649,10 @@
     "problem3": "Uzaleznienie od gier",
     "problem3Sub": "Kariera, nauka i relacje na tym cierpia",
     "problem4": "Nieskonczzone scrollowanie",
-    "problem4Sub": "38 dni twojego roku bezpowrotnie straconych"
+    "problem4Sub": "38 dni twojego roku bezpowrotnie straconych",
+    "back": "Wstecz",
+    "welcomeTitle": "Gratulacje 🥳",
+    "welcomeDesc": "Właśnie zrobiłeś pierwszy krok w kierunku swojego cyfrowego dobrostanu. Brawo! Dyscyplina to klucz."
   },
   "_manifest": {
     "appDescription": "Blokuj rozpraszające strony i treści dla dorosłych. Pozostań skupiony z limitami czasu, profilami i Trybem Ścisłym."

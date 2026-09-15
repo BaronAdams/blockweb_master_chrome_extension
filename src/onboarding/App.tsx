@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-    BanIcon, ShieldAlertIcon, CalendarIcon, ChevronRightIcon,
+    BanIcon, ShieldAlertIcon, CalendarIcon, ChevronRightIcon, ChevronLeftIcon,
     CheckIcon, BriefcaseIcon, BookOpenIcon, SmartphoneIcon, StarIcon,
     EyeOffIcon, TrendingDownIcon, Gamepad2Icon, TimerIcon,
 } from 'lucide-react'
@@ -53,23 +53,35 @@ function Dots({ current }: { current: number }) {
 interface NavProps {
     onNext: () => void
     onSkipToEnd: () => void
+    onBack?: () => void
     nextLabel?: string
     nextDisabled?: boolean
     showSkip?: boolean
 }
 
-function Nav({ onNext, onSkipToEnd, nextLabel, nextDisabled, showSkip = true }: NavProps) {
+function Nav({ onNext, onSkipToEnd, onBack, nextLabel, nextDisabled, showSkip = true }: NavProps) {
     const { t } = useTranslation('onboarding')
     return (
         <div className="flex items-center justify-between mt-8 pt-4 border-t border-zinc-800/60">
-            {showSkip ? (
-                <button
-                    onClick={onSkipToEnd}
-                    className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors px-1 py-1"
-                >
-                    {t('skip')} →
-                </button>
-            ) : <div />}
+            <div className="flex items-center gap-3">
+                {onBack && (
+                    <button
+                        onClick={onBack}
+                        className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300 transition-colors px-1 py-1"
+                    >
+                        <ChevronLeftIcon width={13} />
+                        {t('back')}
+                    </button>
+                )}
+                {showSkip && (
+                    <button
+                        onClick={onSkipToEnd}
+                        className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors px-1 py-1"
+                    >
+                        {t('skip')} →
+                    </button>
+                )}
+            </div>
             <button
                 onClick={onNext}
                 disabled={nextDisabled}
@@ -134,7 +146,7 @@ function ScreenWelcome({ onNext }: { onNext: () => void }) {
    SCREEN 1 — THE PROBLEM
 ══════════════════════════════════════════════════════════ */
 
-function ScreenProblem({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }) {
+function ScreenProblem({ onNext, onSkip, onBack }: { onNext: () => void; onSkip: () => void; onBack: () => void }) {
     const { t } = useTranslation('onboarding')
 
     const problems = [
@@ -196,7 +208,7 @@ function ScreenProblem({ onNext, onSkip }: { onNext: () => void; onSkip: () => v
             </div>
             </div>
 
-            <Nav onNext={onNext} onSkipToEnd={onSkip} />
+            <Nav onNext={onNext} onSkipToEnd={onSkip} onBack={onBack} />
         </div>
     )
 }
@@ -205,7 +217,7 @@ function ScreenProblem({ onNext, onSkip }: { onNext: () => void; onSkip: () => v
    SCREEN 2 — FEATURES
 ══════════════════════════════════════════════════════════ */
 
-function ScreenFeatures({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }) {
+function ScreenFeatures({ onNext, onSkip, onBack }: { onNext: () => void; onSkip: () => void; onBack: () => void }) {
     const { t } = useTranslation('onboarding')
 
     const features = [
@@ -252,7 +264,7 @@ function ScreenFeatures({ onNext, onSkip }: { onNext: () => void; onSkip: () => 
                 ))}
             </div>
 
-            <Nav onNext={onNext} onSkipToEnd={onSkip} />
+            <Nav onNext={onNext} onSkipToEnd={onSkip} onBack={onBack} />
         </div>
     )
 }
@@ -261,7 +273,7 @@ function ScreenFeatures({ onNext, onSkip }: { onNext: () => void; onSkip: () => 
    SCREEN 3 — GOAL SELECTION
 ══════════════════════════════════════════════════════════ */
 
-function ScreenGoal({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }) {
+function ScreenGoal({ onNext, onSkip, onBack }: { onNext: () => void; onSkip: () => void; onBack: () => void }) {
     const { t } = useTranslation('onboarding')
     const [selected, setSelected] = useState<number | null>(null)
 
@@ -311,7 +323,7 @@ function ScreenGoal({ onNext, onSkip }: { onNext: () => void; onSkip: () => void
                 })}
             </div>
 
-            <Nav onNext={onNext} onSkipToEnd={onSkip} nextDisabled={selected === null} />
+            <Nav onNext={onNext} onSkipToEnd={onSkip} onBack={onBack} nextDisabled={selected === null} />
         </div>
     )
 }
@@ -320,9 +332,10 @@ function ScreenGoal({ onNext, onSkip }: { onNext: () => void; onSkip: () => void
    SCREEN 4 — CTA
 ══════════════════════════════════════════════════════════ */
 
-function ScreenCta({ onCreateAccount, onSkipAccount }: {
+function ScreenCta({ onCreateAccount, onSkipAccount, onBack }: {
     onCreateAccount: () => void
     onSkipAccount: () => void
+    onBack: () => void
 }) {
     const { t } = useTranslation('onboarding')
     const benefits = [t('ctaBenefit1'), t('ctaBenefit2'), t('ctaBenefit3')]
@@ -371,6 +384,13 @@ function ScreenCta({ onCreateAccount, onSkipAccount }: {
                         >
                             {t('ctaSkip')}
                         </button>
+                        <button
+                            onClick={onBack}
+                            className="w-full flex items-center justify-center gap-1 py-1.5 text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
+                        >
+                            <ChevronLeftIcon width={12} />
+                            {t('back')}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -404,6 +424,7 @@ export default function OnboardingApp() {
     }, [screen])
 
     const next = () => go(screen + 1)
+    const back = () => go(screen - 1)
     const skipToEnd = () => go(TOTAL - 1)
 
     const finish = (openAuth: boolean) => {
@@ -427,13 +448,14 @@ export default function OnboardingApp() {
                             className={dir === 'forward' ? 'screen-forward' : 'screen-backward'}
                         >
                             {screen === 0 && <ScreenWelcome onNext={next} />}
-                            {screen === 1 && <ScreenProblem onNext={next} onSkip={skipToEnd} />}
-                            {screen === 2 && <ScreenFeatures onNext={next} onSkip={skipToEnd} />}
-                            {screen === 3 && <ScreenGoal onNext={next} onSkip={skipToEnd} />}
+                            {screen === 1 && <ScreenProblem onNext={next} onSkip={skipToEnd} onBack={back} />}
+                            {screen === 2 && <ScreenFeatures onNext={next} onSkip={skipToEnd} onBack={back} />}
+                            {screen === 3 && <ScreenGoal onNext={next} onSkip={skipToEnd} onBack={back} />}
                             {screen === 4 && (
                                 <ScreenCta
                                     onCreateAccount={() => finish(true)}
                                     onSkipAccount={() => finish(false)}
+                                    onBack={back}
                                 />
                             )}
                         </div>

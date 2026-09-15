@@ -649,7 +649,10 @@
     "problem3": "Videospelverslaving",
     "problem3Sub": "Carriere, studie en relaties lijden eronder",
     "problem4": "Eindeloos scrollen",
-    "problem4Sub": "38 dagen van je jaar, voor altijd verdwenen"
+    "problem4Sub": "38 dagen van je jaar, voor altijd verdwenen",
+    "back": "Terug",
+    "welcomeTitle": "Gefeliciteerd 🥳",
+    "welcomeDesc": "Je hebt zojuist de eerste stap gezet naar je digitale welzijn. Goed gedaan! Discipline is de sleutel."
   },
   "_manifest": {
     "appDescription": "Blokkeer afleidende sites en volwasseneninhoud. Blijf gefocust met tijdslimieten, profielen en Strikte Modus."

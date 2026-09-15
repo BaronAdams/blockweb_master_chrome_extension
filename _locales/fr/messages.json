@@ -649,7 +649,10 @@
     "problem3": "Addiction aux jeux video",
     "problem3Sub": "Carriere, etudes et relations en souffrent",
     "problem4": "Scroll infini",
-    "problem4Sub": "38 jours de votre vie perdus chaque annee"
+    "problem4Sub": "38 jours de votre vie perdus chaque annee",
+    "back": "Retour",
+    "welcomeTitle": "Félicitations 🥳",
+    "welcomeDesc": "Vous venez de faire le premier pas vers votre bien-être numérique. Bravo ! La discipline c'est la clé."
   },
   "_manifest": {
     "appDescription": "Bloquez sites distrayants et contenu adulte. Restez concentré avec des limites de temps, des profils et le Mode Strict."

@@ -649,7 +649,10 @@
     "problem3": "Vicio em videojogos",
     "problem3Sub": "Carreira, estudos e relacoes sofrem",
     "problem4": "Scroll interminavel",
-    "problem4Sub": "38 dias do teu ano, perdidos para sempre"
+    "problem4Sub": "38 dias do teu ano, perdidos para sempre",
+    "back": "Voltar",
+    "welcomeTitle": "Parabéns 🥳",
+    "welcomeDesc": "Acabaste de dar o primeiro passo rumo ao teu bem-estar digital. Bravo! A disciplina é a chave."
   },
   "_manifest": {
     "appDescription": "Bloqueia sites distrativos e conteúdo adulto. Mantém o foco com limites de tempo, perfis e Modo Estrito."

@@ -649,7 +649,10 @@
     "problem3": "Dipendenza dai videogiochi",
     "problem3Sub": "Carriera, studi e relazioni ne soffrono",
     "problem4": "Scroll infinito",
-    "problem4Sub": "38 giorni del tuo anno, persi per sempre"
+    "problem4Sub": "38 giorni del tuo anno, persi per sempre",
+    "back": "Indietro",
+    "welcomeTitle": "Congratulazioni 🥳",
+    "welcomeDesc": "Hai appena fatto il primo passo verso il tuo benessere digitale. Bravo! La disciplina è la chiave."
   },
   "_manifest": {
     "appDescription": "Blocca siti distraenti e contenuti per adulti. Rimani concentrato con limiti di tempo, profili e Modalità Rigida."

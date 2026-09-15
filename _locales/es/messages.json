@@ -649,7 +649,10 @@
     "problem3": "Adiccion a los videojuegos",
     "problem3Sub": "Carrera, estudios y relaciones lo sufren",
     "problem4": "Scroll infinito",
-    "problem4Sub": "38 dias de tu ano, perdidos para siempre"
+    "problem4Sub": "38 dias de tu ano, perdidos para siempre",
+    "back": "Atrás",
+    "welcomeTitle": "¡Felicitaciones 🥳",
+    "welcomeDesc": "Acabas de dar el primer paso hacia tu bienestar digital. ¡Bravo! La disciplina es la clave."
   },
   "_manifest": {
     "appDescription": "Bloquea sitios distractores y contenido adulto. Mantente enfocado con límites de tiempo, perfiles y Modo Estricto."

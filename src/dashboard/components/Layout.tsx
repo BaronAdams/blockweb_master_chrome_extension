@@ -15,6 +15,7 @@ const Layout = () => {
     const { t: tp } = useTranslation('popup')
     const { t: ts } = useTranslation('strictMode')
     const { t: tc } = useTranslation('common')
+    const { t: to } = useTranslation('onboarding')
     const { state } = useStateContext();
     const location = useLocation();
 
@@ -41,8 +42,8 @@ const Layout = () => {
             setTimeout(burst, 350)
 
             // Toast
-            toast('Félicitations 🥳', {
-                description: 'Vous venez de faire le premier pas vers votre bien-être numérique. Bravo ! La discipline c\'est la clé',
+            toast(to('welcomeTitle'), {
+                description: to('welcomeDesc'),
                 icon: <CheckCircle2 className="text-emerald-500" size={20} />,
                 duration: 6000,
             })

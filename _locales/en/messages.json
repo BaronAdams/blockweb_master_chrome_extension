@@ -649,7 +649,10 @@
     "problem3": "Video game addiction",
     "problem3Sub": "Career, studies & relationships suffer",
     "problem4": "Endless scrolling",
-    "problem4Sub": "38 days of your year, gone forever"
+    "problem4Sub": "38 days of your year, gone forever",
+    "back": "Back",
+    "welcomeTitle": "Congratulations 🥳",
+    "welcomeDesc": "You've just taken the first step toward your digital well-being. Well done! Discipline is the key."
   },
   "_manifest": {
     "appDescription": "Block distracting websites and adult content. Stay focused with time limits, profiles, and an unbreakable Strict Mode."

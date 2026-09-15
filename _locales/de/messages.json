@@ -649,7 +649,10 @@
     "problem3": "Videospielsucht",
     "problem3Sub": "Karriere, Studium und Beziehungen leiden",
     "problem4": "Endloses Scrollen",
-    "problem4Sub": "38 Tage deines Jahres, fur immer verloren"
+    "problem4Sub": "38 Tage deines Jahres, fur immer verloren",
+    "back": "Zurück",
+    "welcomeTitle": "Herzlichen Glückwunsch 🥳",
+    "welcomeDesc": "Du hast gerade den ersten Schritt zu deinem digitalen Wohlbefinden gemacht. Großartig! Disziplin ist der Schlüssel."
   },
   "_manifest": {
     "appDescription": "Blockiere ablenkende Seiten und Inhalte für Erwachsene. Konzentriert bleiben mit Zeitlimits, Profilen und Striktem Modus."

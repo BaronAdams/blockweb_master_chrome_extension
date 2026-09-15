@@ -649,7 +649,10 @@
     "problem3": "游戏成瘾",
     "problem3Sub": "学业、工作和人际关系深受影响",
     "problem4": "无尽刷屏",
-    "problem4Sub": "每年38天就这样白白流逝"
+    "problem4Sub": "每年38天就这样白白流逝",
+    "back": "返回",
+    "welcomeTitle": "恭喜 🥳",
+    "welcomeDesc": "您刚刚迈出了数字健康生活的第一步。太棒了！自律是关键。"
   },
   "_manifest": {
     "appDescription": "屏蔽分心网站与成人内容，通过时间限制、配置文件和严格模式保持专注。"
