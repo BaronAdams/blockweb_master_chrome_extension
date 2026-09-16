@@ -1,5 +1,6 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import Sidebar from './Sidebar'
+import WhatsNewBanner from './WhatsNewBanner'
 import { useStateContext } from '@/context/GlobalStateContext';
 import { Toaster } from "@/components/ui/sonner"
 import { useEffect } from 'react'
@@ -132,6 +133,7 @@ const Layout = () => {
                             </div>
                         </div>
                     </header>
+                    <WhatsNewBanner />
                     <div className="p-8 max-w-5xl mx-auto pb-20">
                         <Outlet />
                     </div>

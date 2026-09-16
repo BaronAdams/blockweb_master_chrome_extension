@@ -654,6 +654,12 @@
     "welcomeTitle": "Congratulations 🥳",
     "welcomeDesc": "You've just taken the first step toward your digital well-being. Well done! Discipline is the key."
   },
+  "whatsNew": {
+    "title": "What's New in v1.1.0",
+    "adultFreeTitle": "Adult content blocking is now free",
+    "adultFreeDesc": "The adult content blocker (+18 sites) is now available on the Free plan — no subscription required.",
+    "dismiss": "Got it"
+  },
   "_manifest": {
     "appDescription": "Block distracting websites and adult content. Stay focused with time limits, scheduled blocks, and an unbreakable Strict Mode."
   }

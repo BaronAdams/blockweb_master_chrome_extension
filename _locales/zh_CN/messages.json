@@ -654,6 +654,12 @@
     "welcomeTitle": "恭喜 🥳",
     "welcomeDesc": "您刚刚迈出了数字健康生活的第一步。太棒了！自律是关键。"
   },
+  "whatsNew": {
+    "title": "v1.1.0 新功能",
+    "adultFreeTitle": "成人内容屏蔽现已免费",
+    "adultFreeDesc": "成人内容屏蔽功能（18+ 网站）现已在免费版中提供——无需订阅。",
+    "dismiss": "知道了"
+  },
   "_manifest": {
     "appDescription": "屏蔽令人分心的网站和成人内容。通过时间限制、定时屏蔽和坚不可摧的严格模式保持专注。"
   }

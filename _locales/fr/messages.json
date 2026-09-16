@@ -654,6 +654,12 @@
     "welcomeTitle": "Félicitations 🥳",
     "welcomeDesc": "Vous venez de faire le premier pas vers votre bien-être numérique. Bravo ! La discipline c'est la clé."
   },
+  "whatsNew": {
+    "title": "Quoi de neuf dans la v1.1.0",
+    "adultFreeTitle": "Le blocage adultes est désormais gratuit",
+    "adultFreeDesc": "Le blocage de contenu adulte (sites +18) est maintenant disponible dans le plan Gratuit — aucun abonnement requis.",
+    "dismiss": "Compris"
+  },
   "_manifest": {
     "appDescription": "Bloquez les sites distrayants et les contenus pour adultes. Restez concentré avec des limites de temps, des blocages programmés et un Mode Strict imparable."
   }

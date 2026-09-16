@@ -654,6 +654,12 @@
     "welcomeTitle": "Gratulacje 🥳",
     "welcomeDesc": "Właśnie zrobiłeś pierwszy krok w kierunku swojego cyfrowego dobrostanu. Brawo! Dyscyplina to klucz."
   },
+  "whatsNew": {
+    "title": "Co nowego w v1.1.0",
+    "adultFreeTitle": "Blokowanie treści dla dorosłych jest teraz darmowe",
+    "adultFreeDesc": "Blokowanie treści dla dorosłych (strony +18) jest teraz dostępne w planie Darmowym — bez subskrypcji.",
+    "dismiss": "Rozumiem"
+  },
   "_manifest": {
     "appDescription": "Blokuj rozpraszające strony i treści dla dorosłych. Pozostań skupiony dzięki limitom czasu, zaplanowanym blokadom i niezłomnemu Trybowi Ścisłemu."
   }
