@@ -298,6 +298,17 @@ chrome.runtime.onStartup.addListener(async () => {
     if (state.auth.isAuthenticated && state.auth.refreshToken) {
         syncAuth()
     }
+
+    // ── What's New : rattraper les utilisateurs qui ont manqué onInstalled ──
+    // Si l'utilisateur est sur la version courante mais n'a jamais acquitté
+    // ce What's New (ni en cours d'affichage, ni déjà vu), on arme le badge.
+    const version = chrome.runtime.getManifest().version
+    const stored = await chrome.storage.local.get(['pendingWhatsNew', 'whatsNewAcked'])
+    if (stored.whatsNewAcked !== version && stored.pendingWhatsNew !== version) {
+        chrome.action.setBadgeText({ text: '!' })
+        chrome.action.setBadgeBackgroundColor({ color: '#f59e0b' })
+        await chrome.storage.local.set({ pendingWhatsNew: version })
+    }
 })
 
 /* =========================================================

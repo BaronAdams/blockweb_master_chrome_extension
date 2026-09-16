@@ -19,6 +19,8 @@ export default function WhatsNewBanner() {
         setVisible(false)
         // @ts-ignore
         chrome.storage.local.remove('pendingWhatsNew')
+        // @ts-ignore
+        chrome.storage.local.set({ whatsNewAcked: CURRENT_VERSION })
         chrome.action.setBadgeText({ text: '' })
     }
 
