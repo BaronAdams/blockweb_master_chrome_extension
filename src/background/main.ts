@@ -205,6 +205,36 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
         chrome.action.setBadgeText({ text: '!' })
         chrome.action.setBadgeBackgroundColor({ color: '#f59e0b' })
         await chrome.storage.local.set({ pendingWhatsNew: version })
+
+        // Notification Chrome localisée
+        const lang = chrome.i18n.getUILanguage().toLowerCase()
+        const notifStrings: Record<string, { title: string; message: string }> = {
+            fr: { title: `BlockWeb Master v${version} — Quoi de neuf`, message: 'Le blocage de contenu adulte (sites +18) est maintenant disponible dans le plan Gratuit.' },
+            de: { title: `BlockWeb Master v${version} — Neuigkeiten`, message: 'Die Blockierung von Erwachseneninhalten (18+-Seiten) ist jetzt im Gratis-Plan verfügbar.' },
+            es: { title: `BlockWeb Master v${version} — Novedades`, message: 'El bloqueador de contenido adulto (sitios +18) está ahora disponible en el plan Gratuito.' },
+            it: { title: `BlockWeb Master v${version} — Novità`, message: 'Il blocco dei contenuti per adulti (siti +18) è ora disponibile nel piano Gratuito.' },
+            pt: { title: `BlockWeb Master v${version} — Novidades`, message: 'O bloqueador de conteúdo adulto (sites +18) está agora disponível no plano Gratuito.' },
+            nl: { title: `BlockWeb Master v${version} — Nieuw`, message: 'De blokkering van volwasseneninhoud (+18-sites) is nu beschikbaar in het Gratis-abonnement.' },
+            pl: { title: `BlockWeb Master v${version} — Co nowego`, message: 'Blokowanie treści dla dorosłych (strony +18) jest teraz dostępne w planie Darmowym.' },
+            ru: { title: `BlockWeb Master v${version} — Что нового`, message: 'Блокировка контента для взрослых (сайты 18+) теперь доступна в бесплатном плане.' },
+            zh: { title: `BlockWeb Master v${version} — 新功能`, message: '成人内容屏蔽功能（18+ 网站）现已在免费版中提供。' },
+            ja: { title: `BlockWeb Master v${version} — 新機能`, message: 'アダルトコンテンツブロック（18+サイト）が無料プランでご利用いただけるようになりました。' },
+            ko: { title: `BlockWeb Master v${version} — 새 기능`, message: '성인 콘텐츠 차단(18+ 사이트)이 이제 무료 플랜에서 사용 가능합니다.' },
+            ar: { title: `BlockWeb Master v${version} — الجديد`, message: 'أصبح حجب المحتوى للبالغين (مواقع +18) متاحاً في الخطة المجانية.' },
+            hi: { title: `BlockWeb Master v${version} — नया क्या है`, message: 'वयस्क सामग्री ब्लॉकिंग (18+ साइटें) अब मुफ्त प्लान में उपलब्ध है।' },
+        }
+        // Cherche d'abord la langue exacte, puis le préfixe (ex. "fr-be" → "fr")
+        const key = Object.keys(notifStrings).find(k => lang === k || lang.startsWith(k + '-'))
+        const strings = key
+            ? notifStrings[key]
+            : { title: `BlockWeb Master v${version} — What's New`, message: 'Adult content blocking (+18 sites) is now available on the Free plan.' }
+
+        chrome.notifications.create(`whats-new-${version}`, {
+            type: 'basic',
+            iconUrl: 'public/icon48.png',
+            title: strings.title,
+            message: strings.message,
+        })
     }
 
     // Page affichée si l'extension est désinstallée en mode strict.
