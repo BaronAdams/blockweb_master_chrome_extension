@@ -25,26 +25,53 @@ export default function WhatsNewBanner() {
     if (!visible) return null
 
     return (
-        <div className="mx-8 mt-6 flex items-start gap-4 rounded-xl border border-amber-500/30 bg-amber-500/8 px-5 py-4">
-            <Sparkles className="mt-0.5 shrink-0 text-amber-400" size={18} />
+        <div
+            className="mx-8 mt-6 flex items-start gap-4 rounded-xl px-5 py-4"
+            style={{
+                background: 'linear-gradient(135deg, rgba(212,175,55,0.18) 0%, rgba(160,110,8,0.10) 50%, rgba(212,175,55,0.15) 100%)',
+                border: '1px solid rgba(200,150,12,0.38)',
+            }}
+        >
+            {/* Icône dorée */}
+            <Sparkles
+                className="mt-0.5 shrink-0"
+                size={17}
+                style={{ color: '#d4af37' }}
+            />
+
             <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-amber-300 uppercase tracking-wider mb-1">
+                {/* Label version — argenté */}
+                <p
+                    className="font-semibold uppercase tracking-wider mb-1"
+                    style={{ fontSize: '10.5px', color: '#a8afc4' }}
+                >
                     {t('title')}
                 </p>
-                <p className="text-sm font-medium text-white leading-snug">
+                {/* Titre principal — blanc pur */}
+                <p
+                    className="font-medium leading-snug"
+                    style={{ fontSize: '12.5px', color: '#ffffff' }}
+                >
                     {t('adultFreeTitle')}
                 </p>
-                <p className="mt-0.5 text-xs text-zinc-400 leading-relaxed">
+                {/* Description — gris doux */}
+                <p
+                    className="mt-0.5 leading-relaxed"
+                    style={{ fontSize: '10.5px', color: '#7a7f96' }}
+                >
                     {t('adultFreeDesc')}
                 </p>
             </div>
+
+            {/* Bouton dismiss — argenté, hover blanc */}
             <button
                 onClick={dismiss}
-                className="shrink-0 flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors mt-0.5"
+                className="shrink-0 flex items-center gap-1.5 transition-colors mt-0.5 hover:opacity-100"
+                style={{ fontSize: '10.5px', color: '#a8afc4' }}
                 aria-label={t('dismiss')}
             >
                 <span>{t('dismiss')}</span>
-                <X size={13} />
+                <X size={12} />
             </button>
         </div>
     )
