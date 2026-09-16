@@ -654,6 +654,12 @@
     "welcomeTitle": "Gefeliciteerd 🥳",
     "welcomeDesc": "Je hebt zojuist de eerste stap gezet naar je digitale welzijn. Goed gedaan! Discipline is de sleutel."
   },
+  "whatsNew": {
+    "title": "Nieuw in v1.1.0",
+    "adultFreeTitle": "Blokkering van volwasseneninhoud is nu gratis",
+    "adultFreeDesc": "De blokkering van volwasseneninhoud (+18-sites) is nu beschikbaar in het Gratis-abonnement — geen abonnement vereist.",
+    "dismiss": "Begrepen"
+  },
   "_manifest": {
     "appDescription": "Blokkeer afleidende websites en inhoud voor volwassenen. Blijf gefocust met tijdslimieten, geplande blokkades en een onbreekbare Strikte Modus."
   }

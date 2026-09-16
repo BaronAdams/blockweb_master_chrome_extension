@@ -654,6 +654,12 @@
     "welcomeTitle": "¡Felicitaciones 🥳",
     "welcomeDesc": "Acabas de dar el primer paso hacia tu bienestar digital. ¡Bravo! La disciplina es la clave."
   },
+  "whatsNew": {
+    "title": "Novedades en v1.1.0",
+    "adultFreeTitle": "El bloqueo de contenido adulto ahora es gratuito",
+    "adultFreeDesc": "El bloqueador de contenido adulto (sitios +18) está ahora disponible en el plan Gratuito — sin suscripción requerida.",
+    "dismiss": "Entendido"
+  },
   "_manifest": {
     "appDescription": "Bloquea sitios distrayentes y contenido para adultos. Mantente concentrado con límites de tiempo, bloqueos programados y un Modo Estricto inquebrantable."
   }

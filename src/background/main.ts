@@ -199,6 +199,14 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
         chrome.tabs.create({ url: chrome.runtime.getURL('src/onboarding/index.html') })
     }
 
+    // Badge + flag "Quoi de neuf" lors d'une mise à jour
+    if (reason === 'update') {
+        const version = chrome.runtime.getManifest().version
+        chrome.action.setBadgeText({ text: '!' })
+        chrome.action.setBadgeBackgroundColor({ color: '#f59e0b' })
+        await chrome.storage.local.set({ pendingWhatsNew: version })
+    }
+
     // Page affichée si l'extension est désinstallée en mode strict.
     // Chrome ne permet pas de bloquer la désinstallation — on peut seulement
     // ouvrir cette URL après coup pour rappeler à l'utilisateur son engagement.
