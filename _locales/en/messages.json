@@ -655,7 +655,7 @@
     "welcomeDesc": "You've just taken the first step toward your digital well-being. Well done! Discipline is the key."
   },
   "whatsNew": {
-    "title": "What's New in v1.1.0",
+    "title": "What's New in v{{version}}",
     "adultFreeTitle": "Adult content blocking is now free",
     "adultFreeDesc": "The adult content blocker (+18 sites) is now available on the Free plan — no subscription required.",
     "dismiss": "Got it"

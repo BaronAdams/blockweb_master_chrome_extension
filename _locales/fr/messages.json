@@ -655,7 +655,7 @@
     "welcomeDesc": "Vous venez de faire le premier pas vers votre bien-être numérique. Bravo ! La discipline c'est la clé."
   },
   "whatsNew": {
-    "title": "Quoi de neuf dans la v1.1.0",
+    "title": "Quoi de neuf dans la v{{version}}",
     "adultFreeTitle": "Le blocage adultes est désormais gratuit",
     "adultFreeDesc": "Le blocage de contenu adulte (sites +18) est maintenant disponible dans le plan Gratuit — aucun abonnement requis.",
     "dismiss": "Compris"

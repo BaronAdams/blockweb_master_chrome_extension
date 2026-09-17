@@ -655,7 +655,7 @@
     "welcomeDesc": "디지털 웰빙을 향한 첫 걸음을 내디뎠습니다. 잘 했어요! 자기 규율이 핵심입니다."
   },
   "whatsNew": {
-    "title": "v1.1.0 새 기능",
+    "title": "v{{version}} 새 기능",
     "adultFreeTitle": "성인 콘텐츠 차단이 이제 무료",
     "adultFreeDesc": "성인 콘텐츠 차단(18+ 사이트)이 이제 무료 플랜에서 사용 가능합니다 — 구독 필요 없음.",
     "dismiss": "알겠어요"

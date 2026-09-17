@@ -655,7 +655,7 @@
     "welcomeDesc": "Je hebt zojuist de eerste stap gezet naar je digitale welzijn. Goed gedaan! Discipline is de sleutel."
   },
   "whatsNew": {
-    "title": "Nieuw in v1.1.0",
+    "title": "Nieuw in v{{version}}",
     "adultFreeTitle": "Blokkering van volwasseneninhoud is nu gratis",
     "adultFreeDesc": "De blokkering van volwasseneninhoud (+18-sites) is nu beschikbaar in het Gratis-abonnement — geen abonnement vereist.",
     "dismiss": "Begrepen"

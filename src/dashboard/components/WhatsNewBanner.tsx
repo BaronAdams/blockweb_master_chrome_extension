@@ -47,7 +47,7 @@ export default function WhatsNewBanner() {
                     className="font-semibold uppercase tracking-wider mb-1"
                     style={{ fontSize: '10.5px', color: '#a8afc4' }}
                 >
-                    {t('title')}
+                    {t('title', { version: CURRENT_VERSION })}
                 </p>
                 {/* Titre principal — blanc pur */}
                 <p
