@@ -2,7 +2,7 @@
   "name": "BlockWeb Master",
   "description": "Block distracting websites and adult content. Stay focused with time limits, profiles, and an unbreakable Strict Mode.",
   "type": "module",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "scripts": {
     "dev": "vite",
